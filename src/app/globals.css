@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --background: #0b0e14;
+    --surface: #131722;
+    --surface-elevated: #1b2030;
+    --border: #2a3040;
+    --text-primary: #f2f4f8;
+    --text-secondary: #9aa3b2;
+    --brand-primary: #3b82f6;
+    --brand-accent: #7c3aed;
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --price: #facc15;
+  }
+
+  html.light {
+    --background: #f7f8fa;
+    --surface: #ffffff;
+    --surface-elevated: #ffffff;
+    --border: #e4e7ec;
+    --text-primary: #0f172a;
+    --text-secondary: #64748b;
+    --brand-primary: #2563eb;
+    --brand-accent: #7c3aed;
+    --success: #16a34a;
+    --warning: #d97706;
+    --danger: #dc2626;
+    --price: #ca8a04;
+  }
+}
+
+@theme {
+  --color-bg-base: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-border-main: var(--border);
+  --color-text-main: var(--text-primary);
+  --color-text-muted: var(--text-secondary);
+  --color-brand: var(--brand-primary);
+  --color-accent: var(--brand-accent);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-price: var(--price);
+
+  --font-heading: var(--font-be-vietnam-pro), var(--font-inter), system-ui, sans-serif;
+  --font-body: var(--font-inter), var(--font-be-vietnam-pro), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), monospace;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--brand-primary);
+}
