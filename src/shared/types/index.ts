@@ -10,7 +10,7 @@ export interface Category {
   name_vi: string;
   name_en: string;
   icon?: string;
-  sort_order: number;
+  sort_order?: number;
   parent_id?: string | null;
   created_at?: string;
 }
@@ -32,13 +32,13 @@ export interface ProductSpecs {
   base_clock_ghz?: number;
   boost_clock_ghz?: number;
   tdp_watts?: number;
-  ram_type?: "DDR4" | "DDR5";
+  ram_type?: "DDR4" | "DDR5" | string;
   ram_slots?: number;
   max_ram_gb?: number;
   capacity_gb?: number;
   speed_mhz?: number;
   chipset?: string;
-  form_factor?: "E-ATX" | "ATX" | "Micro-ATX" | "Mini-ITX" | "M.2 2280";
+  form_factor?: "E-ATX" | "ATX" | "Micro-ATX" | "Mini-ITX" | "M.2 2280" | string;
   vram_gb?: number;
   vram_type?: string;
   length_mm?: number;
@@ -145,4 +145,17 @@ export interface Order {
   notes?: string;
   created_at?: string;
   items?: CartItem[];
+}
+
+export interface Review {
+  id: string;
+  product_id: string;
+  user_id?: string | null;
+  author_name: string;
+  author_email?: string;
+  rating: number;
+  title?: string;
+  comment: string;
+  is_verified_purchase?: boolean;
+  created_at?: string;
 }
