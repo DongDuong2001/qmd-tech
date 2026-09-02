@@ -83,6 +83,7 @@ export function Header() {
                 src="/qmdtech_logo.png"
                 alt="QMD-Tech Logo"
                 fill
+                sizes="44px"
                 priority
                 className="object-cover"
               />

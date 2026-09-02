@@ -62,6 +62,7 @@ export function Footer() {
                   src="/qmdtech_logo.png"
                   alt="QMD-Tech Logo"
                   fill
+                  sizes="36px"
                   className="object-cover"
                 />
               </div>
