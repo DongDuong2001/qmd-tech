@@ -1,6 +1,5 @@
 import React from "react";
-import { Link } from "@/i18n/routing";
-import { BookOpen, Clock, User, ArrowRight } from "lucide-react";
+import { BookOpen, Clock } from "lucide-react";
 
 export const metadata = {
   title: "Tin Tức Công Nghệ & Hướng Dẫn Build PC | QMD-Tech",

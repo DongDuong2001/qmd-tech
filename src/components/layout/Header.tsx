@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Link } from "@/i18n/routing";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Search, ShoppingCart, Wrench, Menu, X, Cpu, Phone } from "lucide-react";
 import { LanguageSwitcher } from "../common/LanguageSwitcher";
 import { ThemeToggle } from "../common/ThemeToggle";
@@ -10,7 +10,6 @@ import { Button } from "../ui/button";
 
 export function Header() {
   const t = useTranslations();
-  const locale = useLocale();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 

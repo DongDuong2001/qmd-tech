@@ -1,6 +1,5 @@
 import React from "react";
 import { Link } from "@/i18n/routing";
-import { getTranslations } from "next-intl/server";
 import { CustomPcBuilder } from "@/components/builder/CustomPcBuilder";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
@@ -11,7 +10,6 @@ interface SavedBuildPageProps {
 
 export default async function SavedBuildPage({ params }: SavedBuildPageProps) {
   const { buildId } = await params;
-  const t = await getTranslations();
 
   return (
     <div className="space-y-6">

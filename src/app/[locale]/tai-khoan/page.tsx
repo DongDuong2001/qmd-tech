@@ -1,5 +1,4 @@
 import React from "react";
-import { Link } from "@/i18n/routing";
 import { User, Package, Wrench, Shield, MapPin } from "lucide-react";
 
 export const metadata = {

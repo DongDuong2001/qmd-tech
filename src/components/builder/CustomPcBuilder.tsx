@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import { ComponentSlot, Product, PerformanceTier } from "@/shared/types";
 import { compatibilityEngine } from "@/modules/builder/compatibilityEngine";
@@ -9,7 +8,6 @@ import { builderService } from "@/modules/builder/service";
 import { i18nService } from "@/modules/i18n/service";
 import { MOCK_PRODUCTS } from "@/modules/catalog/mockData";
 import { Button } from "../ui/button";
-import { Badge } from "../ui/badge";
 import { Modal } from "../ui/modal";
 import { ProductCard } from "../product/ProductCard";
 import {

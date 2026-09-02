@@ -1,7 +1,6 @@
 import React from "react";
 import { Link } from "@/i18n/routing";
 import { notFound } from "next/navigation";
-import { getTranslations } from "next-intl/server";
 import { catalogService } from "@/modules/catalog/service";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ArrowLeft } from "lucide-react";
@@ -30,7 +29,6 @@ export default async function CategoryDetailPage({ params }: CategoryPageProps) 
   }
 
   const { products } = await catalogService.getProducts({ categorySlug: category });
-  const t = await getTranslations();
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 space-y-8">

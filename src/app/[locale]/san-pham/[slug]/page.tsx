@@ -13,8 +13,6 @@ import {
   RotateCcw,
   ShoppingCart,
   Wrench,
-  CheckCircle2,
-  Share2,
 } from "lucide-react";
 
 interface ProductDetailPageProps {
@@ -22,7 +20,7 @@ interface ProductDetailPageProps {
 }
 
 export async function generateMetadata({ params }: ProductDetailPageProps) {
-  const { slug, locale } = await params;
+  const { slug } = await params;
   const product = await catalogService.getProductBySlug(slug);
   if (!product) return { title: "Sản Phẩm | QMD-Tech" };
 

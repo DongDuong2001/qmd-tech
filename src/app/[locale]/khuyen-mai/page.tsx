@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "@/i18n/routing";
-import { Tag, Sparkles, Clock, ArrowRight } from "lucide-react";
+import { Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const metadata = {

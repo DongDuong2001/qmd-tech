@@ -2,7 +2,7 @@
 // In-Process Typed Event Bus for Modular Monolith Communication
 // ========================================================================
 
-type EventCallback<T = any> = (payload: T) => void | Promise<void>;
+type EventCallback<T> = (payload: T) => void | Promise<void>;
 
 export interface AppEvents {
   "order:created": { orderId: string; orderCode: string; totalVnd: number; customerEmail: string };
@@ -13,26 +13,27 @@ export interface AppEvents {
 }
 
 class EventBus {
-  private listeners: Map<string, EventCallback[]> = new Map();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private listeners: Map<keyof AppEvents, Set<EventCallback<any>>> = new Map();
 
   on<K extends keyof AppEvents>(event: K, callback: EventCallback<AppEvents[K]>): () => void {
-    const list = this.listeners.get(event) || [];
-    list.push(callback);
-    this.listeners.set(event, list);
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, new Set());
+    }
+    const set = this.listeners.get(event)!;
+    set.add(callback);
 
     return () => {
-      const current = this.listeners.get(event) || [];
-      this.listeners.set(
-        event,
-        current.filter((cb) => cb !== callback)
-      );
+      set.delete(callback);
     };
   }
 
   async emit<K extends keyof AppEvents>(event: K, payload: AppEvents[K]): Promise<void> {
-    const list = this.listeners.get(event) || [];
+    const set = this.listeners.get(event);
+    if (!set || set.size === 0) return;
+
     await Promise.all(
-      list.map(async (callback) => {
+      Array.from(set).map(async (callback) => {
         try {
           await callback(payload);
         } catch (error) {

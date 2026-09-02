@@ -1,5 +1,5 @@
 import React from "react";
-import { ShieldCheck, RotateCcw, Truck, Wrench } from "lucide-react";
+import { ShieldCheck, RotateCcw, Wrench } from "lucide-react";
 
 export const metadata = {
   title: "Chính Sách Bảo Hành & Đổi Trả | QMD-Tech",

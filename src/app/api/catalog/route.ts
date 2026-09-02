@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     const brand = searchParams.get("brand") || undefined;
     const search = searchParams.get("q") || undefined;
     const inStockOnly = searchParams.get("inStock") === "true";
-    const sortBy = (searchParams.get("sortBy") as any) || undefined;
+    const sortBy = (searchParams.get("sortBy") as "price_asc" | "price_desc" | "newest" | "popular" | null) || undefined;
 
     const result = await catalogService.getProducts({
       categorySlug,

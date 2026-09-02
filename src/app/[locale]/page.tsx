@@ -15,7 +15,6 @@ import {
   Fan,
   Wrench,
   ArrowRight,
-  ShieldCheck,
   Award,
   Sparkles,
 } from "lucide-react";

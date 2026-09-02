@@ -1,4 +1,4 @@
-import { Cart, CartItem, Product } from "@/shared/types";
+import { Cart, Product } from "@/shared/types";
 
 export interface AddToCartInput {
   product: Product;

@@ -5,7 +5,6 @@ import { Link } from "@/i18n/routing";
 import { useLocale, useTranslations } from "next-intl";
 import { i18nService } from "@/modules/i18n/service";
 import { orderService } from "@/modules/orders/service";
-import { paymentService } from "@/modules/payments/service";
 import { MOCK_PRODUCTS } from "@/modules/catalog/mockData";
 import { CartItem } from "@/shared/types";
 import { Button } from "@/components/ui/button";
