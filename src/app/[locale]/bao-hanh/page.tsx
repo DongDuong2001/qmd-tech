@@ -8,23 +8,23 @@ export const metadata = {
 export default function WarrantyPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 space-y-10">
-      <div className="border-b border-[#2A3040] pb-6">
-        <div className="flex items-center gap-2 text-xs font-bold text-[#22C55E] uppercase tracking-wider mb-2">
+      <div className="border-b border-[#E4E7EC] pb-6">
+        <div className="flex items-center gap-2 text-xs font-bold text-[#16A34A] uppercase tracking-wider mb-2">
           <ShieldCheck className="h-4 w-4" />
           Cam Kết Chất Lượng QMD-Tech
         </div>
-        <h1 className="text-2xl sm:text-3xl font-black text-[#F2F4F8]">
+        <h1 className="text-2xl sm:text-3xl font-black text-[#0F172A]">
           Chính Sách Bảo Hành & Hỗ Trợ Kỹ Thuật
         </h1>
-        <p className="mt-1 text-xs text-[#9AA3B2]">
+        <p className="mt-1 text-xs text-[#64748B]">
           Cam kết bảo hành chính hãng 100%, 1 đổi 1 nhanh chóng và hỗ trợ kỹ thuật trọn đời máy
         </p>
       </div>
 
-      <div className="space-y-6 text-sm text-[#9AA3B2] leading-relaxed">
-        <div className="rounded-xl border border-[#2A3040] bg-[#131722] p-6 space-y-3">
-          <h3 className="text-base font-bold text-[#F2F4F8] flex items-center gap-2">
-            <RotateCcw className="h-5 w-5 text-[#3B82F6]" />
+      <div className="space-y-6 text-sm text-[#64748B] leading-relaxed">
+        <div className="rounded-xl border border-[#E4E7EC] bg-[#FFFFFF] p-6 space-y-3 shadow-xs">
+          <h3 className="text-base font-bold text-[#0F172A] flex items-center gap-2">
+            <RotateCcw className="h-5 w-5 text-[#2563EB]" />
             1. Chính Sách Đổi Mới 1 Đổi 1 Trong 30 Ngày
           </h3>
           <p className="text-xs">
@@ -32,9 +32,9 @@ export default function WarrantyPage() {
           </p>
         </div>
 
-        <div className="rounded-xl border border-[#2A3040] bg-[#131722] p-6 space-y-3">
-          <h3 className="text-base font-bold text-[#F2F4F8] flex items-center gap-2">
-            <ShieldCheck className="h-5 w-5 text-[#22C55E]" />
+        <div className="rounded-xl border border-[#E4E7EC] bg-[#FFFFFF] p-6 space-y-3 shadow-xs">
+          <h3 className="text-base font-bold text-[#0F172A] flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5 text-[#16A34A]" />
             2. Thời Hạn Bảo Hành Theo Hãng
           </h3>
           <ul className="list-disc pl-5 text-xs space-y-1">
@@ -47,8 +47,8 @@ export default function WarrantyPage() {
           </ul>
         </div>
 
-        <div className="rounded-xl border border-[#2A3040] bg-[#131722] p-6 space-y-3">
-          <h3 className="text-base font-bold text-[#F2F4F8] flex items-center gap-2">
+        <div className="rounded-xl border border-[#E4E7EC] bg-[#FFFFFF] p-6 space-y-3 shadow-xs">
+          <h3 className="text-base font-bold text-[#0F172A] flex items-center gap-2">
             <Wrench className="h-5 w-5 text-[#7C3AED]" />
             3. Dịch Vụ Bảo Hành Tận Nơi Cho Dàn PC Custom
           </h3>
