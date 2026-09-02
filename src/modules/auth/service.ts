@@ -1,77 +1,90 @@
-import { supabase } from "@/shared/db/supabase";
-import { User, Session } from "@supabase/supabase-js";
+// ========================================================================
+// QMD-Tech Client Authentication Service (HttpOnly Cookie Protected)
+// ========================================================================
+
+export interface AuthUser {
+  id: string;
+  email?: string;
+  user_metadata?: {
+    full_name?: string;
+    phone?: string;
+    [key: string]: unknown;
+  };
+  created_at?: string;
+}
 
 export interface SignUpParams {
   email: string;
   password: string;
   fullName: string;
-  phone?: string;
+  phone: string;
+  rememberMe?: boolean;
 }
 
 export interface SignInParams {
   email: string;
   password: string;
+  rememberMe?: boolean;
 }
 
 export class AuthService {
-  async signUp({ email, password, fullName, phone }: SignUpParams) {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-          phone: phone || "",
-        },
-      },
+  async signUp({ email, password, fullName, phone, rememberMe = true }: SignUpParams) {
+    const res = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, fullName, phone, rememberMe }),
     });
 
-    if (error) {
-      throw error;
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || "Đăng ký không thành công.");
     }
 
     return data;
   }
 
-  async signIn({ email, password }: SignInParams) {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+  async signIn({ email, password, rememberMe = true }: SignInParams) {
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, rememberMe }),
     });
 
-    if (error) {
-      throw error;
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || "Đăng nhập không thành công.");
     }
 
     return data;
   }
 
   async signOut() {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      throw error;
+    const res = await fetch("/api/auth/logout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || "Đăng xuất không thành công.");
     }
+
+    return data;
   }
 
-  async getSession(): Promise<Session | null> {
-    const { data, error } = await supabase.auth.getSession();
-    if (error) {
-      console.warn("Failed to get Supabase session:", error.message);
+  async getCurrentUser(): Promise<AuthUser | null> {
+    try {
+      const res = await fetch("/api/auth/session", {
+        method: "GET",
+        headers: { "Cache-Control": "no-cache" },
+      });
+
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data.user || null;
+    } catch {
       return null;
     }
-    return data.session;
-  }
-
-  async getCurrentUser(): Promise<User | null> {
-    const { data, error } = await supabase.auth.getUser();
-    if (error) {
-      return null;
-    }
-    return data.user;
-  }
-
-  onAuthStateChange(callback: (event: string, session: Session | null) => void) {
-    return supabase.auth.onAuthStateChange(callback);
   }
 }
 
