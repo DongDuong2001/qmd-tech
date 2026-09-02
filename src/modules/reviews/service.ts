@@ -3,6 +3,7 @@ import { supabase } from "@/shared/db/supabase";
 export interface ReviewItem {
   id: string;
   product_id: string;
+  user_id?: string | null;
   author_name: string;
   rating: number;
   title?: string;
@@ -21,7 +22,7 @@ export class ReviewService {
         .eq("product_id", productId)
         .order("created_at", { ascending: false });
 
-      if (!error && data) {
+      if (!error && data && data.length > 0) {
         return data as ReviewItem[];
       }
     } catch {
@@ -41,6 +42,32 @@ export class ReviewService {
         created_at: new Date().toISOString(),
       },
     ];
+  }
+
+  async createReview(review: Omit<ReviewItem, "id" | "created_at">): Promise<ReviewItem | null> {
+    try {
+      const { data, error } = await supabase
+        .from("reviews")
+        .insert({
+          product_id: review.product_id,
+          user_id: review.user_id || null,
+          author_name: review.author_name,
+          rating: review.rating,
+          title: review.title || null,
+          comment: review.comment,
+          locale: review.locale || "vi",
+          is_verified_purchase: review.is_verified_purchase ?? true,
+        })
+        .select()
+        .single();
+
+      if (!error && data) {
+        return data as ReviewItem;
+      }
+    } catch {
+      // Fallback
+    }
+    return null;
   }
 }
 
