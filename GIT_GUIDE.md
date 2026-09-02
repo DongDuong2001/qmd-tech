@@ -1,191 +1,194 @@
-# Huong Dan Su Dung Git Danh Cho Nguoi Moi Bat Dau - Du An QMD-Tech
+# Git Collaboration Guide for Beginners - QMD-Tech Project
 
-Tai lieu nay danh cho cac lap trinh vien moi tham gia vao du an QMD-Tech. Huong dan chi tiet tung buoc tu cai dat, thao tac hang ngay, cach dat ten commit, quy tac an toan ma nguon den xu ly loi xung dot (conflict).
+This document is designed for developers who are new to Git and joining the QMD-Tech project. It provides an exhaustive, step-by-step walkthrough covering initial environment setup, daily workflows, conventional commit standards, security rules, and conflict resolution.
 
 ---
 
-## 1. Cai Dat Ban Dau Tren May Tinh
+## 1. Initial Local Setup
 
-### 1.1. Kiem tra Git
-Mo terminal (PowerShell tren Windows hoac Terminal tren macOS/Linux) va go:
+### 1.1. Verify Git Installation
+Open your terminal (PowerShell on Windows, Terminal on macOS/Linux) and run:
 ```bash
 git --version
 ```
-Neu chua co Git, hay tai va cai dat tai trang chu: https://git-scm.com/
+If Git is not installed on your system, download and install it from the official site: https://git-scm.com/
 
-### 1.2. Thiet lap thong tin ca nhan
-Day la thong tin se gan lien voi moi commit ban tao:
+### 1.2. Configure Your Git Identity
+Set the identity that will be attached to every commit you make:
 ```bash
-git config --global user.name "Ten Cua Ban"
-git config --global user.email "email_cua_ban@example.com"
+git config --global user.name "Your Full Name"
+git config --global user.email "your_email@example.com"
 ```
-Kiem tra lai thong tin da luu:
+Verify your global configuration:
 ```bash
 git config --list
 ```
 
 ---
 
-## 2. Quy Trinh Clone Du An Ve May
+## 2. Cloning the Repository and Branch Selection
 
-### 2.1. Clone ma nguon
+### 2.1. Clone the Codebase
 ```bash
 git clone https://github.com/DongDuong2001/qmd-tech.git
 cd qmd-tech
 ```
 
-### 2.2. Kiem tra cac nhanh (branch) hien co
-Hien thi danh sach tat ca cac nhanh tren may va tren remote server:
+### 2.2. List All Branches
+Inspect all local and remote branches available on the repository:
 ```bash
 git branch -a
 ```
 
-### 2.3. Chuyen sang nhanh dang phat trien chinh
-Hien tai du an dang tap trung phat trien tren nhanh `feat/real-data-admin-auth`:
+### 2.3. Switch to the Active Development Branch
+Active development is currently taking place on the `feat/real-data-admin-auth` branch:
 ```bash
 git checkout feat/real-data-admin-auth
 ```
-Kiem tra nhanh hien tai dang dung:
+Confirm your current working branch:
 ```bash
 git branch
 ```
-(Dau sao `*` mau xanh se nam o nhanh ban dang dung).
+(The branch with an asterisk `*` indicates your active branch).
 
 ---
 
-## 3. Quy Trinh Lam Viec Hang Ngay (Daily Workflow)
+## 3. Daily Development Workflow
 
-Moi ngay khi bat dau lam viec, ban can thuc hien theo dung thu tu 6 buoc sau:
+Every time you begin working on a task, follow this exact 6-step sequence:
 
-### Buoc 1: Dong bo ma nguon moi nhat tu GitHub ve may
-Truoc khi code bat ky tinh nang nao, luon luon keo code moi nhat ve de tranh bi trung lap hoac xung dot:
+### Step 1: Pull the Latest Remote Changes
+Before writing any code, always synchronize your local branch with the remote repository to avoid stale code or merge conflicts:
 ```bash
 git pull origin feat/real-data-admin-auth
 ```
 
-### Buoc 2: Kiem tra trang thai tep tin sau khi chinh sua
-Sau khi viet code hoac sua file, go:
+### Step 2: Check Modified Files
+After editing or adding files, inspect your working tree status:
 ```bash
 git status
 ```
-Git se liet ke:
-- Cac file mau do (Changes not staged): file da sua nhung chua dua vao khu vuc commit.
-- Cac file mau xanh (Changes to be committed): file da san sang de commit.
-- Untracked files: file moi tao chua duoc Git theo doi.
+Git will categorize your files:
+- Changes not staged for commit (red): Modified files that are not yet queued for commit.
+- Changes to be committed (green): Staged files ready to be committed.
+- Untracked files: Newly created files not yet tracked by Git.
 
-Xem chi tiet cac dong da sua:
+To review the exact line-by-line diffs:
 ```bash
 git diff
 ```
 
-### Buoc 3: Dua tung file vao khu vuc cho commit (Staging)
-QUY TAC QUAN TRONG: Chi add tung file hoac nhom file co cung chuc nang. Khong su dung `git add .` bua bai.
+### Step 3: Stage Specific Files (Staging Area)
+CRITICAL RULE: Stage only the specific files relevant to your task. Never use `git add .` blindly.
 
 ```bash
-# Add file cu the:
+# Stage a specific file:
 git add src/app/[locale]/page.tsx
 
-# Hoac add nhieu file lien quan den mot chuc nang:
+# Or stage related components:
 git add src/components/layout/Header.tsx src/components/layout/Footer.tsx
 ```
 
-CANH BAO BAO MAT:
-Khong bao gio duoc add file `.env.local` hoac file chua thong tin mat khau, API key ca nhan vao Git. Neu lo add, phai go bo ngay bang lenh:
+SECURITY WARNING:
+Never stage or commit `.env.local` or any files containing private keys, credentials, or secrets. If you accidentally stage it, unstage it immediately:
 ```bash
 git restore --staged .env.local
 ```
 
-### Buoc 4: Ghi nhan commit theo chuan Conventional Commits
-Moi commit can co thong diep ro rang, mo ta dung thay doi da lam. Du an ap dung chuan Conventional Commits:
+### Step 4: Record Commits Using Conventional Commits Standard
+Every commit must provide a concise, meaningful summary of the changes made. This project strictly enforces Conventional Commits:
 
-Cu phap:
+Syntax:
 ```bash
-git commit -m "loai_thay_doi(pham_vi): mo ta ngan gon ve thay doi"
+git commit -m "type(scope): concise description"
 ```
 
-Cac tien to (prefix) tieu chuan bat buoc su dung:
-- `feat`: Tinh nang moi (VD: `git commit -m "feat(auth): them tinh nang ghi nho mat khau"`)
-- `fix`: Sua loi (VD: `git commit -m "fix(builder): sua loi tinh toan cong suat nguon"`)
-- `style`: Thay doi giao dien, mau sac, CSS ma khong doi logic (VD: `git commit -m "style(home): cap nhat mau nen sang cho the san pham"`)
-- `refactor`: To chuc lai code, khong them tinh nang, khong sua bug (VD: `git commit -m "refactor(catalog): tach nho component danh muc"`)
-- `perf`: Cai thien hieu nang (VD: `git commit -m "perf(image): them thuoc tinh sizes cho the Image"`)
-- `test`: Them hoac sua unit test (VD: `git commit -m "test(security): bo sung kiem thu cho rate limiter"`)
-- `docs`: Cap nhat tai lieu (VD: `git commit -m "docs: cap nhat huong dan lap trinh cho team"`)
-- `chore`: Thay doi goi thu vien, file cau hinh (VD: `git commit -m "chore: cap nhat package.json"`)
+Standard prefixes:
+- `feat`: A new user-facing or system feature (e.g., `git commit -m "feat(auth): implement remember me functionality"`)
+- `fix`: A bug fix (e.g., `git commit -m "fix(builder): correct power wattage calculation for high end gpu"`)
+- `style`: Visual styling, layout, or formatting changes that do not alter logic (e.g., `git commit -m "style(home): update product card background"`)
+- `refactor`: Code reorganization without adding features or fixing bugs (e.g., `git commit -m "refactor(catalog): optimize product filter query"`)
+- `perf`: Performance optimizations (e.g., `git commit -m "perf(image): add explicit sizes prop to next image"`)
+- `test`: Adding or updating test suites (e.g., `git commit -m "test(security): add test suite for rate limiter"`)
+- `docs`: Documentation additions or revisions (e.g., `git commit -m "docs: translate git handbook into english"`)
+- `chore`: Dependency upgrades or configuration file adjustments (e.g., `git commit -m "chore: update package.json dependencies"`)
 
-### Buoc 5: Kiem tra truoc khi day len GitHub
-Truoc khi day code len GitHub, bat buoc phai chay 4 lenh kiem tra sau de dam bao khong gay loi:
+### Step 5: Run Mandatory Quality Checks
+Before pushing any code to GitHub, you MUST execute the four validation checks to verify that the build is completely error-free:
 ```bash
 npm run lint
 npm run typecheck
 npm run test
 npm run build
 ```
-Khi ca 4 lenh tren deu bao thanh cong (code 0), moi duoc phep day code len.
+All four checks must exit with code 0 (zero errors and zero warnings).
 
-### Buoc 6: Day code len GitHub (Push)
-Neu dang lam tren nhanh hien tai:
+### Step 6: Push Changes to GitHub
+If working directly on the active development branch:
 ```bash
 git push origin feat/real-data-admin-auth
 ```
 
-Neu ban tao mot nhanh rieng cua ban:
+If you created an isolated feature branch:
 ```bash
-# Tao nhanh moi
-git checkout -b feat/ten-chuc-nang-moi
+# Create and switch to your feature branch:
+git checkout -b feat/your-feature-name
 
-# Sau khi commit xong, day nhanh moi len remote:
-git push -u origin feat/ten-chuc-nang-moi
+# Push and set upstream tracking:
+git push -u origin feat/your-feature-name
 ```
 
 ---
 
-## 4. Cach Xu Ly Cac Tinh Huong Thuong Gap
+## 4. Troubleshooting Common Scenarios
 
-### Tinh huong 1: Muon huy bo thay doi tren 1 file (chua `git add`)
-Neu ban da sua file nhung thay bi sai va muon khoi phuc lai nguyen ban ban dau:
+### Scenario 1: Discard Unstaged Changes in a File
+If you modified a file and want to reset it back to its original state:
 ```bash
-git restore ten-file-can-khoi-phuc
+git restore path/to/file
 ```
 
-### Tinh huong 2: Lo `git add` nhung chua commit va muon bo ra
+### Scenario 2: Unstage a File Without Losing Your Edits
+If you ran `git add` by mistake and want to take it out of the staging area:
 ```bash
-git restore --staged ten-file-can-bo
+git restore --staged path/to/file
 ```
 
-### Tinh huong 3: Muon xem lich su commit gan nhat
+### Scenario 3: Inspect Recent Commit History
 ```bash
 git log --oneline -n 10
 ```
 
-### Tinh huong 4: Xu ly xung dot code (Conflict)
-Khi ban va nguoi khac cung sua tren cung 1 dong code, khi chay `git pull` se xuat hien conflict:
-1. Mo file bi conflict tren VS Code / trinh soan thao.
-2. Ban se thay cac ky hieu:
-   - `<<<<<<< HEAD` (Code hien tai cua ban tren may)
-   - `=======` (Ranh gioi ngan cach)
-   - `>>>>>>> ...` (Code cua dong nghiep keo tu GitHub ve)
-3. Thao luan voi dong nghiep va chon giu lai code dung (xoa cac ky hieu `<<<<<<<`, `=======`, `>>>>>>>`).
-4. Luu file lai va chay:
+### Scenario 4: Resolving Merge Conflicts
+If Git reports a conflict during `git pull`:
+1. Open the conflicted file in your code editor (e.g., VS Code).
+2. Locate the conflict markers:
+   - `<<<<<<< HEAD`: Your current local changes.
+   - `=======`: The conflict separator.
+   - `>>>>>>> ...`: The incoming remote changes from GitHub.
+3. Collaborate with your teammate to determine the correct code to keep. Remove the conflict markers.
+4. Save the file and complete the merge:
    ```bash
-   git add ten-file-da-sua-xong
-   git commit -m "fix: resolve merge conflict in ten-file"
-   git push
+   git add path/to/resolved-file
+   git commit -m "fix: resolve merge conflict in path/to/resolved-file"
+   git push origin feat/real-data-admin-auth
    ```
 
 ---
 
-## 5. Bang Tra Cuu Cac Lenh Git Thong Dung
+## 5. Quick Git Command Reference
 
-| Lenh | Y nghia |
+| Command | Description |
 | --- | --- |
-| `git status` | Xem trang thai cac file (da sua, da add, chua add) |
-| `git pull origin <branch>` | Keo code moi nhat ve may |
-| `git add <file>` | Dua file vao khu vuc cho commit |
-| `git commit -m "..."` | Ghi lai lich su commit |
-| `git push origin <branch>` | Day commit len GitHub |
-| `git branch` | Xem danh sach nhanh o may ca nhan |
-| `git checkout <branch>` | Chuyen sang nhanh khac |
-| `git checkout -b <branch>` | Tao nhanh moi va chuyen sang nhanh do ngay |
-| `git log --oneline` | Xem lich su commit ngan gon |
-| `git diff` | Xem chi tiet cac dong code thay doi |
+| `git status` | Check working tree status (modified, staged, untracked) |
+| `git pull origin <branch>` | Fetch and integrate remote changes into the current branch |
+| `git add <file>` | Stage a specific file for the next commit |
+| `git commit -m "..."` | Record staged changes into repository history |
+| `git push origin <branch>` | Transmit local commits to the remote repository |
+| `git branch` | List local branches |
+| `git branch -a` | List all local and remote branches |
+| `git checkout <branch>` | Switch to an existing branch |
+| `git checkout -b <branch>` | Create and switch to a new branch |
+| `git diff` | View unstaged line changes in your working directory |
+| `git restore <file>` | Discard unstaged changes in a working tree file |
+| `git log --oneline` | Display commit history in a concise single-line format |
