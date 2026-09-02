@@ -1,82 +1,82 @@
-# Quy Dinh Va Huong Dan Dong Gop Phat Trien - QMD Tech
+# Contribution Guidelines and Development Standards - QMD Tech
 
-Tai lieu nay danh cho cac lap trinh vien noi bo duoc moi tham gia vao du an he thong thuong mai dien tu QMD Tech.
-
----
-
-## 1. Pham Vi Va Tinh Chat Du An
-
-- QMD Tech la du an phan mem thuong mai doc quyen thuoc so huu cua QMD Tech Corporation.
-- Ma nguon va he thong khong phai la du an ma nguon mo cong cong. Toan bo ma nguon, thiet ke giao dien, kien truc co so du lieu deu la tai san noi bo.
-- Khong duoc phep sao chep, chia se ma nguon, deploy cong khai hoac chuyen giao cho bat ky ben thu ba nao ma khong co su dong y bang van ban tu nguoi quan ly du an.
-- Moi yeu cau su dung, hop tac phat trien hoac cap phep phai duoc gui qua email: dongduong840@gmail.com
+This document outlines the internal development policies, branching standards, and engineering practices for developers invited to collaborate on the QMD Tech e-commerce platform.
 
 ---
 
-## 2. Quy Trinh Lam Viec Cua Doi Ngu Lap Trinh (Workflow)
+## 1. Project Scope and Ownership
 
-### 2.1. Nhanh phat trien (Branching Strategy)
-- Nhanh `main`: Danh rieng cho code phat hanh chinh thuc tren moi truong production. Tuyet doi khong commit truc tiep vao `main`.
-- Nhanh `feat/real-data-admin-auth`: Nhanh phat trien tich hop hien tai.
-- Khi phat trien tinh nang moi hoac sua loi, hay tao nhanh rieng tu nhanh dang phat trien:
-  - Tinh nang moi: `feat/ten-chuc-nang`
-  - Sua loi: `fix/ten-loi`
-  - Tai lieu: `docs/noi-dung-cap-nhat`
-  - Cai thien giao dien: `style/ten-thanh-phan`
+- QMD Tech is a proprietary commercial software project owned and operated exclusively by QMD Tech Corporation.
+- This codebase is not an open-source public repository. All source code, visual UI assets, software architectures, and database schemas remain private, confidential property.
+- Copying, redistributing, publicly hosting, or transferring this software to third parties without prior written consent is strictly prohibited.
+- For partnership inquiries, licensing requests, or permission to utilize any component of this software, contact: dongduong840@gmail.com
 
-### 2.2. Quy trinh dong bo code hang ngay
-1. Luon chay `git pull origin feat/real-data-admin-auth` truoc khi bat dau ngay lam viec moi.
-2. Code va kiem thu chuc nang tai may ca nhan.
-3. Kiem tra trang thai bang `git status`.
-4. Chi add cac file lien quan bang `git add <ten_file>`. Tuyet doi khong add `.env.local`.
-5. Commit code theo chuan Conventional Commits.
-6. Chay 4 lenh kiem tra bat buoc truoc khi push:
+---
+
+## 2. Team Development Workflow
+
+### 2.1. Branching Strategy
+- The `main` branch is strictly reserved for production releases. Direct commits to `main` are prohibited.
+- Active integration and feature development occurs on the `feat/real-data-admin-auth` branch.
+- When developing new features or fixing defects, create a descriptive topic branch off the active development branch:
+  - Feature work: `feat/feature-name`
+  - Bug fixes: `fix/defect-name`
+  - Documentation: `docs/documentation-topic`
+  - Styling adjustments: `style/component-name`
+
+### 2.2. Daily Development Routine
+1. Always run `git pull origin feat/real-data-admin-auth` before beginning your workday.
+2. Develop and test your changes locally.
+3. Review modified files using `git status` and `git diff`.
+4. Stage only relevant files with `git add <file_path>`. Never stage `.env.local`.
+5. Write clear commit messages conforming to Conventional Commits.
+6. Run the four mandatory pre-push verification checks:
    - `npm run lint`
    - `npm run typecheck`
    - `npm run test`
    - `npm run build`
-7. Day nhanh len GitHub bang `git push origin <ten-nhanh>`.
-8. Tao Pull Request (PR) vao nhanh `feat/real-data-admin-auth` tren GitHub de duoc review.
+7. Push your branch to GitHub using `git push origin <branch_name>`.
+8. Open a Pull Request targeting `feat/real-data-admin-auth` for code review.
 
 ---
 
-## 3. Quy Tac Dat Ten Commit (Conventional Commits)
+## 3. Conventional Commits Standard
 
-Tat ca commit trong du an phai tuan thu cu phap:
+All commit messages must adhere to the following specification:
 ```
-<loai>(<pham_vi>): <mo_ta_ngan_gon>
+<type>(<scope>): <concise_description>
 ```
 
-Cac loai commit hop le:
-- `feat`: Them mot tinh nang moi cho he thong
-- `fix`: Sua mot loi logic hoac giao dien
-- `style`: Thay doi CSS, mau sac, khoang cach ma khong anh huong den code chay
-- `refactor`: To chuc lai code, toi uu cau truc ham/component
-- `perf`: Cai thien toc do xu ly hoac hieu nang tai trang
-- `test`: Them moi hoac cap nhat bo kiem thu don vi
-- `docs`: Cap nhat hoac them moi tai lieu huong dan
-- `chore`: Cap nhat file cau hinh, nang cap phu thuoc trong package.json
+Accepted commit types:
+- `feat`: A new feature added to the platform
+- `fix`: A defect or bug resolution
+- `style`: Markup, spacing, CSS, or styling adjustments with no logic changes
+- `refactor`: Structural code reorganization with no behavioral alteration
+- `perf`: Performance optimizations
+- `test`: Unit tests or integration test adjustments
+- `docs`: Documentation revisions or additions
+- `chore`: Dependency updates or build tooling adjustments
 
-Vi du commit hop le:
+Valid commit examples:
 - `feat(auth): implement remember me with 30 day cookie expiration`
 - `fix(builder): correct power wattage calculation for high end gpu`
-- `docs(security): add vulnerability reporting process`
+- `docs(security): document vulnerability disclosure channel`
 
 ---
 
-## 4. Tieu Chuon Chat Luong Ma Nguon (Code Standards)
+## 4. Code and Architecture Standards
 
-1. Tuan thu quy tac TypeScript nghiem ngat: Khong su dung kieu `any` khong kiem soat. Tat ca cac props va kieu du lieu phai duoc dinh nghia ro rang.
-2. Tuan thu giao dien Light Theme: Su dung bang mau solid duoc quy dinh san (`#0F172A`, `#E11D48`, `#EA580C`, `#B45309`, `#16A34A`, `#2563EB`, `#FFFFFF`, `#F8FAFC`, `#E2E8F0`). Khong tu y them cac hieu ung gradient loe loet.
-3. Bao ve tinh toan ven tai lieu: Khong xoa cac chu thich, docstring co san neu khong co yeu cau.
-4. Xu ly bat dong bo: Luon boc cac loi goi API Supabase hoac fetch trong khoi `try...catch` de bat loi va dua ra thong bao than thien cho nguoi dung.
+1. Strict TypeScript Compliance: Explicit typing is required across all components, hooks, and domain services. The use of uncontrolled `any` is strictly prohibited.
+2. Light Theme Visual Consistency: The application strictly utilizes the curated solid light palette (`#0F172A`, `#E11D48`, `#EA580C`, `#B45309`, `#16A34A`, `#2563EB`, `#FFFFFF`, `#F8FAFC`, `#E2E8F0`). Do not introduce extraneous gradient layers or unapproved dark backgrounds.
+3. Code Integrity: Preserve all preexisting architectural comments, domain logic docstrings, and interface annotations unless an explicit instruction specifies otherwise.
+4. Robust Asynchronous Handling: All external API interactions (Supabase, payment gateways, authentication) must be wrapped in `try...catch` blocks with user-friendly error feedback.
 
 ---
 
-## 5. Lien He Va Ho Tro
+## 5. Support and Communications
 
-Neu ban gap bat ky kho khan nao trong qua trinh thiet lap moi truong, thac mac ve kien truc he thong hoac can ho tro ky thuat, vui long lien he:
+If you encounter difficulties during local environment setup or have architectural questions, contact the project maintainer:
 
-- Nguoi phu trach: Dong Duong
+- Maintainer: Dong Duong
 - Email: dongduong840@gmail.com
 - Repository: https://github.com/DongDuong2001/qmd-tech
