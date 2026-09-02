@@ -72,7 +72,10 @@ qmd-tech/
 │   │   ├── security/                 # RateLimiter va cau hinh HttpOnly Cookies
 │   │   └── types/                    # Domain models va TypeScript interfaces
 │   └── middleware.ts                 # Dinh tuyen ngon ngu next-intl va HTTP Security Headers
+├── CONTRIBUTING.md                   # Quy dinh dong gop va quy trinh lam viec noi bo
 ├── GIT_GUIDE.md                      # Huong dan chi tiet cach dung Git cho lap trinh vien moi
+├── LICENSE                           # Giay phep ban quyen doc quyen QMD Tech (Proprietary)
+├── SECURITY.md                       # Chinh sach bao mat va bao cao lo hong
 ├── package.json
 ├── tsconfig.json
 └── vitest.config.ts
@@ -181,12 +184,23 @@ Tat ca 4 lenh deu phai vuot qua voi ma thoat 0 (0 error, 0 warning).
 
 ---
 
-## 6. Huong Dan Su Dung Git Danh Cho Lap Trinh Vien Moi
+## 6. Tai Lieu Huong Dan Va Quy Dinh Danh Cho Lap Trinh Vien
 
-De xem huong dan chi tiet tung buoc ve cach clone, checkout nhanh, pull code moi nhat, add file, commit theo chuan Conventional Commits va cach xu ly khi bi conflict, vui long doc tep tin:
-[GIT_GUIDE.md](file:///d:/d-tech/GIT_GUIDE.md)
+Vui long tham khao cac tai lieu chuyen biet duoi day truoc khi thuc hien bat ky thao tac nao tren ma nguon:
+
+- Huong dan su dung Git tu co ban den nang cao: [GIT_GUIDE.md](file:///d:/d-tech/GIT_GUIDE.md)
+- Quy dinh dong gop phat trien va quy trinh lam viec nhom: [CONTRIBUTING.md](file:///d:/d-tech/CONTRIBUTING.md)
+- Chinh sach bao mat va quy trinh bao cao lo hong an toan thong tin: [SECURITY.md](file:///d:/d-tech/SECURITY.md)
+- Giay phep ban quyen va dieu khoan su dung: [LICENSE](file:///d:/d-tech/LICENSE)
 
 ---
 
-## 7. Giay Phep (License)
-MIT © 2026 QMD-Tech Corporation. Du an duoc phat trien boi DongDuong2001.
+## 7. Giay Phep Ban Quyen (License)
+
+Copyright (c) 2026 QMD Tech Corporation. All Rights Reserved.
+
+Day la phan mem thuong mai doc quyen thuoc so huu cua QMD Tech. Toan bo ma nguon, kien truc he thong va thiet ke giao dien khong phai la ma nguon mo va khong duoc phep phat hanh, sao chep, sua doi hoac chia se ra ben ngoai khi chua co su dong y bang van ban.
+
+Moi thac mac hoac yeu cau cap phep su dung, vui long lien he:
+- Dai dien: Dong Duong
+- Email: dongduong840@gmail.com
