@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/DongDuong2001/qmd-tech/compare/v1.0.1...v1.1.0) (2026-09-02)
+
+
+### Features
+
+* update Supabase database integrations and upgrade CI/CD to Node 24 ([5222585](https://github.com/DongDuong2001/qmd-tech/commit/522258565fc25c93ad1707ba495f22f01ee053a8))
+
 ## [1.0.1](https://github.com/DongDuong2001/qmd-tech/compare/v1.0.0...v1.0.1) (2026-09-02)
 
 
