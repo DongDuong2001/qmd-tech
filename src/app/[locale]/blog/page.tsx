@@ -29,15 +29,15 @@ const BLOG_POSTS = [
 export default function BlogPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 space-y-10">
-      <div className="border-b border-[#2A3040] pb-6">
-        <div className="flex items-center gap-2 text-xs font-bold text-[#3B82F6] uppercase tracking-wider mb-2">
+      <div className="border-b border-[#E4E7EC] pb-6">
+        <div className="flex items-center gap-2 text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-2">
           <BookOpen className="h-4 w-4" />
           Hardware Insights & Guides
         </div>
-        <h1 className="text-2xl sm:text-3xl font-black text-[#F2F4F8]">
+        <h1 className="text-2xl sm:text-3xl font-black text-[#0F172A]">
           Tin Công Nghệ & Thủ Thuật Build PC
         </h1>
-        <p className="mt-1 text-xs text-[#9AA3B2]">
+        <p className="mt-1 text-xs text-[#64748B]">
           Cập nhật kiến thức chuyên sâu về phần cứng máy tính từ chuyên gia QMD-Tech
         </p>
       </div>
@@ -46,21 +46,21 @@ export default function BlogPage() {
         {BLOG_POSTS.map((post) => (
           <article
             key={post.slug}
-            className="flex flex-col justify-between rounded-2xl border border-[#2A3040] bg-[#131722] p-6 hover:border-[#3B82F6] transition-all"
+            className="flex flex-col justify-between rounded-2xl border border-[#E4E7EC] bg-[#FFFFFF] p-6 hover:border-[#2563EB] hover:shadow-md transition-all shadow-xs"
           >
             <div className="space-y-3">
-              <span className="rounded bg-[#1B2030] px-2.5 py-1 text-[11px] font-bold text-[#3B82F6] border border-[#2A3040]">
+              <span className="rounded bg-[#EFF6FF] px-2.5 py-1 text-[11px] font-bold text-[#2563EB] border border-[#BFDBFE]">
                 {post.category}
               </span>
-              <h3 className="text-lg font-bold text-[#F2F4F8] hover:text-[#3B82F6] transition-colors">
+              <h3 className="text-lg font-bold text-[#0F172A] hover:text-[#2563EB] transition-colors leading-snug">
                 {post.title}
               </h3>
-              <p className="text-xs text-[#9AA3B2] leading-relaxed">
+              <p className="text-xs text-[#64748B] leading-relaxed">
                 {post.excerpt}
               </p>
             </div>
 
-            <div className="mt-6 flex items-center justify-between border-t border-[#2A3040]/60 pt-4 text-[11px] text-[#9AA3B2]">
+            <div className="mt-6 flex items-center justify-between border-t border-[#E4E7EC] pt-4 text-[11px] text-[#64748B]">
               <div className="flex items-center gap-2">
                 <span>{post.author}</span>
                 <span>•</span>

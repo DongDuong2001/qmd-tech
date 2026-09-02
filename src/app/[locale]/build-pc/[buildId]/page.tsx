@@ -14,15 +14,15 @@ export default async function SavedBuildPage({ params }: SavedBuildPageProps) {
   return (
     <div className="space-y-6">
       <div className="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
-        <div className="flex items-center justify-between rounded-xl border border-[#3B82F6]/40 bg-[#3B82F6]/10 p-4">
+        <div className="flex items-center justify-between rounded-xl border border-[#BFDBFE] bg-[#EFF6FF] p-4 shadow-xs">
           <div className="flex items-center gap-3">
-            <CheckCircle2 className="h-5 w-5 text-[#3B82F6]" />
+            <CheckCircle2 className="h-5 w-5 text-[#2563EB]" />
             <div>
-              <div className="text-xs font-semibold text-[#3B82F6] uppercase">
+              <div className="text-xs font-semibold text-[#2563EB] uppercase">
                 Cấu hình PC được chia sẻ
               </div>
-              <div className="text-sm font-bold text-[#F2F4F8]">
-                Mã cấu hình: <span className="font-mono text-[#FACC15]">{buildId}</span>
+              <div className="text-sm font-bold text-[#0F172A]">
+                Mã cấu hình: <span className="font-mono text-[#B45309]">{buildId}</span>
               </div>
             </div>
           </div>

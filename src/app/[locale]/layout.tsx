@@ -10,7 +10,7 @@ import "../globals.css";
 
 const beVietnamPro = Be_Vietnam_Pro({
   subsets: ["vietnamese", "latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700", "800", "900"],
   variable: "--font-be-vietnam-pro",
   display: "swap",
 });
@@ -30,18 +30,27 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "QMD-Tech — PC Components & Custom Build Rig Store",
+  title: "QMD-Tech — Gaming PC & Linh Kiện Máy Tính Chuyên Nghiệp",
   description:
-    "Linh kiện máy tính chính hãng, bo mạch chủ, CPU, VGA và công cụ cấu hình Custom PC Builder thông minh với thuật toán kiểm tra tương thích phần cứng.",
+    "Hệ thống bán lẻ linh kiện PC Gaming chính hãng: CPU, VGA RTX 40 Series, Mainboard, RAM DDR5, SSD NVMe và công cụ Custom PC Builder thông minh.",
   keywords: [
     "QMD-Tech",
-    "PC Builder",
-    "Linh kiện PC",
-    "RTX 4070 Ti",
+    "PC Gaming",
+    "KCCShop",
+    "GearVN",
+    "RTX 4070 Ti Super",
     "Ryzen 7 7800X3D",
-    "Custom PC",
     "Build PC gaming",
+    "Linh kiện máy tính",
   ],
+  icons: {
+    icon: [
+      { url: "/qmdtech_logo.png", type: "image/png" },
+      { url: "/favicon.ico" },
+    ],
+    shortcut: "/qmdtech_logo.png",
+    apple: "/qmdtech_logo.png",
+  },
 };
 
 export function generateStaticParams() {
@@ -70,7 +79,7 @@ export default async function LocaleLayout({
       lang={locale}
       className={`${beVietnamPro.variable} ${inter.variable} ${jetbrainsMono.variable}`}
     >
-      <body className="min-h-screen bg-[#0B0E14] text-[#F2F4F8] antialiased flex flex-col justify-between">
+      <body className="min-h-screen bg-[#F8FAFC] text-[#0F172A] antialiased flex flex-col justify-between selection:bg-[#E11D48] selection:text-white">
         <NextIntlClientProvider messages={messages}>
           <Header />
           <main className="flex-1">{children}</main>

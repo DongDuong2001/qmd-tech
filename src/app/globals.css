@@ -2,33 +2,22 @@
 
 @layer base {
   :root {
-    --background: #0b0e14;
-    --surface: #131722;
-    --surface-elevated: #1b2030;
-    --border: #2a3040;
-    --text-primary: #f2f4f8;
-    --text-secondary: #9aa3b2;
-    --brand-primary: #3b82f6;
-    --brand-accent: #7c3aed;
-    --success: #22c55e;
-    --warning: #f59e0b;
-    --danger: #ef4444;
-    --price: #facc15;
-  }
-
-  html.light {
-    --background: #f7f8fa;
+    --background: #f4f6f8;
     --surface: #ffffff;
     --surface-elevated: #ffffff;
-    --border: #e4e7ec;
+    --surface-subtle: #f8fafc;
+    --border: #e2e8f0;
     --text-primary: #0f172a;
-    --text-secondary: #64748b;
-    --brand-primary: #2563eb;
-    --brand-accent: #7c3aed;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    --brand-primary: #e11d48;
+    --brand-secondary: #ea580c;
+    --brand-gold: #b45309;
+    --brand-blue: #2563eb;
     --success: #16a34a;
     --warning: #d97706;
     --danger: #dc2626;
-    --price: #ca8a04;
+    --price: #b45309;
   }
 }
 
@@ -36,11 +25,14 @@
   --color-bg-base: var(--background);
   --color-surface: var(--surface);
   --color-surface-elevated: var(--surface-elevated);
+  --color-surface-subtle: var(--surface-subtle);
   --color-border-main: var(--border);
   --color-text-main: var(--text-primary);
-  --color-text-muted: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
   --color-brand: var(--brand-primary);
-  --color-accent: var(--brand-accent);
+  --color-brand-secondary: var(--brand-secondary);
+  --color-brand-gold: var(--brand-gold);
+  --color-brand-blue: var(--brand-blue);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
@@ -52,8 +44,8 @@
 }
 
 body {
-  background-color: var(--background);
-  color: var(--text-primary);
+  background-color: #f4f6f8;
+  color: #0f172a;
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -61,6 +53,7 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
+  color: #0f172a;
 }
 
 .font-mono {
@@ -74,14 +67,14 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--background);
+  background: #f4f6f8;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: #cbd5e1;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--brand-primary);
+  background: #94a3b8;
 }

@@ -3,7 +3,8 @@ import { Link } from "@/i18n/routing";
 import { getTranslations } from "next-intl/server";
 import { catalogService } from "@/modules/catalog/service";
 import { ProductCard } from "@/components/product/ProductCard";
-import { Cpu, CircuitBoard, MemoryStick, Layers, HardDrive, Zap, Box, Fan } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Cpu, CircuitBoard, MemoryStick, Layers, HardDrive, Zap, Box, Fan, Boxes } from "lucide-react";
 
 export const metadata = {
   title: "Danh Mục Linh Kiện Máy Tính | QMD-Tech",
@@ -13,7 +14,7 @@ export const metadata = {
 export default async function CategoriesPage() {
   const t = await getTranslations();
   const categories = await catalogService.getCategories();
-  const { products } = await catalogService.getProducts();
+  const { products } = await catalogService.getProducts({ limit: 40 });
 
   const getCategoryIcon = (slug: string) => {
     switch (slug) {
@@ -32,10 +33,10 @@ export default async function CategoriesPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 space-y-10">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-black text-[#F2F4F8]">
+        <h1 className="text-2xl sm:text-3xl font-black text-[#0F172A]">
           {t("nav.categories")}
         </h1>
-        <p className="mt-1 text-sm text-[#9AA3B2]">
+        <p className="mt-1 text-sm text-[#64748B]">
           Linh kiện PC chính hãng từ ASUS, MSI, AMD, Intel, Corsair, Samsung, Lian Li, NZXT
         </p>
       </div>
@@ -44,7 +45,7 @@ export default async function CategoriesPage() {
       <div className="flex flex-wrap gap-2.5">
         <Link
           href="/danh-muc"
-          className="rounded-lg bg-[#3B82F6] px-4 py-2 text-xs font-bold text-white shadow-sm"
+          className="rounded-lg bg-[#E11D48] px-4 py-2 text-xs font-bold text-white shadow-xs"
         >
           {t("common.all")}
         </Link>
@@ -54,21 +55,36 @@ export default async function CategoriesPage() {
             <Link
               key={cat.id}
               href={`/danh-muc/${cat.slug}`}
-              className="flex items-center gap-1.5 rounded-lg border border-[#2A3040] bg-[#131722] px-4 py-2 text-xs font-semibold text-[#F2F4F8] hover:border-[#3B82F6] hover:bg-[#1B2030] transition-colors"
+              className="flex items-center gap-1.5 rounded-lg border border-[#E2E8F0] bg-[#FFFFFF] px-4 py-2 text-xs font-semibold text-[#0F172A] hover:border-[#E11D48] hover:bg-[#FFF1F2] transition-colors shadow-xs"
             >
-              <Icon className="h-3.5 w-3.5 text-[#3B82F6]" />
+              <Icon className="h-3.5 w-3.5 text-[#EA580C]" />
               {cat.name_vi}
             </Link>
           );
         })}
       </div>
 
-      {/* All Products Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
+      {/* Products Grid / Empty State */}
+      {products.length === 0 ? (
+        <div className="rounded-2xl border border-[#E2E8F0] bg-[#FFFFFF] p-12 text-center space-y-4 shadow-xs">
+          <Boxes className="mx-auto h-12 w-12 text-[#CBD5E1]" />
+          <h3 className="text-lg font-bold text-[#0F172A]">Chưa có sản phẩm nào trong danh mục</h3>
+          <p className="text-xs text-[#64748B] max-w-md mx-auto">
+            Dữ liệu sản phẩm đang được kết nối trực tiếp từ Supabase Database. Bạn có thể thêm sản phẩm từ Admin Dashboard.
+          </p>
+          <Link href="/admin">
+            <Button variant="primary" size="sm" className="font-bold text-xs">
+              Mở Admin Dashboard
+            </Button>
+          </Link>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {products.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
