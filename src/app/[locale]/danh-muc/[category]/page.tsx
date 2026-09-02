@@ -32,26 +32,26 @@ export default async function CategoryDetailPage({ params }: CategoryPageProps) 
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 space-y-8">
-      <div className="flex items-center justify-between border-b border-[#2A3040] pb-6">
+      <div className="flex items-center justify-between border-b border-[#E4E7EC] pb-6">
         <div>
           <Link
             href="/danh-muc"
-            className="mb-2 inline-flex items-center gap-1.5 text-xs text-[#9AA3B2] hover:text-[#3B82F6] transition-colors"
+            className="mb-2 inline-flex items-center gap-1.5 text-xs text-[#64748B] hover:text-[#2563EB] transition-colors"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             Tất cả danh mục
           </Link>
-          <h1 className="text-2xl sm:text-3xl font-black text-[#F2F4F8]">
+          <h1 className="text-2xl sm:text-3xl font-black text-[#0F172A]">
             {cat.name_vi}
           </h1>
-          <p className="mt-1 text-xs text-[#9AA3B2] font-mono">
+          <p className="mt-1 text-xs text-[#64748B] font-mono">
             {cat.name_en} • {products.length} sản phẩm
           </p>
         </div>
       </div>
 
       {products.length === 0 ? (
-        <div className="rounded-xl border border-[#2A3040] bg-[#131722] p-12 text-center text-sm text-[#9AA3B2]">
+        <div className="rounded-xl border border-[#E4E7EC] bg-[#FFFFFF] p-12 text-center text-sm text-[#64748B] shadow-xs">
           Chưa có sản phẩm nào trong danh mục này.
         </div>
       ) : (
