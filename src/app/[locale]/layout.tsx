@@ -43,6 +43,14 @@ export const metadata: Metadata = {
     "Build PC gaming",
     "Linh kiện máy tính",
   ],
+  icons: {
+    icon: [
+      { url: "/qmdtech_logo.png", type: "image/png" },
+      { url: "/favicon.ico" },
+    ],
+    shortcut: "/qmdtech_logo.png",
+    apple: "/qmdtech_logo.png",
+  },
 };
 
 export function generateStaticParams() {
@@ -71,7 +79,7 @@ export default async function LocaleLayout({
       lang={locale}
       className={`${beVietnamPro.variable} ${inter.variable} ${jetbrainsMono.variable}`}
     >
-      <body className="min-h-screen bg-[#0B0E14] text-[#F8FAFC] antialiased flex flex-col justify-between selection:bg-[#EF4444] selection:text-white">
+      <body className="min-h-screen bg-[#F8FAFC] text-[#0F172A] antialiased flex flex-col justify-between selection:bg-[#E11D48] selection:text-white">
         <NextIntlClientProvider messages={messages}>
           <Header />
           <main className="flex-1">{children}</main>

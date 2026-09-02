@@ -1,6 +1,7 @@
 import React from "react";
+import Image from "next/image";
 import { Link } from "@/i18n/routing";
-import { Flame, ShieldCheck, Truck, Headphones, Wrench, MapPin, Phone, Mail } from "lucide-react";
+import { ShieldCheck, Truck, Headphones, Wrench, MapPin, Phone, Mail } from "lucide-react";
 
 export function Footer() {
   return (
@@ -55,9 +56,14 @@ export function Footer() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           {/* Col 1: Brand & Contact Info */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#E11D48] text-white">
-                <Flame className="h-5 w-5 fill-white" />
+            <div className="flex items-center gap-2.5">
+              <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-[#E2E8F0] shadow-xs bg-white">
+                <Image
+                  src="/qmdtech_logo.png"
+                  alt="QMD-Tech Logo"
+                  fill
+                  className="object-cover"
+                />
               </div>
               <span className="text-lg font-black tracking-wider text-[#0F172A]">
                 QMD<span className="text-[#E11D48]">-TECH</span>

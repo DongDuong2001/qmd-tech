@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import {
   Search,
@@ -75,10 +76,16 @@ export function Header() {
       {/* 2. Main Header Bar */}
       <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6">
         <div className="flex items-center justify-between gap-4">
-          {/* Brand Logo with Gaming Icon */}
-          <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#E11D48] text-white shadow-sm">
-              <Flame className="h-7 w-7 fill-white" />
+          {/* Brand Logo with Rounded Image */}
+          <Link href="/" className="flex items-center gap-3 shrink-0 group">
+            <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full border-2 border-[#E11D48] shadow-xs bg-white">
+              <Image
+                src="/qmdtech_logo.png"
+                alt="QMD-Tech Logo"
+                fill
+                priority
+                className="object-cover"
+              />
             </div>
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
