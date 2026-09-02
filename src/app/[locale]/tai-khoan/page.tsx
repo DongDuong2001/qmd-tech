@@ -2,10 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { Link } from "@/i18n/routing";
-import { authService } from "@/modules/auth/service";
+import { authService, AuthUser } from "@/modules/auth/service";
 import { supabase } from "@/shared/db/supabase";
 import { Order, CustomBuild } from "@/shared/types";
-import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import {
   User as UserIcon,
@@ -19,10 +18,12 @@ import {
   Lock,
   Phone,
   Settings,
+  Shield,
+  KeyRound,
 } from "lucide-react";
 
 export default function AccountPage() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -31,11 +32,13 @@ export default function AccountPage() {
   // Form states
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  const [loginRememberMe, setLoginRememberMe] = useState(true);
 
   const [regFullName, setRegFullName] = useState("");
   const [regPhone, setRegPhone] = useState("");
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
+  const [regRememberMe, setRegRememberMe] = useState(true);
 
   // User Profile Data
   const [userOrders, setUserOrders] = useState<Order[]>([]);
@@ -58,17 +61,6 @@ export default function AccountPage() {
     }
 
     checkUser();
-
-    const { data: authListener } = authService.onAuthStateChange(async (_event, session) => {
-      setUser(session?.user || null);
-      if (session?.user?.email) {
-        loadUserData(session.user.email);
-      }
-    });
-
-    return () => {
-      authListener?.subscription.unsubscribe();
-    };
   }, []);
 
   const loadUserData = async (email: string) => {
@@ -101,11 +93,15 @@ export default function AccountPage() {
       const data = await authService.signIn({
         email: loginEmail,
         password: loginPassword,
+        rememberMe: loginRememberMe,
       });
 
       if (data.user) {
         setUser(data.user);
-        setFeedback({ type: "success", text: "Đăng nhập thành công! Đang chuyển hướng..." });
+        setFeedback({ type: "success", text: "Đăng nhập thành công với Cookie bảo mật HttpOnly!" });
+        if (data.user.email) {
+          loadUserData(data.user.email);
+        }
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Đăng nhập thất bại. Vui lòng kiểm tra lại email hoặc mật khẩu.";
@@ -128,6 +124,7 @@ export default function AccountPage() {
         password: regPassword,
         fullName: regFullName,
         phone: regPhone,
+        rememberMe: regRememberMe,
       });
 
       if (data.user) {
@@ -154,7 +151,8 @@ export default function AccountPage() {
       await authService.signOut();
       setUser(null);
       setUserOrders([]);
-      setFeedback({ type: "success", text: "Đã đăng xuất tài khoản thành công." });
+      setUserBuilds([]);
+      setFeedback({ type: "success", text: "Đã đăng xuất và xóa phiên Cookie HttpOnly an toàn." });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       setFeedback({ type: "error", text: "Lỗi đăng xuất: " + msg });
@@ -164,7 +162,7 @@ export default function AccountPage() {
   if (loading) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-20 text-center text-xs text-[#64748B]">
-        Đang kiểm tra trạng thái xác thực người dùng...
+        Đang kiểm tra trạng thái xác thực bảo mật HttpOnly...
       </div>
     );
   }
@@ -187,6 +185,9 @@ export default function AccountPage() {
                 <h1 className="text-xl font-black text-[#0F172A]">{fullName}</h1>
                 <span className="rounded bg-[#EFF6FF] border border-[#BFDBFE] px-2 py-0.5 text-[10px] font-black text-[#1D4ED8] uppercase">
                   Thành viên QMD
+                </span>
+                <span className="rounded bg-[#DCFCE7] border border-[#86EFAC] px-2 py-0.5 text-[10px] font-bold text-[#15803D] flex items-center gap-1">
+                  <ShieldCheck className="h-3 w-3" /> HttpOnly Secured
                 </span>
               </div>
               <p className="text-xs text-[#64748B] flex items-center gap-2 mt-0.5">
@@ -272,8 +273,8 @@ export default function AccountPage() {
           {/* Right Column: Account Info & Saved Builds */}
           <div className="lg:col-span-4 space-y-4">
             <div className="rounded-xl border border-[#E2E8F0] bg-[#FFFFFF] p-6 shadow-xs space-y-4">
-              <h3 className="text-xs font-black uppercase tracking-wider text-[#0F172A] border-b border-[#E2E8F0] pb-3">
-                Thông Tin Bảo Mật
+              <h3 className="text-xs font-black uppercase tracking-wider text-[#0F172A] border-b border-[#E2E8F0] pb-3 flex items-center gap-1.5">
+                <Shield className="h-3.5 w-3.5 text-[#16A34A]" /> Bảo Mật Tài Khoản
               </h3>
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between">
@@ -281,13 +282,17 @@ export default function AccountPage() {
                   <span className="font-bold text-[#0F172A]">{user.email}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#64748B]">Xác thực:</span>
-                  <span className="font-bold text-[#16A34A]">Supabase Auth Live</span>
+                  <span className="text-[#64748B]">Cơ chế lưu trữ:</span>
+                  <span className="font-bold text-[#16A34A]">HttpOnly Cookie (XSS Safe)</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#64748B]">Bảo vệ truy cập:</span>
+                  <span className="font-bold text-[#2563EB]">Rate Limit (Chống Brute-force)</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[#64748B]">Ngày tham gia:</span>
                   <span className="font-mono text-[#0F172A]">
-                    {new Date(user.created_at).toLocaleDateString("vi-VN")}
+                    {user.created_at ? new Date(user.created_at).toLocaleDateString("vi-VN") : "Hôm nay"}
                   </span>
                 </div>
               </div>
@@ -344,11 +349,16 @@ export default function AccountPage() {
       <div className="rounded-2xl border border-[#E2E8F0] bg-[#FFFFFF] p-8 shadow-sm space-y-6">
         {/* Header Tabs */}
         <div className="text-center space-y-1">
+          <div className="flex justify-center mb-1">
+            <span className="inline-flex items-center gap-1 rounded bg-[#EFF6FF] border border-[#BFDBFE] px-2.5 py-0.5 text-[10px] font-bold text-[#1D4ED8]">
+              <ShieldCheck className="h-3.5 w-3.5" /> HttpOnly Cookie & Rate-limit Protected
+            </span>
+          </div>
           <h1 className="text-2xl font-black uppercase text-[#0F172A]">
             {authMode === "login" ? "ĐĂNG NHẬP TÀI KHOẢN" : "ĐĂNG KÝ THÀNH VIÊN"}
           </h1>
           <p className="text-xs text-[#64748B]">
-            Hệ thống quản lý khách hàng & đơn hàng bảo mật qua Supabase
+            Hệ thống xác thực an toàn tuyệt đối với mã hóa phiên đăng nhập
           </p>
         </div>
 
@@ -433,6 +443,23 @@ export default function AccountPage() {
               </div>
             </div>
 
+            {/* Remember Me Checkbox */}
+            <div className="flex items-center justify-between pt-1">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={loginRememberMe}
+                  onChange={(e) => setLoginRememberMe(e.target.checked)}
+                  className="h-4 w-4 rounded text-[#E11D48] border-[#CBD5E1] focus:ring-[#E11D48]"
+                />
+                <span className="font-bold text-[#0F172A] text-xs">Ghi nhớ đăng nhập (30 ngày)</span>
+              </label>
+
+              <span className="text-[11px] text-[#64748B] flex items-center gap-1">
+                <KeyRound className="h-3 w-3 text-[#16A34A]" /> HttpOnly
+              </span>
+            </div>
+
             <Button
               type="submit"
               disabled={isSubmitting}
@@ -440,7 +467,7 @@ export default function AccountPage() {
               size="md"
               className="w-full font-black uppercase text-xs shadow-xs"
             >
-              {isSubmitting ? "Đang xác thực..." : "Đăng Nhập"}
+              {isSubmitting ? "Đang xác thực bảo mật..." : "Đăng Nhập"}
             </Button>
           </form>
         ) : (
@@ -492,11 +519,11 @@ export default function AccountPage() {
             </div>
 
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Mật khẩu (Tối thiểu 6 ký tự) *</label>
+              <label className="block font-bold text-[#475569] mb-1">Mật khẩu (Tối thiểu 8 ký tự) *</label>
               <div className="relative">
                 <input
                   required
-                  minLength={6}
+                  minLength={8}
                   type="password"
                   placeholder="••••••••"
                   value={regPassword}
@@ -505,6 +532,20 @@ export default function AccountPage() {
                 />
                 <Lock className="absolute left-3 top-2.5 h-4 w-4 text-[#94A3B8]" />
               </div>
+              <p className="text-[10px] text-[#64748B] mt-1">Khuyên dùng chữ hoa, chữ thường và chữ số</p>
+            </div>
+
+            {/* Remember Me Checkbox */}
+            <div className="flex items-center justify-between pt-1">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={regRememberMe}
+                  onChange={(e) => setRegRememberMe(e.target.checked)}
+                  className="h-4 w-4 rounded text-[#E11D48] border-[#CBD5E1] focus:ring-[#E11D48]"
+                />
+                <span className="font-bold text-[#0F172A] text-xs">Ghi nhớ phiên đăng nhập (30 ngày)</span>
+              </label>
             </div>
 
             <Button
@@ -520,10 +561,13 @@ export default function AccountPage() {
         )}
 
         {/* Footer info */}
-        <div className="border-t border-[#E2E8F0] pt-4 text-center text-[10px] text-[#64748B]">
+        <div className="border-t border-[#E2E8F0] pt-4 text-center text-[10px] text-[#64748B] space-y-1">
           <p className="flex items-center justify-center gap-1">
             <ShieldCheck className="h-3.5 w-3.5 text-[#16A34A]" />
-            Bảo mật thông tin khách hàng tuyệt đối
+            Bảo mật HttpOnly Cookies & Chống tấn công CSRF / XSS
+          </p>
+          <p className="text-[#94A3B8]">
+            Hệ thống tự động khóa tạm thời nếu phát hiện dò quét mật khẩu bất thường.
           </p>
         </div>
       </div>
