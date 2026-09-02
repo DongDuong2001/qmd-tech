@@ -1,160 +1,192 @@
-# QMD-Tech — PC Components & Custom Build Store 🚀
+# QMD-Tech - He Thong Thuong Mai Dien Tu Linh Kien PC Gaming Chuyen Nghiep
 
-> **High-Performance Hardware Retail & Custom PC Configurator**  
-> Built with Next.js 16 (App Router), React 19, Tailwind CSS v4, `next-intl` (vi/en), and Modular Monolith Architecture.
-
----
-
-## ⚡ Tech Stack & Architecture
-
-- **Frontend**: [Next.js 16 (App Router)](https://nextjs.org/) + [React 19](https://react.dev/) + [Tailwind CSS v4](https://tailwindcss.com/)
-- **i18n Localization**: `next-intl` (`/vi/...` default, `/en/...` secondary)
-- **Design System**: High-Tech Dark Mode default (`#0B0E14`), crisp surfaces (`#131722`), neon borders (`#2A3040`), Electric Blue (`#3B82F6`), Violet (`#7C3AED`), Amber (`#FACC15`). **Strictly solid surfaces — No gradients.**
-- **Typography**: `Be Vietnam Pro` (Headings, full Vietnamese diacritics), `Inter` (Body), `JetBrains Mono` (Specs / Monospace).
-- **Backend Architecture**: Modular Monolith with isolated domain modules and in-process typed event bus:
-  - `src/modules/catalog/`: Categories, products, full-text search, filtering
-  - `src/modules/builder/`: Custom PC Builder & hardware compatibility engine
-  - `src/modules/cart/`: Cart state, dynamic discounts, free-shipping calculations
-  - `src/modules/orders/`: Checkout flow, order lifecycle & tracking
-  - `src/modules/payments/`: VNPay, MoMo, ZaloPay, COD payment adapters
-  - `src/modules/shipping/`: GHN & GHTK shipping rate calculation adapters
-  - `src/modules/auth/`: Supabase Auth & JWT management
-  - `src/modules/reviews/`: Customer verified reviews
-  - `src/modules/i18n/`: Multilingual content and VND/USD currency formatting
-- **Database & Storage**: PostgreSQL via Supabase with Row-Level Security (RLS) policies and migrations.
-- **Testing**: Vitest for hardware compatibility engine and domain services.
-- **CI/CD & Releases**: GitHub Actions (`ci.yml` for lint/typecheck/tests/build, `release.yml` for Semantic Release and automated changelog generation).
+He thong ban le linh kien may tinh va cong cu Custom PC Builder thong minh.
+Du an duoc xay dung tren nen tang Next.js 16 (App Router), React 19, Tailwind CSS v4, ho tro da ngon ngu (next-intl vi/en), ket noi co so du lieu Supabase PostgreSQL, co che xac thuc bao mat HttpOnly Cookies, he thong gioi han luot truy cap (Rate Limiting) va giao dien quan tri Admin Dashboard rieng biet.
 
 ---
 
-## 🛠️ Project Structure
+## 1. Cong Nghe Va Kien Truc Du An
+
+- Framework: Next.js 16 (App Router) kem React 19
+- Styling: Tailwind CSS v4 voi giao dien Light Theme, su dung mau don sac ro rang (true solid colors), khong su dung gradient
+- Da ngon ngu (i18n): next-intl voi tien to ngon ngu bat buoc (`/vi` la mac dinh, `/en` la ngon ngu phu)
+- Co so du lieu: Supabase (PostgreSQL) truy van truc tiep cac bang products, categories, orders, builds, reviews
+- Xac thuc va bao mat:
+  - 100% phien dang nhap duoc quan ly qua HttpOnly Cookies (chong tan cong danh cap token XSS)
+  - Tinh nang Ghi nho dang nhap (Remember Me) voi thoi han 30 ngay
+  - Bo loc gioi han tan suat truy cap (In-memory Sliding Window Rate Limiter) chong do quet mat khau (Brute-force)
+  - Header bao mat HTTP: X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy
+- He thong Custom PC Builder: Thuat toan kiem tra tuong thich 6 tieu chi phan cung (Socket CPU/Mainboard, the he RAM DDR4/DDR5, cong suat nguon PSU, kich thuoc case va do dai VGA)
+- Giao dien quan tri: Admin Dashboard rieng biet (tach biet khoi Header va Footer ban hang) tai duong dan `/[locale]/admin`
+- Bo nhan dien thuong hieu: Su dung 100% logo vector chinh hang cua cac nha san xuat (ASUS, NVIDIA, Intel, AMD, MSI, GIGABYTE, Corsair, Samsung, Kingston, NZXT, Lian Li, Western Digital)
+
+---
+
+## 2. Cau Truc Thu Muc Du An
 
 ```
 qmd-tech/
 ├── .github/
 │   └── workflows/
-│       ├── ci.yml                    # Automated CI (lint, typecheck, test, build)
-│       └── release.yml               # Automated Semantic Versioning & GitHub Releases
+│       ├── ci.yml                    # Kiem tra tu dong: lint, typecheck, test, build
+│       └── release.yml               # Tu dong hoa phat hanh phien ban semantic
 ├── messages/
-│   ├── vi.json                       # Vietnamese dictionary (default)
-│   └── en.json                       # English dictionary
-├── public/                           # Static assets
+│   ├── vi.json                       # Tu dien tieng Viet (mac dinh)
+│   └── en.json                       # Tu dien tieng Anh
+├── public/
+│   ├── brands/                       # Vector SVG chinh hang cua cac thuong hieu
+│   ├── favicon.ico                   # Favicon website
+│   └── qmdtech_logo.png              # Logo chinh thuc cua QMD-Tech (bo tron)
 ├── src/
 │   ├── app/
 │   │   ├── [locale]/
-│   │   │   ├── layout.tsx            # Root locale layout with Google Fonts
-│   │   │   ├── page.tsx              # High-tech Storefront Home
-│   │   │   ├── build-pc/             # Custom PC Builder configurator
-│   │   │   │   ├── page.tsx
-│   │   │   │   └── [buildId]/page.tsx
-│   │   │   ├── danh-muc/             # Category listings
-│   │   │   ├── san-pham/[slug]/      # Product detail & structured specs
-│   │   │   ├── gio-hang/page.tsx     # Shopping cart
-│   │   │   ├── thanh-toan/page.tsx   # Checkout with VNPay / MoMo / COD
-│   │   │   ├── tai-khoan/page.tsx    # User account dashboard
-│   │   │   ├── khuyen-mai/page.tsx   # Deals & promo codes
-│   │   │   ├── blog/page.tsx         # Hardware guides & reviews
-│   │   │   ├── bao-hanh/page.tsx     # Warranty policies
-│   │   │   └── lien-he/page.tsx      # Showroom & contact info
-│   │   ├── api/                      # Modular API routes
-│   │   └── globals.css               # Tailwind CSS v4 @theme design tokens
+│   │   │   ├── admin/page.tsx        # Giao dien Admin Console rieng biet
+│   │   │   ├── build-pc/             # Cong cu tu rap PC
+│   │   │   ├── danh-muc/             # Danh muc linh kien theo hang muc
+│   │   │   ├── gio-hang/page.tsx     # Gio hang
+│   │   │   ├── thanh-toan/page.tsx   # Dat hang va thanh toan
+│   │   │   ├── tai-khoan/page.tsx    # Dang nhap, dang ky va trang ca nhan
+│   │   │   ├── san-pham/[slug]/      # Chi tiet linh kien va thong so ky thuat
+│   │   │   ├── bao-hanh/page.tsx     # Chinh sach bao hanh
+│   │   │   ├── khuyen-mai/page.tsx   # Chuong trinh khuyen mai
+│   │   │   ├── lien-he/page.tsx      # He thong showroom
+│   │   │   ├── layout.tsx            # Layout chinh cho storefront
+│   │   │   └── page.tsx              # Trang chu ban hang
+│   │   ├── api/
+│   │   │   ├── auth/                 # API login, register, session, logout (HttpOnly)
+│   │   │   ├── builder/              # API luu va chia se cau hinh
+│   │   │   ├── catalog/              # API truy van san pham
+│   │   │   └── orders/               # API tao don hang
+│   │   ├── icon.png                  # Tab icon cho trinh duyet
+│   │   ├── apple-icon.png            # Icon cho thiet bi Apple
+│   │   └── globals.css               # Cau hinh bien mau Tailwind v4
 │   ├── components/
-│   │   ├── builder/                  # Custom PC Builder & Wattage Meter
-│   │   ├── common/                   # ThemeToggle, LanguageSwitcher
-│   │   ├── layout/                   # Header, Footer, Navigation
-│   │   ├── product/                  # ProductCard, PriceTag, Specs
-│   │   └── ui/                       # Button, Card, Badge, Modal
-│   ├── i18n/                         # next-intl routing and request config
-│   ├── modules/                      # Modular Monolith domains
-│   └── shared/                       # EventBus, Supabase DB, types, errors
-├── supabase/
-│   ├── migrations/                   # SQL schemas and RLS policies
-│   └── seed.sql                      # Hardware seed data
-├── .env.example
-├── .releaserc.json                   # Semantic Release config
-├── commitlint.config.mjs             # Conventional commit rules
-├── next.config.ts
+│   │   ├── builder/                  # Component Custom PC Builder
+│   │   ├── common/                   # BrandLogos, LanguageSwitcher
+│   │   ├── layout/                   # Header, Footer (tu an tren trang /admin)
+│   │   ├── product/                  # ProductCard
+│   │   └── ui/                       # Button, Badge, Card, Modal
+│   ├── modules/                      # Domain services (admin, auth, catalog, cart, builder, orders, reviews, i18n)
+│   ├── shared/
+│   │   ├── db/                       # Supabase client connection
+│   │   ├── security/                 # RateLimiter va cau hinh HttpOnly Cookies
+│   │   └── types/                    # Domain models va TypeScript interfaces
+│   └── middleware.ts                 # Dinh tuyen ngon ngu next-intl va HTTP Security Headers
+├── GIT_GUIDE.md                      # Huong dan chi tiet cach dung Git cho lap trinh vien moi
 ├── package.json
-└── tsconfig.json
+├── tsconfig.json
+└── vitest.config.ts
 ```
 
 ---
 
-## 🧮 Custom PC Builder Compatibility Engine
+## 3. Huong Dan Cai Dat Va Chay Du An Tai Local
 
-The built-in compatibility engine (`src/modules/builder/compatibilityEngine.ts`) evaluates PC parts across 6 key hardware constraints:
+### 3.1. Yeu cau he thong
+- Node.js phien ban `22.x` tro len
+- Trinh quan ly goi: `npm` (phien ban 10.x tro len) hoac `pnpm`
+- Git da duoc cai dat tren may
 
-1. **CPU ↔ Motherboard Socket Match**: Validates AMD AM5/AM4 vs Intel LGA1700/LGA1200 sockets.
-2. **RAM Generation Matching**: Validates DDR4 vs DDR5 RAM and motherboard support.
-3. **Cooler Socket Mounting**: Checks cooler bracket compatibility for CPU socket.
-4. **Power Draw & Transient Headroom**: Calculates estimated system power consumption (CPU TDP + GPU TDP + 100W base) with 30% recommended transient headroom.
-5. **Form Factor Compatibility**: Validates E-ATX / ATX / Micro-ATX / Mini-ITX motherboard fitment against case specifications.
-6. **GPU Length Clearance**: Validates graphics card length against case maximum clearance in millimeters.
+### 3.2. Cac buoc cai dat
 
----
-
-## 🚀 Getting Started
-
-### 1. Prerequisites
-- Node.js `22.x` or higher
-- npm `10.x` or higher
-
-### 2. Installation
+Buoc 1: Clone ma nguon va chuyen vao thu muc du an
 ```bash
-# Clone the repository
 git clone https://github.com/DongDuong2001/qmd-tech.git
 cd qmd-tech
-
-# Install dependencies
-npm install
-
-# Setup environment variables
-cp .env.example .env.local
 ```
 
-### 3. Development Server
+Buoc 2: Chuyen sang nhanh dang phat trien
+```bash
+git checkout feat/real-data-admin-auth
+```
+
+Buoc 3: Cai dat cac thu vien phu thuoc
+```bash
+npm install
+```
+
+Buoc 4: Cau hinh bien moi truong
+Tao file `.env.local` tai thu muc goc cua du an va dien cac thong so ket noi Supabase do truong nhom cung cap:
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+```
+Luu y: Tuyet doi khong commit file `.env.local` len GitHub.
+
+Buoc 5: Khoi dong server phat trien (Development Server)
 ```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) (auto-redirects to `/vi` or `/en` based on locale).
+Mo trinh duyet va truy cap: `http://localhost:3000`
+He thong se tu dong chuyen huong den `http://localhost:3000/vi` (Tieng Viet) hoac `http://localhost:3000/en` (Tieng Anh).
 
-### 4. Running Tests & Typecheck
+---
+
+## 4. Cac Lenh Kiem Tra Chat Luong Code
+
+Truoc khi commit va day code len remote repository, bat buoc phai chay 4 lenh kiem tra sau:
+
 ```bash
-# Run unit tests
-npm run test
-
-# Run TypeScript type check
-npm run typecheck
-
-# Run ESLint
+# 1. Kiem tra cu phap va quy tac ma nguon (ESLint)
 npm run lint
 
-# Production build
+# 2. Kiem tra kieu du lieu tinh (TypeScript)
+npm run typecheck
+
+# 3. Chay toan bo bo kiem thu don vi (Vitest)
+npm run test
+
+# 4. Bien dich san pham (Next.js Build)
 npm run build
 ```
 
----
-
-## 📦 Database Setup (Supabase)
-
-1. Create a Supabase project at [supabase.com](https://supabase.com).
-2. Apply the migration in SQL Editor:
-   - `supabase/migrations/20260901_initial_schema.sql`
-3. Seed the sample PC hardware:
-   - `supabase/seed.sql`
-4. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in your `.env.local`.
+Tat ca 4 lenh deu phai vuot qua voi ma thoat 0 (0 error, 0 warning).
 
 ---
 
-## 🏷️ Conventional Commits & Version Release
+## 5. Cac Tinh Nang Chinh Cua He Thong
 
-This project enforces [Conventional Commits](https://www.conventionalcommits.org/). Automated semantic versioning and changelog generation are triggered on push to `main` via `.github/workflows/release.yml`:
+### 5.1. Trang chu ban hang (Storefront)
+- Thanh tien ich: showroom, hotline, tra cuu bao hanh, chuyen doi ngon ngu
+- Thanh tim kiem linh kien thong minh
+- Luoi bieu tuong 12 danh muc phan cung (CPU, VGA, Mainboard, RAM, SSD, Nguon, Case, Tan nhiet...)
+- Banner khuyen mai Flash Sale kem dong ho dem nguoc
+- Danh sach bo may PC Gaming rap san (Prebuilt Gaming Rigs)
+- Luoi logo chinh hang cua 12 thuong hieu hang dau
 
-- `feat:` -> Triggers MINOR version bump (e.g. `1.1.0`)
-- `fix:` -> Triggers PATCH version bump (e.g. `1.0.1`)
-- `feat!:` or `BREAKING CHANGE:` -> Triggers MAJOR version bump (e.g. `2.0.0`)
+### 5.2. Cong cu tu build PC (Custom PC Builder)
+- Tinh toan cong suat dien tieu thu uoc tinh (Wattage Meter)
+- Tu dong kiem tra tuong thich chan socket CPU va bo mach chu
+- Kiem tra the he RAM va khe cam RAM
+- Dua ra muc cong suat nguon PSU de xuat kem danh gia phan khuc cau hinh
+- Luu va chia se cau hinh qua duong dan ngan
+- Gui yeu cau bao gia va rap may ve he thong
+
+### 5.3. Xac thuc bao mat (Authentication)
+- Duong dan: `/[locale]/tai-khoan`
+- Ho tro dang nhap, dang ky voi du lieu thuc luu tren Supabase Auth
+- Luu phien dang nhap an toan qua HttpOnly Cookies, khong de lo token ra JavaScript
+- Checkbox "Ghi nho dang nhap" cho phep luu phien 30 ngay
+- Gioi han luot thu dang nhap (Rate Limit) ngan chan tan cong do mat khau
+
+### 5.4. He thong quan tri rieng biet (Admin Dashboard)
+- Duong dan: `/[locale]/admin`
+- Giao dien Console rieng biet voi thanh Sidebar toi mau kieu Enterprise
+- Tu dong an Header va Footer cua trang ban hang khi truy cap vao khu vuc admin
+- Quan ly kho san pham: bang du lieu truc quan, loc theo hang, danh muc, ton kho, form them linh kien day du thong so PC Builder
+- Quan ly danh muc: tao va xoa danh muc phan cung
+- Quan ly don hang: xem thong tin khach dat, dia chi, tong tien va cap nhat trang thai 1-click (Xu ly, Giao hang, Hoan thanh)
+- Kiem duyet danh gia cua khach hang
+- Theo doi trang thai ket noi co so du lieu va he thong bao mat
 
 ---
 
-## 📄 License
-MIT © 2026 QMD-Tech. Built by [@DongDuong2001](https://github.com/DongDuong2001).
+## 6. Huong Dan Su Dung Git Danh Cho Lap Trinh Vien Moi
+
+De xem huong dan chi tiet tung buoc ve cach clone, checkout nhanh, pull code moi nhat, add file, commit theo chuan Conventional Commits va cach xu ly khi bi conflict, vui long doc tep tin:
+[GIT_GUIDE.md](file:///d:/d-tech/GIT_GUIDE.md)
+
+---
+
+## 7. Giay Phep (License)
+MIT © 2026 QMD-Tech Corporation. Du an duoc phat trien boi DongDuong2001.
