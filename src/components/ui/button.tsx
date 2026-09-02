@@ -8,23 +8,31 @@ export function cn(...inputs: (string | undefined | null | false)[]) {
 }
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 select-none cursor-pointer",
+  "inline-flex items-center justify-center rounded-lg font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 select-none cursor-pointer",
   {
     variants: {
       variant: {
-        primary: "bg-[#3B82F6] text-white hover:bg-[#2563EB] focus-visible:ring-[#3B82F6]",
-        accent: "bg-[#7C3AED] text-white hover:bg-[#6D28D9] focus-visible:ring-[#7C3AED]",
-        secondary: "bg-[#1B2030] text-[#F2F4F8] hover:bg-[#2A3040] border border-[#2A3040]",
-        outline: "border border-[#2A3040] bg-transparent text-[#F2F4F8] hover:bg-[#131722] hover:border-[#3B82F6]",
-        ghost: "bg-transparent text-[#F2F4F8] hover:bg-[#131722]",
-        danger: "bg-[#EF4444] text-white hover:bg-[#DC2626]",
-        warning: "bg-[#F59E0B] text-black hover:bg-[#D97706]",
-        price: "bg-[#FACC15] text-black font-semibold hover:bg-[#EAB308]",
+        primary:
+          "bg-[#E11D48] text-white hover:bg-[#BE123C] active:bg-[#9F1239] shadow-xs",
+        accent:
+          "bg-[#EA580C] text-white hover:bg-[#C2410C] active:bg-[#9A3412] shadow-xs",
+        gold:
+          "bg-[#F59E0B] text-[#0F172A] hover:bg-[#D97706] active:bg-[#B45309] shadow-xs",
+        blue:
+          "bg-[#2563EB] text-white hover:bg-[#1D4ED8] active:bg-[#1E40AF] shadow-xs",
+        secondary:
+          "bg-[#FFFFFF] text-[#0F172A] hover:bg-[#F1F5F9] border border-[#CBD5E1] shadow-xs",
+        outline:
+          "border border-[#CBD5E1] bg-transparent text-[#0F172A] hover:bg-[#F8FAFC] hover:border-[#E11D48] hover:text-[#E11D48]",
+        ghost:
+          "bg-transparent text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]",
+        danger:
+          "bg-[#DC2626] text-white hover:bg-[#B91C1C] shadow-xs",
       },
       size: {
         sm: "h-8 px-3 text-xs",
         md: "h-10 px-4 text-sm",
-        lg: "h-12 px-6 text-base font-semibold",
+        lg: "h-12 px-6 text-base font-extrabold",
         icon: "h-10 w-10 p-0",
       },
     },
