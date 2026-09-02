@@ -14,24 +14,24 @@ export function LanguageSwitcher() {
   };
 
   return (
-    <div className="flex items-center rounded-lg border border-[#2A3040] bg-[#131722] p-0.5 text-xs font-semibold">
-      <Globe className="ml-2 h-3.5 w-3.5 text-[#9AA3B2]" />
+    <div className="flex items-center rounded-lg border border-[#232A3B] bg-[#141824] p-0.5 text-xs font-bold">
+      <Globe className="ml-1.5 h-3.5 w-3.5 text-[#94A3B8]" />
       <button
         onClick={() => switchLanguage("vi")}
-        className={`ml-1.5 rounded-md px-2 py-1 transition-colors ${
+        className={`ml-1 rounded px-1.5 py-0.5 transition-colors ${
           locale === "vi"
-            ? "bg-[#3B82F6] text-white"
-            : "text-[#9AA3B2] hover:text-[#F2F4F8]"
+            ? "bg-gradient-to-r from-[#EF4444] to-[#F97316] text-white"
+            : "text-[#94A3B8] hover:text-white"
         }`}
       >
         VI
       </button>
       <button
         onClick={() => switchLanguage("en")}
-        className={`rounded-md px-2 py-1 transition-colors ${
+        className={`rounded px-1.5 py-0.5 transition-colors ${
           locale === "en"
-            ? "bg-[#3B82F6] text-white"
-            : "text-[#9AA3B2] hover:text-[#F2F4F8]"
+            ? "bg-gradient-to-r from-[#EF4444] to-[#F97316] text-white"
+            : "text-[#94A3B8] hover:text-white"
         }`}
       >
         EN
