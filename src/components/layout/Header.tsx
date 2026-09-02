@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { Link } from "@/i18n/routing";
+import { Link, usePathname } from "@/i18n/routing";
 import {
   Search,
   ShoppingCart,
@@ -21,8 +21,13 @@ import { LanguageSwitcher } from "../common/LanguageSwitcher";
 import { Button } from "../ui/button";
 
 export function Header() {
+  const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  if (pathname.includes("/admin")) {
+    return null;
+  }
 
   const hotKeywords = [
     "RTX 4070 Ti Super",

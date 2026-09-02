@@ -1,9 +1,17 @@
+"use client";
+
 import React from "react";
 import Image from "next/image";
-import { Link } from "@/i18n/routing";
+import { Link, usePathname } from "@/i18n/routing";
 import { ShieldCheck, Truck, Headphones, Wrench, MapPin, Phone, Mail } from "lucide-react";
 
 export function Footer() {
+  const pathname = usePathname();
+
+  if (pathname.includes("/admin")) {
+    return null;
+  }
+
   return (
     <footer className="border-t border-[#E2E8F0] bg-[#FFFFFF] text-[#475569]">
       {/* 4 Core Value Propositions in Solid Light Boxes */}
@@ -95,16 +103,16 @@ export function Footer() {
               </div>
               <div>
                 <strong className="text-[#0F172A]">Showroom TP.HCM:</strong>
-                <p className="text-[#64748B]">Số 250 CMT8, P.10, Quận 3, TP.HCM</p>
+                <p className="text-[#64748B]">Số 280 Nguyễn Thị Minh Khai, Q.3, TP.HCM</p>
               </div>
               <div>
-                <strong className="text-[#0F172A]">Showroom Đà Nẵng:</strong>
-                <p className="text-[#64748B]">Số 88 Hàm Nghi, Q. Thanh Khê, Đà Nẵng</p>
+                <strong className="text-[#0F172A]">Trung Tâm Bảo Hành:</strong>
+                <p className="text-[#64748B]">Số 45 Lê Thanh Nghị, Hai Bà Trưng, Hà Nội</p>
               </div>
             </div>
           </div>
 
-          {/* Col 3: Policies & Guides */}
+          {/* Col 3: Customer Policies */}
           <div>
             <h4 className="text-xs font-black uppercase tracking-wider text-[#0F172A] mb-4">
               Chính Sách & Hỗ Trợ
@@ -112,54 +120,56 @@ export function Footer() {
             <ul className="space-y-2 text-xs">
               <li>
                 <Link href="/bao-hanh" className="hover:text-[#E11D48] transition-colors">
-                  Chính sách bảo hành & 1 đổi 1
+                  Tra cứu bảo hành & đổi trả 30 ngày
                 </Link>
               </li>
               <li>
-                <Link href="/bao-hanh" className="hover:text-[#E11D48] transition-colors">
-                  Chính sách vận chuyển & giao 2h
+                <Link href="/build-pc" className="hover:text-[#E11D48] transition-colors">
+                  Hướng dẫn tự cấu hình PC Gaming
+                </Link>
+              </li>
+              <li>
+                <Link href="/khuyen-mai" className="hover:text-[#E11D48] transition-colors">
+                  Chương trình khuyến mãi & quà tặng
                 </Link>
               </li>
               <li>
                 <Link href="/lien-he" className="hover:text-[#E11D48] transition-colors">
-                  Hướng dẫn mua hàng & trả góp 0%
-                </Link>
-              </li>
-              <li>
-                <Link href="/build-pc" className="text-[#E11D48] hover:underline font-bold transition-colors">
-                  Công cụ cấu hình Custom PC
+                  Liên hệ hợp tác & dự án Cyber Games
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Col 4: Payment Methods */}
+          {/* Col 4: Payment Methods & Badges */}
           <div>
             <h4 className="text-xs font-black uppercase tracking-wider text-[#0F172A] mb-4">
               Phương Thức Thanh Toán
             </h4>
-            <div className="flex flex-wrap gap-2">
-              <span className="rounded bg-[#F8FAFC] px-2.5 py-1 text-[10px] font-bold text-[#0F172A] border border-[#CBD5E1]">
+            <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+              <span className="flex items-center justify-center rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] py-2 font-bold text-[#0F172A]">
                 VNPAY-QR
               </span>
-              <span className="rounded bg-[#FDF2F8] px-2.5 py-1 text-[10px] font-bold text-[#DB2777] border border-[#FBCFE8]">
-                MoMo
+              <span className="flex items-center justify-center rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] py-2 font-bold text-[#DB2777]">
+                MOMO
               </span>
-              <span className="rounded bg-[#EFF6FF] px-2.5 py-1 text-[10px] font-bold text-[#2563EB] border border-[#BFDBFE]">
-                ZaloPay
+              <span className="flex items-center justify-center rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] py-2 font-bold text-[#2563EB]">
+                VISA / MASTER
               </span>
-              <span className="rounded bg-[#F0FDF4] px-2.5 py-1 text-[10px] font-bold text-[#16A34A] border border-[#BBF7D0]">
-                VietQR
+              <span className="flex items-center justify-center rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] py-2 font-bold text-[#16A34A]">
+                COD TẬN NƠI
               </span>
-              <span className="rounded bg-[#FEF3C7] px-2.5 py-1 text-[10px] font-bold text-[#B45309] border border-[#FDE68A]">
-                Trả Góp 0%
-              </span>
+            </div>
+
+            <div className="mt-4 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] p-3 text-[11px] text-[#64748B]">
+              🛡️ Giấy phép ĐKKD số 010888888 do Sở KH&ĐT TP. Hà Nội cấp.
             </div>
           </div>
         </div>
 
-        <div className="mt-12 border-t border-[#E2E8F0] pt-6 text-center text-[11px] text-[#64748B]">
-          <p>© 2026 QMD-Tech Vietnam. All rights reserved. Hệ thống bán lẻ PC & Linh kiện Gaming chuyên nghiệp.</p>
+        {/* Bottom Copyright */}
+        <div className="mt-12 border-t border-[#E2E8F0] pt-6 text-center text-xs text-[#94A3B8]">
+          © {new Date().getFullYear()} QMD-Tech Corporation. Nền tảng thương mại linh kiện PC Gaming cao cấp hàng đầu Việt Nam.
         </div>
       </div>
     </footer>
