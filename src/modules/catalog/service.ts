@@ -1,7 +1,18 @@
-import { Category, Product } from "@/shared/types";
-import { CatalogFilterParams, CatalogListResult } from "./types";
-import { MOCK_CATEGORIES, MOCK_PRODUCTS } from "./mockData";
 import { supabase } from "@/shared/db/supabase";
+import { Category, Product } from "@/shared/types";
+
+export interface ProductFilter {
+  categorySlug?: string;
+  brand?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  search?: string;
+  isFeatured?: boolean;
+  inStockOnly?: boolean;
+  sortBy?: "price_asc" | "price_desc" | "newest" | "popular";
+  page?: number;
+  limit?: number;
+}
 
 export class CatalogService {
   async getCategories(): Promise<Category[]> {
@@ -9,133 +20,151 @@ export class CatalogService {
       const { data, error } = await supabase
         .from("categories")
         .select("*")
-        .order("sort_order", { ascending: true });
+        .order("name_vi", { ascending: true });
 
-      if (!error && data && data.length > 0) {
-        return data as Category[];
+      if (error || !data) {
+        console.warn("CatalogService.getCategories db notice:", error?.message);
+        return [];
       }
-    } catch {
-      // Fallback to mock data for local/offline execution
+      return data as Category[];
+    } catch (err) {
+      console.warn("CatalogService.getCategories exception:", err);
+      return [];
     }
-    return MOCK_CATEGORIES;
   }
 
   async getCategoryBySlug(slug: string): Promise<Category | null> {
-    const categories = await this.getCategories();
-    return categories.find((c) => c.slug === slug) || null;
+    try {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*")
+        .eq("slug", slug)
+        .maybeSingle();
+
+      if (error || !data) {
+        return null;
+      }
+      return data as Category;
+    } catch (err) {
+      console.warn("CatalogService.getCategoryBySlug exception:", err);
+      return null;
+    }
   }
 
-  async getProducts(params: CatalogFilterParams = {}): Promise<CatalogListResult> {
-    const categories = await this.getCategories();
-    let products: Product[] = [...MOCK_PRODUCTS];
-
+  async getProducts(filter: ProductFilter = {}): Promise<{ products: Product[]; total: number }> {
     try {
-      let query = supabase.from("products").select("*, category:categories(*)");
+      let query = supabase.from("products").select("*", { count: "exact" });
 
-      if (params.categoryId) {
-        query = query.eq("category_id", params.categoryId);
-      }
-      if (params.brand) {
-        query = query.eq("brand", params.brand);
-      }
-      if (params.inStockOnly) {
-        query = query.gt("stock", 0);
+      if (filter.categorySlug) {
+        // Look up category id by slug first if needed
+        const cat = await this.getCategoryBySlug(filter.categorySlug);
+        if (cat) {
+          query = query.eq("category_id", cat.id);
+        }
       }
 
-      const { data, error } = await query;
-      if (!error && data && data.length > 0) {
-        products = data as Product[];
+      if (filter.brand) {
+        query = query.ilike("brand", `%${filter.brand}%`);
       }
-    } catch {
-      // Fallback to local memory filtering
-    }
 
-    // Apply local filters
-    if (params.categorySlug) {
-      const cat = categories.find((c) => c.slug === params.categorySlug);
-      if (cat) {
-        products = products.filter((p) => p.category_id === cat.id);
+      if (filter.minPrice !== undefined) {
+        query = query.gte("price_vnd", filter.minPrice);
       }
+
+      if (filter.maxPrice !== undefined) {
+        query = query.lte("price_vnd", filter.maxPrice);
+      }
+
+      if (filter.isFeatured !== undefined) {
+        query = query.eq("is_featured", filter.isFeatured);
+      }
+
+      if (filter.search) {
+        query = query.or(`name_vi.ilike.%${filter.search}%,name_en.ilike.%${filter.search}%,sku.ilike.%${filter.search}%,brand.ilike.%${filter.search}%`);
+      }
+
+      const page = filter.page || 1;
+      const limit = filter.limit || 20;
+      const from = (page - 1) * limit;
+      const to = from + limit - 1;
+
+      query = query.range(from, to).order("created_at", { ascending: false });
+
+      const { data, count, error } = await query;
+
+      if (error || !data) {
+        console.warn("CatalogService.getProducts db notice:", error?.message);
+        return { products: [], total: 0 };
+      }
+
+      return {
+        products: data as Product[],
+        total: count || data.length,
+      };
+    } catch (err) {
+      console.warn("CatalogService.getProducts exception:", err);
+      return { products: [], total: 0 };
     }
-
-    if (params.brand) {
-      products = products.filter((p) => p.brand.toLowerCase() === params.brand?.toLowerCase());
-    }
-
-    if (params.search) {
-      const term = params.search.toLowerCase();
-      products = products.filter(
-        (p) =>
-          p.name_vi.toLowerCase().includes(term) ||
-          p.name_en.toLowerCase().includes(term) ||
-          p.sku.toLowerCase().includes(term) ||
-          p.brand.toLowerCase().includes(term)
-      );
-    }
-
-    if (params.minPrice !== undefined) {
-      products = products.filter((p) => p.price_vnd >= params.minPrice!);
-    }
-
-    if (params.maxPrice !== undefined) {
-      products = products.filter((p) => p.price_vnd <= params.maxPrice!);
-    }
-
-    if (params.inStockOnly) {
-      products = products.filter((p) => p.stock > 0);
-    }
-
-    // Sorting
-    if (params.sortBy === "price_asc") {
-      products.sort((a, b) => a.price_vnd - b.price_vnd);
-    } else if (params.sortBy === "price_desc") {
-      products.sort((a, b) => b.price_vnd - a.price_vnd);
-    }
-
-    const page = params.page || 1;
-    const limit = params.limit || 20;
-    const total = products.length;
-    const totalPages = Math.ceil(total / limit);
-    const paginatedProducts = products.slice((page - 1) * limit, page * limit);
-
-    return {
-      products: paginatedProducts,
-      total,
-      page,
-      totalPages,
-      categories,
-    };
   }
 
   async getProductBySlug(slug: string): Promise<Product | null> {
     try {
       const { data, error } = await supabase
         .from("products")
-        .select("*, category:categories(*)")
+        .select("*")
         .eq("slug", slug)
-        .single();
+        .maybeSingle();
 
-      if (!error && data) {
-        return data as Product;
+      if (error || !data) {
+        return null;
       }
-    } catch {
-      // Fallback
+      return data as Product;
+    } catch (err) {
+      console.warn("CatalogService.getProductBySlug exception:", err);
+      return null;
     }
-
-    const found = MOCK_PRODUCTS.find((p) => p.slug === slug);
-    if (found) {
-      const categories = await this.getCategories();
-      return {
-        ...found,
-        category: categories.find((c) => c.id === found.category_id),
-      };
-    }
-    return null;
   }
 
   async getFeaturedProducts(): Promise<Product[]> {
-    const { products } = await this.getProducts();
-    return products.filter((p) => p.is_featured);
+    try {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("is_featured", true)
+        .limit(8);
+
+      if (error || !data || data.length === 0) {
+        // Fallback to top products if no featured flag set
+        const { data: fallbackData } = await supabase
+          .from("products")
+          .select("*")
+          .limit(8);
+
+        return (fallbackData || []) as Product[];
+      }
+      return data as Product[];
+    } catch (err) {
+      console.warn("CatalogService.getFeaturedProducts exception:", err);
+      return [];
+    }
+  }
+
+  async getProductsByIds(ids: string[]): Promise<Product[]> {
+    if (!ids || ids.length === 0) return [];
+    try {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .in("id", ids);
+
+      if (error || !data) {
+        return [];
+      }
+      return data as Product[];
+    } catch (err) {
+      console.warn("CatalogService.getProductsByIds exception:", err);
+      return [];
+    }
   }
 }
 
