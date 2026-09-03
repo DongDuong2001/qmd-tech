@@ -18,7 +18,7 @@ export function Footer() {
       <div className="border-b border-[#E2E8F0] bg-[#F8FAFC] py-8">
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 sm:grid-cols-2 lg:grid-cols-4 sm:px-6">
           <div className="flex items-center gap-3.5">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-[#E11D48] border border-[#E2E8F0] shadow-xs">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-[#0063FD] border border-[#E2E8F0] shadow-xs">
               <ShieldCheck className="h-6 w-6" />
             </div>
             <div>
@@ -38,7 +38,7 @@ export function Footer() {
           </div>
 
           <div className="flex items-center gap-3.5">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-[#EA580C] border border-[#E2E8F0] shadow-xs">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-[#0063FD] border border-[#E2E8F0] shadow-xs">
               <Wrench className="h-6 w-6" />
             </div>
             <div>
@@ -48,7 +48,7 @@ export function Footer() {
           </div>
 
           <div className="flex items-center gap-3.5">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-[#B45309] border border-[#E2E8F0] shadow-xs">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-[#0284C7] border border-[#E2E8F0] shadow-xs">
               <Headphones className="h-6 w-6" />
             </div>
             <div>
@@ -75,7 +75,7 @@ export function Footer() {
                 />
               </div>
               <span className="text-lg font-black tracking-wider text-[#0F172A]">
-                QMD<span className="text-[#E11D48]">-TECH</span>
+                QMD<span className="text-[#0063FD]">-TECH</span>
               </span>
             </div>
             <p className="text-xs leading-relaxed text-[#64748B]">
@@ -83,7 +83,7 @@ export function Footer() {
             </p>
             <div className="text-xs space-y-1 text-[#475569]">
               <p className="flex items-center gap-1.5">
-                <Phone className="h-3.5 w-3.5 text-[#E11D48]" /> Hotline: <strong className="text-[#0F172A]">1900 8888</strong>
+                <Phone className="h-3.5 w-3.5 text-[#0063FD]" /> Hotline: <strong className="text-[#0F172A]">1900 8888</strong>
               </p>
               <p className="flex items-center gap-1.5">
                 <Mail className="h-3.5 w-3.5 text-[#2563EB]" /> Email: contact@qmdtech.vn
@@ -94,7 +94,7 @@ export function Footer() {
           {/* Col 2: Showroom Locations */}
           <div>
             <h4 className="text-xs font-black uppercase tracking-wider text-[#0F172A] mb-4 flex items-center gap-1">
-              <MapPin className="h-3.5 w-3.5 text-[#E11D48]" /> Hệ Thống Showroom
+              <MapPin className="h-3.5 w-3.5 text-[#0063FD]" /> Hệ Thống Showroom
             </h4>
             <div className="space-y-3 text-xs">
               <div>
@@ -119,22 +119,22 @@ export function Footer() {
             </h4>
             <ul className="space-y-2 text-xs">
               <li>
-                <Link href="/bao-hanh" className="hover:text-[#E11D48] transition-colors">
+                <Link href="/bao-hanh" className="hover:text-[#0063FD] transition-colors">
                   Tra cứu bảo hành & đổi trả 30 ngày
                 </Link>
               </li>
               <li>
-                <Link href="/build-pc" className="hover:text-[#E11D48] transition-colors">
+                <Link href="/build-pc" className="hover:text-[#0063FD] transition-colors">
                   Hướng dẫn tự cấu hình PC Gaming
                 </Link>
               </li>
               <li>
-                <Link href="/khuyen-mai" className="hover:text-[#E11D48] transition-colors">
+                <Link href="/khuyen-mai" className="hover:text-[#0063FD] transition-colors">
                   Chương trình khuyến mãi & quà tặng
                 </Link>
               </li>
               <li>
-                <Link href="/lien-he" className="hover:text-[#E11D48] transition-colors">
+                <Link href="/lien-he" className="hover:text-[#0063FD] transition-colors">
                   Liên hệ hợp tác & dự án Cyber Games
                 </Link>
               </li>

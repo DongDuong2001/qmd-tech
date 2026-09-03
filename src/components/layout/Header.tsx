@@ -2,57 +2,59 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { Link, usePathname } from "@/i18n/routing";
+import { usePathname } from "next/navigation";
+import { Link } from "@/i18n/routing";
+import { LanguageSwitcher } from "@/components/common/LanguageSwitcher";
+import { Button } from "@/components/ui/button";
 import {
   Search,
   ShoppingCart,
   Wrench,
-  Menu,
-  X,
-  Flame,
   Phone,
   ShieldCheck,
-  Truck,
   User,
+  Menu,
+  X,
   Sparkles,
+  Truck,
   Award,
+  Tag,
 } from "lucide-react";
-import { LanguageSwitcher } from "../common/LanguageSwitcher";
-import { Button } from "../ui/button";
 
 export function Header() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  if (pathname.includes("/admin")) {
+  // Auto-hide storefront Header on admin dashboard to maintain enterprise backoffice separation
+  if (pathname && pathname.includes("/admin")) {
     return null;
   }
 
   const hotKeywords = [
     "RTX 4070 Ti Super",
     "Ryzen 7 7800X3D",
-    "i7-14700K",
-    "B650E",
-    "DDR5 32GB",
-    "Nguồn ATX 3.0",
+    "Intel Core i7-14700K",
+    "B760 Mainboard",
+    "RAM 32GB DDR5",
+    "SSD 1TB Gen4",
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-[#E2E8F0] bg-[#FFFFFF] shadow-xs">
-      {/* 1. Top Utility Bar (Showrooms, Warranty, Hotline, Login) */}
-      <div className="border-b border-[#E2E8F0] bg-[#F8FAFC] px-4 py-1.5 text-xs text-[#475569]">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1.5 text-[#0F172A] font-medium">
-              <span className="inline-block h-2 w-2 rounded-full bg-[#16A34A]" />
+    <header className="sticky top-0 z-50 w-full border-b border-[#E2E8F0] bg-[#FFFFFF] shadow-xs">
+      {/* 1. Top Utility Bar */}
+      <div className="border-b border-[#F1F5F9] bg-[#F8FAFC] py-1.5 text-xs text-[#64748B]">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6">
+          <div className="flex items-center gap-3">
+            <span className="flex items-center gap-1">
+              <span className="h-2 w-2 rounded-full bg-[#16A34A] animate-pulse" />
               <span>
                 3 Showroom: <strong>Hà Nội</strong> • <strong>TP.HCM</strong> • <strong>Đà Nẵng</strong>
               </span>
             </span>
             <span className="hidden sm:inline-block text-[#CBD5E1]">|</span>
-            <span className="hidden sm:flex items-center gap-1 text-[#B45309] font-semibold">
-              <Truck className="h-3.5 w-3.5 text-[#EA580C]" />
+            <span className="hidden sm:flex items-center gap-1 text-[#0063FD] font-semibold">
+              <Truck className="h-3.5 w-3.5 text-[#0063FD]" />
               Freeship toàn quốc từ 5.000.000₫
             </span>
           </div>
@@ -60,16 +62,16 @@ export function Header() {
           <div className="flex items-center gap-4">
             <Link
               href="/bao-hanh"
-              className="hidden md:flex items-center gap-1 text-[#475569] hover:text-[#E11D48] transition-colors"
+              className="hidden md:flex items-center gap-1 text-[#475569] hover:text-[#0063FD] transition-colors"
             >
               <ShieldCheck className="h-3.5 w-3.5 text-[#16A34A]" />
               Tra cứu bảo hành
             </Link>
             <Link
               href="/tai-khoan"
-              className="hidden sm:flex items-center gap-1 text-[#475569] hover:text-[#E11D48] transition-colors"
+              className="hidden sm:flex items-center gap-1 text-[#475569] hover:text-[#0063FD] transition-colors"
             >
-              <User className="h-3.5 w-3.5 text-[#2563EB]" />
+              <User className="h-3.5 w-3.5 text-[#0063FD]" />
               Đăng nhập / Đăng ký
             </Link>
             <span className="text-[#CBD5E1]">|</span>
@@ -83,7 +85,7 @@ export function Header() {
         <div className="flex items-center justify-between gap-4">
           {/* Brand Logo with Rounded Image */}
           <Link href="/" className="flex items-center gap-3 shrink-0 group">
-            <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full border-2 border-[#E11D48] shadow-xs bg-white">
+            <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full border-2 border-[#0063FD] shadow-xs bg-white">
               <Image
                 src="/qmdtech_logo.png"
                 alt="QMD-Tech Logo"
@@ -96,14 +98,14 @@ export function Header() {
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
                 <span className="text-2xl font-black tracking-wider text-[#0F172A]">
-                  QMD<span className="text-[#E11D48]">-TECH</span>
+                  QMD<span className="text-[#0063FD]">-TECH</span>
                 </span>
                 <span className="rounded bg-[#0F172A] px-1.5 py-0.2 text-[9px] font-black text-white uppercase tracking-wider">
                   GAMING
                 </span>
               </div>
-              <span className="text-[10px] font-extrabold tracking-widest text-[#EA580C] uppercase">
-                PC & Hardware Superstore
+              <span className="text-[10px] font-extrabold tracking-widest text-[#0063FD] uppercase">
+                PC & Hardware Systems
               </span>
             </div>
           </Link>
@@ -116,15 +118,15 @@ export function Header() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Tìm tên CPU, Card RTX 4070 Ti, Mainboard B650, RAM DDR5..."
-                className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2 pl-10 pr-24 text-sm text-[#0F172A] placeholder-[#94A3B8] focus:border-[#E11D48] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#E11D48] transition-all"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2 pl-10 pr-24 text-sm text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0063FD] transition-all"
               />
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-[#64748B]" />
-              <button className="absolute right-1 top-1 bottom-1 rounded-md bg-[#E11D48] px-4 text-xs font-bold text-white hover:bg-[#BE123C] transition-colors">
+              <button className="absolute right-1 top-1 bottom-1 rounded-md bg-[#0063FD] px-4 text-xs font-bold text-white hover:bg-[#0052D4] transition-colors">
                 Tìm kiếm
               </button>
             </div>
             <div className="flex items-center gap-2 overflow-hidden text-[11px] text-[#64748B]">
-              <span className="text-[#B45309] font-bold flex items-center gap-0.5 shrink-0">
+              <span className="text-[#0063FD] font-bold flex items-center gap-0.5 shrink-0">
                 <Sparkles className="h-3 w-3" /> Xu hướng:
               </span>
               <div className="flex gap-2 overflow-x-auto no-scrollbar whitespace-nowrap">
@@ -132,7 +134,7 @@ export function Header() {
                   <Link
                     key={kw}
                     href={`/danh-muc?q=${encodeURIComponent(kw)}`}
-                    className="hover:text-[#E11D48] transition-colors font-medium text-[#475569]"
+                    className="hover:text-[#0063FD] transition-colors font-medium text-[#475569]"
                   >
                     {kw}
                   </Link>
@@ -145,16 +147,16 @@ export function Header() {
           <div className="flex items-center gap-3 shrink-0">
             {/* Hotline Pill */}
             <div className="hidden xl:flex items-center gap-2 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-1.5 text-xs">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#E11D48]/10 text-[#E11D48]">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#EFF6FF] text-[#0063FD]">
                 <Phone className="h-3.5 w-3.5" />
               </div>
               <div className="flex flex-col">
                 <span className="text-[10px] text-[#64748B]">Hotline 24/7</span>
-                <span className="font-mono font-black text-[#E11D48]">1900.8888</span>
+                <span className="font-mono font-black text-[#0063FD]">1900.8888</span>
               </div>
             </div>
 
-            {/* Custom PC Builder CTA in Solid Red */}
+            {/* Custom PC Builder CTA in Electric Blue */}
             <Link href="/build-pc">
               <Button
                 variant="primary"
@@ -168,16 +170,16 @@ export function Header() {
 
             {/* Cart Button with Count Badge */}
             <Link href="/gio-hang">
-              <div className="relative flex h-10 items-center gap-2 rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] px-3 text-[#0F172A] hover:border-[#E11D48] hover:text-[#E11D48] transition-all shadow-xs">
+              <div className="relative flex h-10 items-center gap-2 rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] px-3 text-[#0F172A] hover:border-[#0063FD] hover:text-[#0063FD] transition-all shadow-xs">
                 <div className="relative">
                   <ShoppingCart className="h-5 w-5" />
-                  <span className="absolute -top-2 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#E11D48] text-[10px] font-black text-white">
+                  <span className="absolute -top-2 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#0063FD] text-[10px] font-black text-white">
                     2
                   </span>
                 </div>
                 <div className="hidden sm:flex flex-col text-left">
                   <span className="text-[10px] text-[#64748B]">Giỏ hàng</span>
-                  <span className="font-mono text-xs font-bold text-[#B45309]">14.280.000₫</span>
+                  <span className="font-mono text-xs font-bold text-[#0063FD]">14.280.000₫</span>
                 </div>
               </div>
             </Link>
@@ -209,7 +211,7 @@ export function Header() {
             <Link
               href="/build-pc"
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-2 rounded-lg bg-[#E11D48] p-2.5 text-white"
+              className="flex items-center gap-2 rounded-lg bg-[#0063FD] p-2.5 text-white"
             >
               <Wrench className="h-4 w-4" />
               Build PC
@@ -217,17 +219,17 @@ export function Header() {
             <Link
               href="/khuyen-mai"
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-2 rounded-lg bg-[#FFF7ED] border border-[#FDBA74] p-2.5 text-[#EA580C]"
+              className="flex items-center gap-2 rounded-lg bg-[#EFF6FF] border border-[#BFDBFE] p-2.5 text-[#0063FD]"
             >
-              <Flame className="h-4 w-4 text-[#E11D48]" />
-              Flash Sale
+              <Tag className="h-4 w-4 text-[#0063FD]" />
+              Khuyến Mãi
             </Link>
             <Link
               href="/danh-muc"
               onClick={() => setMobileMenuOpen(false)}
               className="flex items-center gap-2 rounded-lg bg-[#F8FAFC] border border-[#CBD5E1] p-2.5 text-[#0F172A]"
             >
-              <Award className="h-4 w-4 text-[#2563EB]" />
+              <Award className="h-4 w-4 text-[#0063FD]" />
               Tất cả danh mục
             </Link>
             <Link
