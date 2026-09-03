@@ -1,3 +1,28 @@
+# [1.3.0](https://github.com/DongDuong2001/qmd-tech/compare/v1.2.0...v1.3.0) (2026-09-03)
+
+
+### Bug Fixes
+
+* **carousel:** convert hero banner to full-bleed clickable event poster slider with light theme event tabs ([f5f8445](https://github.com/DongDuong2001/qmd-tech/commit/f5f8445c04d3c936b401989ba02ac60736bb8097))
+* **hero:** align hotline support card background and badge with turquoise teal animation icon palette ([420f268](https://github.com/DongDuong2001/qmd-tech/commit/420f268d57a558c5476da6b78eab1a197c006a01))
+* **hero:** eliminate bottom white gap by binding poster container to equal-height flex column ([71bfe13](https://github.com/DongDuong2001/qmd-tech/commit/71bfe1336d7f6b11270ea5f7610fa43d7a91da96))
+* **layout:** apply electric blue and dark slate branding to header, footer, and root layout ([0b1d54d](https://github.com/DongDuong2001/qmd-tech/commit/0b1d54d5f2f14c929fab3cda44046741b715430f))
+* **layout:** prevent horizontal viewport overflow on mobile devices and add responsive inline mobile search ([f4b4c37](https://github.com/DongDuong2001/qmd-tech/commit/f4b4c379ac7a9541c9fa51118ff54496dbb5dd4a))
+* **responsive:** optimize mobile viewport with 16:9 banner aspect ratio swipeable categories and 2-col product grids ([a516015](https://github.com/DongDuong2001/qmd-tech/commit/a5160156325e5d0b8159975e33dcdb7d5fff52a4))
+* **theme:** update design tokens and UI components to match authentic logo electric blue palette ([79a4686](https://github.com/DongDuong2001/qmd-tech/commit/79a46865c5a4857432682b437d479f9e89a64598))
+* **ui:** enhance hero carousel text legibility with frosted glass scrim and electric blue accents ([90c417c](https://github.com/DongDuong2001/qmd-tech/commit/90c417c2e51ff2a8cfd16bdc6adb20808a785cc1))
+* **views:** replace remaining red and orange tones with electric blue throughout storefront and admin ([d649d19](https://github.com/DongDuong2001/qmd-tech/commit/d649d197ffe87967832a536421cc51a83e8861e4))
+
+
+### Features
+
+* **admin:** add event banners, prebuilt deals reordering, and suppliers management ([4ea3df1](https://github.com/DongDuong2001/qmd-tech/commit/4ea3df15a0282161ffbe62b9dd1e1224b8bd6fed))
+* **domain:** add banner, prebuilt deals, and supplier models with supabase service ([338e430](https://github.com/DongDuong2001/qmd-tech/commit/338e430244f3290e3d9ca332e065d9975f85d536))
+* **hero-admin:** convert hero carousel to pure full-bleed poster slider and enable admin event poster CRUD with live preview ([ceaca12](https://github.com/DongDuong2001/qmd-tech/commit/ceaca1243ac46bba73f8a8b58628fd760eff6ae7))
+* **hero:** integrate animated GIF icons in side promo cards with responsive desktop tablet mobile layout ([86aa883](https://github.com/DongDuong2001/qmd-tech/commit/86aa883fa39ecef671eed8ef5b32b218f7417557))
+* **storefront:** integrate hero carousel, dynamic deals, and neutral marketing tone ([104fe1d](https://github.com/DongDuong2001/qmd-tech/commit/104fe1d16bcaff586c65a3678f3719be7bf3102d))
+* **ui:** implement vietnamese retailer hero carousel and hover specs popover ([5819ff9](https://github.com/DongDuong2001/qmd-tech/commit/5819ff90d827f1f61295bf2c3f0a130162749991))
+
 # [1.2.0](https://github.com/DongDuong2001/qmd-tech/compare/v1.1.0...v1.2.0) (2026-09-02)
 
 
