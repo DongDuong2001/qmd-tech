@@ -13,17 +13,17 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          "bg-[#E11D48] text-white hover:bg-[#BE123C] active:bg-[#9F1239] shadow-xs",
+          "bg-[#0063FD] text-white hover:bg-[#0052D4] active:bg-[#0042A8] shadow-xs",
         accent:
-          "bg-[#EA580C] text-white hover:bg-[#C2410C] active:bg-[#9A3412] shadow-xs",
+          "bg-[#0F172A] text-white hover:bg-[#1E293B] active:bg-[#334155] shadow-xs",
         gold:
-          "bg-[#F59E0B] text-[#0F172A] hover:bg-[#D97706] active:bg-[#B45309] shadow-xs",
+          "bg-[#0284C7] text-white hover:bg-[#0369A1] active:bg-[#075985] shadow-xs",
         blue:
-          "bg-[#2563EB] text-white hover:bg-[#1D4ED8] active:bg-[#1E40AF] shadow-xs",
+          "bg-[#0063FD] text-white hover:bg-[#0052D4] active:bg-[#0042A8] shadow-xs",
         secondary:
           "bg-[#FFFFFF] text-[#0F172A] hover:bg-[#F1F5F9] border border-[#CBD5E1] shadow-xs",
         outline:
-          "border border-[#CBD5E1] bg-transparent text-[#0F172A] hover:bg-[#F8FAFC] hover:border-[#E11D48] hover:text-[#E11D48]",
+          "border border-[#CBD5E1] bg-transparent text-[#0F172A] hover:bg-[#EFF6FF] hover:border-[#0063FD] hover:text-[#0063FD]",
         ghost:
           "bg-transparent text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]",
         danger:
