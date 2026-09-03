@@ -477,7 +477,7 @@ export default function AdminDashboardPage() {
           {/* Admin Header & Logo */}
           <div className="p-5 border-b border-[#1E293B] flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border-2 border-[#E11D48] shadow-sm bg-white">
+              <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border-2 border-[#0063FD] shadow-sm bg-white">
                 <Image
                   src="/qmdtech_logo.png"
                   alt="QMD-Tech Admin"
@@ -488,7 +488,7 @@ export default function AdminDashboardPage() {
               </div>
               <div className="flex flex-col leading-none">
                 <span className="text-sm font-black tracking-wider text-white">
-                  QMD<span className="text-[#E11D48]">-TECH</span>
+                  QMD<span className="text-[#0063FD]">-TECH</span>
                 </span>
                 <span className="text-[10px] font-black uppercase tracking-widest text-[#B45309] mt-0.5">
                   ADMIN CONSOLE
@@ -506,7 +506,7 @@ export default function AdminDashboardPage() {
               onClick={() => setActiveTab("overview")}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "overview"
-                  ? "bg-[#E11D48] text-white shadow-xs font-black"
+                  ? "bg-[#0063FD] text-white shadow-xs font-black"
                   : "hover:bg-[#1E293B] hover:text-white"
               }`}
             >
@@ -521,7 +521,7 @@ export default function AdminDashboardPage() {
               onClick={() => setActiveTab("products")}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "products"
-                  ? "bg-[#E11D48] text-white shadow-xs font-black"
+                  ? "bg-[#0063FD] text-white shadow-xs font-black"
                   : "hover:bg-[#1E293B] hover:text-white"
               }`}
             >
@@ -538,7 +538,7 @@ export default function AdminDashboardPage() {
               onClick={() => setActiveTab("categories")}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "categories"
-                  ? "bg-[#E11D48] text-white shadow-xs font-black"
+                  ? "bg-[#0063FD] text-white shadow-xs font-black"
                   : "hover:bg-[#1E293B] hover:text-white"
               }`}
             >
@@ -556,7 +556,7 @@ export default function AdminDashboardPage() {
               onClick={() => setActiveTab("banners")}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "banners"
-                  ? "bg-[#E11D48] text-white shadow-xs font-black"
+                  ? "bg-[#0063FD] text-white shadow-xs font-black"
                   : "hover:bg-[#1E293B] hover:text-white"
               }`}
             >
@@ -574,7 +574,7 @@ export default function AdminDashboardPage() {
               onClick={() => setActiveTab("deals")}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "deals"
-                  ? "bg-[#E11D48] text-white shadow-xs font-black"
+                  ? "bg-[#0063FD] text-white shadow-xs font-black"
                   : "hover:bg-[#1E293B] hover:text-white"
               }`}
             >
@@ -582,7 +582,7 @@ export default function AdminDashboardPage() {
                 <Monitor className="h-4 w-4" />
                 <span>PC Ráp Sẵn (Deals)</span>
               </div>
-              <span className="rounded-full bg-[#EA580C] px-2 py-0.5 text-[10px] font-mono text-white font-black">
+              <span className="rounded-full bg-[#0063FD] px-2 py-0.5 text-[10px] font-mono text-white font-black">
                 {deals.length}
               </span>
             </button>
@@ -592,7 +592,7 @@ export default function AdminDashboardPage() {
               onClick={() => setActiveTab("suppliers")}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "suppliers"
-                  ? "bg-[#E11D48] text-white shadow-xs font-black"
+                  ? "bg-[#0063FD] text-white shadow-xs font-black"
                   : "hover:bg-[#1E293B] hover:text-white"
               }`}
             >
@@ -609,7 +609,7 @@ export default function AdminDashboardPage() {
               onClick={() => setActiveTab("orders")}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "orders"
-                  ? "bg-[#E11D48] text-white shadow-xs font-black"
+                  ? "bg-[#0063FD] text-white shadow-xs font-black"
                   : "hover:bg-[#1E293B] hover:text-white"
               }`}
             >
@@ -628,7 +628,7 @@ export default function AdminDashboardPage() {
               onClick={() => setActiveTab("reviews")}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "reviews"
-                  ? "bg-[#E11D48] text-white shadow-xs font-black"
+                  ? "bg-[#0063FD] text-white shadow-xs font-black"
                   : "hover:bg-[#1E293B] hover:text-white"
               }`}
             >
@@ -645,7 +645,7 @@ export default function AdminDashboardPage() {
               onClick={() => setActiveTab("security")}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "security"
-                  ? "bg-[#E11D48] text-white shadow-xs font-black"
+                  ? "bg-[#0063FD] text-white shadow-xs font-black"
                   : "hover:bg-[#1E293B] hover:text-white"
               }`}
             >
@@ -721,7 +721,7 @@ export default function AdminDashboardPage() {
               className="text-xs gap-1.5 text-[#475569]"
               title="Làm mới dữ liệu từ Supabase"
             >
-              <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin text-[#E11D48]" : ""}`} />
+              <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin text-[#0063FD]" : ""}`} />
               <span className="hidden sm:inline">Làm mới</span>
             </Button>
 
@@ -839,7 +839,7 @@ export default function AdminDashboardPage() {
                 <div className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-xs">
                   <div className="flex items-center justify-between text-[#64748B] mb-2">
                     <span className="text-xs font-bold uppercase">Linh Kiện Trong Kho</span>
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FFF1F2] text-[#E11D48]">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FFF1F2] text-[#0063FD]">
                       <Package className="h-4 w-4" />
                     </div>
                   </div>
@@ -874,12 +874,12 @@ export default function AdminDashboardPage() {
                 <div className="lg:col-span-8 rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-xs space-y-4">
                   <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
                     <h3 className="text-sm font-black uppercase text-[#0F172A] flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-[#E11D48]" />
+                      <Clock className="h-4 w-4 text-[#0063FD]" />
                       Đơn hàng gần đây
                     </h3>
                     <button
                       onClick={() => setActiveTab("orders")}
-                      className="text-xs font-bold text-[#E11D48] hover:underline"
+                      className="text-xs font-bold text-[#0063FD] hover:underline"
                     >
                       Xem tất cả ({orders.length}) →
                     </button>
@@ -921,10 +921,10 @@ export default function AdminDashboardPage() {
                   <div className="space-y-2.5">
                     <button
                       onClick={() => setIsAddBannerOpen(true)}
-                      className="w-full flex items-center justify-between p-3 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#E11D48] hover:bg-white transition-all text-xs font-bold text-left"
+                      className="w-full flex items-center justify-between p-3 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#0063FD] hover:bg-white transition-all text-xs font-bold text-left"
                     >
                       <div className="flex items-center gap-2.5">
-                        <ImageIcon className="h-4 w-4 text-[#E11D48]" />
+                        <ImageIcon className="h-4 w-4 text-[#0063FD]" />
                         <span>Đăng poster sự kiện mới</span>
                       </div>
                       <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
@@ -932,10 +932,10 @@ export default function AdminDashboardPage() {
 
                     <button
                       onClick={() => setIsAddDealOpen(true)}
-                      className="w-full flex items-center justify-between p-3 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#EA580C] hover:bg-white transition-all text-xs font-bold text-left"
+                      className="w-full flex items-center justify-between p-3 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#0063FD] hover:bg-white transition-all text-xs font-bold text-left"
                     >
                       <div className="flex items-center gap-2.5">
-                        <Monitor className="h-4 w-4 text-[#EA580C]" />
+                        <Monitor className="h-4 w-4 text-[#0063FD]" />
                         <span>Tạo cấu hình PC ráp sẵn</span>
                       </div>
                       <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
@@ -970,7 +970,7 @@ export default function AdminDashboardPage() {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Tìm theo tên linh kiện, mã SKU..."
-                      className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2 pl-9 pr-3 text-xs text-[#0F172A] focus:border-[#E11D48] focus:bg-white focus:outline-none"
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2 pl-9 pr-3 text-xs text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none"
                     />
                     <Search className="absolute left-3 top-2.5 h-4 w-4 text-[#94A3B8]" />
                   </div>
@@ -978,7 +978,7 @@ export default function AdminDashboardPage() {
                   <select
                     value={brandFilter}
                     onChange={(e) => setBrandFilter(e.target.value)}
-                    className="rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2 px-3 text-xs text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                    className="rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2 px-3 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
                   >
                     <option value="all">Tất cả thương hiệu</option>
                     {uniqueBrands.map((b) => (
@@ -991,7 +991,7 @@ export default function AdminDashboardPage() {
                   <select
                     value={categoryFilter}
                     onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2 px-3 text-xs text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                    className="rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2 px-3 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
                   >
                     <option value="all">Tất cả danh mục</option>
                     {categories.map((c) => (
@@ -1113,7 +1113,7 @@ export default function AdminDashboardPage() {
                   return (
                     <div
                       key={cat.id}
-                      className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-xs flex items-center justify-between hover:border-[#E11D48] transition-all"
+                      className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-xs flex items-center justify-between hover:border-[#0063FD] transition-all"
                     >
                       <div>
                         <div className="text-sm font-black text-[#0F172A]">{cat.name_vi}</div>
@@ -1170,7 +1170,7 @@ export default function AdminDashboardPage() {
                         sizes="(max-width: 768px) 100vw, 33vw"
                         className="object-cover"
                       />
-                      <div className="absolute top-2 left-2 rounded bg-[#E11D48] px-2 py-0.5 text-[10px] font-black text-white uppercase">
+                      <div className="absolute top-2 left-2 rounded bg-[#0063FD] px-2 py-0.5 text-[10px] font-black text-white uppercase">
                         {b.tag || "SỰ KIỆN"}
                       </div>
                     </div>
@@ -1250,7 +1250,7 @@ export default function AdminDashboardPage() {
                         >
                           <ArrowUp className="h-3.5 w-3.5 text-[#0F172A]" />
                         </button>
-                        <span className="font-mono font-bold text-xs text-[#E11D48]">
+                        <span className="font-mono font-bold text-xs text-[#0063FD]">
                           #{index + 1}
                         </span>
                         <button
@@ -1275,7 +1275,7 @@ export default function AdminDashboardPage() {
 
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="rounded bg-[#E11D48] text-white px-2 py-0.2 text-[10px] font-black uppercase">
+                          <span className="rounded bg-[#0063FD] text-white px-2 py-0.2 text-[10px] font-black uppercase">
                             {d.badge || "DEAL HOT"}
                           </span>
                           <span className="font-bold text-sm text-[#0F172A]">{d.name_vi}</span>
@@ -1569,7 +1569,7 @@ export default function AdminDashboardPage() {
                 </div>
 
                 <div className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-xs space-y-2">
-                  <div className="flex items-center gap-2 text-[#EA580C]">
+                  <div className="flex items-center gap-2 text-[#0063FD]">
                     <Server className="h-5 w-5" />
                     <span className="font-black uppercase text-xs">Cơ Sở Dữ Liệu</span>
                   </div>
@@ -1604,7 +1604,7 @@ export default function AdminDashboardPage() {
                 placeholder="VD: Card màn hình ASUS ROG Strix RTX 4070 Ti Super 16GB"
                 value={productForm.name_vi}
                 onChange={(e) => setProductForm({ ...productForm, name_vi: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
               />
             </div>
 
@@ -1615,7 +1615,7 @@ export default function AdminDashboardPage() {
                 placeholder="VD: ASUS ROG Strix GeForce RTX 4070 Ti Super 16GB"
                 value={productForm.name_en}
                 onChange={(e) => setProductForm({ ...productForm, name_en: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
               />
             </div>
           </div>
@@ -1629,7 +1629,7 @@ export default function AdminDashboardPage() {
                 placeholder="VD: GPU-ASUS-4070TIS"
                 value={productForm.sku}
                 onChange={(e) => setProductForm({ ...productForm, sku: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
               />
             </div>
 
@@ -1638,7 +1638,7 @@ export default function AdminDashboardPage() {
               <select
                 value={productForm.brand}
                 onChange={(e) => setProductForm({ ...productForm, brand: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
               >
                 <option value="ASUS">ASUS</option>
                 <option value="MSI">MSI</option>
@@ -1658,7 +1658,7 @@ export default function AdminDashboardPage() {
               <select
                 value={productForm.category_id}
                 onChange={(e) => setProductForm({ ...productForm, category_id: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
               >
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -1677,7 +1677,7 @@ export default function AdminDashboardPage() {
                 type="number"
                 value={productForm.price_vnd}
                 onChange={(e) => setProductForm({ ...productForm, price_vnd: parseInt(e.target.value || "0", 10) })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
               />
             </div>
 
@@ -1687,7 +1687,7 @@ export default function AdminDashboardPage() {
                 type="number"
                 value={productForm.original_price_vnd}
                 onChange={(e) => setProductForm({ ...productForm, original_price_vnd: parseInt(e.target.value || "0", 10) })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
               />
             </div>
 
@@ -1698,7 +1698,7 @@ export default function AdminDashboardPage() {
                 type="number"
                 value={productForm.stock}
                 onChange={(e) => setProductForm({ ...productForm, stock: parseInt(e.target.value || "0", 10) })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
               />
             </div>
           </div>
@@ -1706,7 +1706,7 @@ export default function AdminDashboardPage() {
           {/* PC Builder Compatibility Specs */}
           <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-3.5 space-y-2">
             <div className="font-black text-[#0F172A] uppercase text-[11px] flex items-center gap-1.5">
-              <Activity className="h-3.5 w-3.5 text-[#E11D48]" />
+              <Activity className="h-3.5 w-3.5 text-[#0063FD]" />
               Thông số tương thích công cụ Custom PC Builder
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
@@ -1759,7 +1759,7 @@ export default function AdminDashboardPage() {
               type="url"
               value={productForm.images[0] || ""}
               onChange={(e) => setProductForm({ ...productForm, images: [e.target.value] })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
             />
           </div>
 
@@ -1790,7 +1790,7 @@ export default function AdminDashboardPage() {
               placeholder="VD: Card Màn Hình (VGA)"
               value={categoryForm.name_vi}
               onChange={(e) => setCategoryForm({ ...categoryForm, name_vi: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
             />
           </div>
 
@@ -1802,7 +1802,7 @@ export default function AdminDashboardPage() {
               placeholder="VD: gpu"
               value={categoryForm.slug}
               onChange={(e) => setCategoryForm({ ...categoryForm, slug: e.target.value.toLowerCase().trim() })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none font-mono"
+              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
             />
           </div>
 
@@ -1833,7 +1833,7 @@ export default function AdminDashboardPage() {
               placeholder="VD: Mở Bán GeForce RTX 40 Super Series"
               value={bannerForm.title_vi}
               onChange={(e) => setBannerForm({ ...bannerForm, title_vi: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
             />
           </div>
 
@@ -1844,7 +1844,7 @@ export default function AdminDashboardPage() {
               placeholder="VD: Tặng kèm gói quà tặng gaming cao cấp khi đặt mua"
               value={bannerForm.subtitle_vi}
               onChange={(e) => setBannerForm({ ...bannerForm, subtitle_vi: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
             />
           </div>
 
@@ -1855,7 +1855,7 @@ export default function AdminDashboardPage() {
                 type="text"
                 value={bannerForm.tag}
                 onChange={(e) => setBannerForm({ ...bannerForm, tag: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
               />
             </div>
             <div>
@@ -1864,7 +1864,7 @@ export default function AdminDashboardPage() {
                 type="text"
                 value={bannerForm.target_url}
                 onChange={(e) => setBannerForm({ ...bannerForm, target_url: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
               />
             </div>
           </div>
@@ -1876,7 +1876,7 @@ export default function AdminDashboardPage() {
               type="url"
               value={bannerForm.image_url}
               onChange={(e) => setBannerForm({ ...bannerForm, image_url: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none font-mono"
+              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
             />
           </div>
 
@@ -1908,7 +1908,7 @@ export default function AdminDashboardPage() {
                 placeholder="VD: PC QMD-G01 Core i5-13400F | RTX 4060"
                 value={dealForm.name_vi}
                 onChange={(e) => setDealForm({ ...dealForm, name_vi: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
               />
             </div>
             <div>
@@ -1919,7 +1919,7 @@ export default function AdminDashboardPage() {
                 placeholder="VD: PC-QMD-G01"
                 value={dealForm.code}
                 onChange={(e) => setDealForm({ ...dealForm, code: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
               />
             </div>
           </div>
@@ -1932,7 +1932,7 @@ export default function AdminDashboardPage() {
                 type="number"
                 value={dealForm.price_vnd}
                 onChange={(e) => setDealForm({ ...dealForm, price_vnd: parseInt(e.target.value || "0", 10) })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
               />
             </div>
             <div>
@@ -1941,7 +1941,7 @@ export default function AdminDashboardPage() {
                 type="number"
                 value={dealForm.original_price_vnd ?? 0}
                 onChange={(e) => setDealForm({ ...dealForm, original_price_vnd: parseInt(e.target.value || "0", 10) })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
               />
             </div>
             <div>
@@ -1950,7 +1950,7 @@ export default function AdminDashboardPage() {
                 type="text"
                 value={dealForm.badge}
                 onChange={(e) => setDealForm({ ...dealForm, badge: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
               />
             </div>
           </div>
@@ -1964,7 +1964,7 @@ export default function AdminDashboardPage() {
                 placeholder="VD: Intel Core i5-13400F"
                 value={dealForm.cpu}
                 onChange={(e) => setDealForm({ ...dealForm, cpu: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
               />
             </div>
             <div>
@@ -1975,7 +1975,7 @@ export default function AdminDashboardPage() {
                 placeholder="VD: ASUS Dual RTX 4060 8GB"
                 value={dealForm.vga}
                 onChange={(e) => setDealForm({ ...dealForm, vga: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
               />
             </div>
           </div>
@@ -1989,7 +1989,7 @@ export default function AdminDashboardPage() {
                 placeholder="VD: 16GB (2x8GB) DDR4 3200MHz"
                 value={dealForm.ram}
                 onChange={(e) => setDealForm({ ...dealForm, ram: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
               />
             </div>
             <div>
@@ -2000,7 +2000,7 @@ export default function AdminDashboardPage() {
                 placeholder="VD: 500GB NVMe M.2 Gen4"
                 value={dealForm.ssd}
                 onChange={(e) => setDealForm({ ...dealForm, ssd: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
               />
             </div>
           </div>
@@ -2011,7 +2011,7 @@ export default function AdminDashboardPage() {
               type="url"
               value={dealForm.image_url}
               onChange={(e) => setDealForm({ ...dealForm, image_url: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none font-mono"
+              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
             />
           </div>
 
@@ -2043,7 +2043,7 @@ export default function AdminDashboardPage() {
                 placeholder="VD: Synnex FPT Distribution"
                 value={supplierForm.name}
                 onChange={(e) => setSupplierForm({ ...supplierForm, name: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
               />
             </div>
             <div>
@@ -2054,7 +2054,7 @@ export default function AdminDashboardPage() {
                 placeholder="VD: SUP-FPT"
                 value={supplierForm.code}
                 onChange={(e) => setSupplierForm({ ...supplierForm, code: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
               />
             </div>
           </div>
@@ -2067,7 +2067,7 @@ export default function AdminDashboardPage() {
                 placeholder="VD: Nguyễn Hoàng Long"
                 value={supplierForm.contact_person}
                 onChange={(e) => setSupplierForm({ ...supplierForm, contact_person: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
               />
             </div>
             <div>
@@ -2077,7 +2077,7 @@ export default function AdminDashboardPage() {
                 placeholder="VD: 024.7300.7300"
                 value={supplierForm.phone}
                 onChange={(e) => setSupplierForm({ ...supplierForm, phone: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
               />
             </div>
           </div>
@@ -2089,7 +2089,7 @@ export default function AdminDashboardPage() {
               placeholder="VD: ASUS, Intel, Kingston, Western Digital"
               value={brandInputString}
               onChange={(e) => setBrandInputString(e.target.value)}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
             />
           </div>
 
@@ -2100,7 +2100,7 @@ export default function AdminDashboardPage() {
               placeholder="VD: Tòa nhà FPT, Phố Duy Tân, Cầu Giấy, Hà Nội"
               value={supplierForm.address}
               onChange={(e) => setSupplierForm({ ...supplierForm, address: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
             />
           </div>
 

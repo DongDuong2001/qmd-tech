@@ -33,13 +33,13 @@ import {
   Gamepad2,
   Keyboard,
   Headphones,
-  Flame,
   Sparkles,
   ArrowRight,
   Wrench,
   Award,
   Gift,
   CheckCircle2,
+  Tag,
 } from "lucide-react";
 
 export default async function HomePage() {
@@ -68,7 +68,7 @@ export default async function HomePage() {
   return (
     <div className="space-y-10 pb-16">
       {/* ========================================================================= */}
-      {/* 1. HORIZONTAL ICON-GRID CATEGORY NAV (10-12 Categories - Solid Flat Icons) */}
+      {/* 1. HORIZONTAL ICON-GRID CATEGORY NAV (Logo Electric Blue Theme) */}
       {/* ========================================================================= */}
       <section className="border-b border-[#E2E8F0] bg-[#FFFFFF] py-4">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
@@ -79,17 +79,17 @@ export default async function HomePage() {
                 <Link
                   key={item.slug}
                   href={`/danh-muc/${item.slug === "prebuilt" || item.slug === "monitor" || item.slug === "gear" || item.slug === "audio" ? "cpu" : item.slug}`}
-                  className="group relative flex flex-col items-center justify-center rounded-xl border border-[#E2E8F0] bg-[#FFFFFF] p-2.5 text-center transition-all duration-200 hover:border-[#E11D48] hover:bg-[#FFF1F2] shadow-xs"
+                  className="group relative flex flex-col items-center justify-center rounded-xl border border-[#E2E8F0] bg-[#FFFFFF] p-2.5 text-center transition-all duration-200 hover:border-[#0063FD] hover:bg-[#EFF6FF] shadow-xs"
                 >
                   {item.hot && (
-                    <span className="absolute -top-1.5 -right-1 rounded bg-[#E11D48] px-1 py-0.2 text-[8px] font-black text-white uppercase">
+                    <span className="absolute -top-1.5 -right-1 rounded bg-[#0063FD] px-1 py-0.2 text-[8px] font-black text-white uppercase">
                       HOT
                     </span>
                   )}
-                  <div className="mb-1.5 flex h-9 w-9 items-center justify-center rounded-lg bg-[#F8FAFC] text-[#EA580C] group-hover:bg-[#E11D48] group-hover:text-white transition-colors border border-[#E2E8F0]">
+                  <div className="mb-1.5 flex h-9 w-9 items-center justify-center rounded-lg bg-[#F8FAFC] text-[#0063FD] group-hover:bg-[#0063FD] group-hover:text-white transition-colors border border-[#E2E8F0]">
                     <IconComponent className="h-5 w-5" />
                   </div>
-                  <span className="text-[11px] font-bold text-[#0F172A] line-clamp-1 group-hover:text-[#E11D48] transition-colors">
+                  <span className="text-[11px] font-bold text-[#0F172A] line-clamp-1 group-hover:text-[#0063FD] transition-colors">
                     {item.name}
                   </span>
                   <span className="text-[9px] font-mono text-[#64748B]">
@@ -103,39 +103,39 @@ export default async function HomePage() {
       </section>
 
       {/* ========================================================================= */}
-      {/* 2. DYNAMIC HERO CAROUSEL & PROMO SHOWCASE (Vietnamese PC Retailer Style) */}
+      {/* 2. DYNAMIC HERO CAROUSEL & PROMO SHOWCASE (Vietnamese Retailer Layout) */}
       {/* ========================================================================= */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6">
         <HeroCarousel banners={banners} />
       </section>
 
       {/* ========================================================================= */}
-      {/* 3. FLASH SALE & FEATURED COMPONENTS SHOWCASE */}
+      {/* 3. FLASH SALE & FEATURED COMPONENTS SHOWCASE (Logo Electric Blue Theme) */}
       {/* ========================================================================= */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="rounded-2xl border-2 border-[#E11D48] bg-[#FFFFFF] p-6 shadow-sm space-y-6">
+        <div className="rounded-2xl border-2 border-[#0063FD] bg-[#FFFFFF] p-6 shadow-sm space-y-6">
           {/* Section Header */}
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E2E8F0] pb-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#E11D48] text-white shadow-xs">
-                <Flame className="h-6 w-6 fill-white" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#0063FD] text-white shadow-xs">
+                <Tag className="h-6 w-6" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="text-2xl font-black uppercase tracking-wider text-[#0F172A]">
-                    GIỜ VÀNG GIÁ SỐC
+                    GIỜ VÀNG GIÁ TỐT
                   </h2>
-                  <span className="rounded bg-[#E11D48] px-2 py-0.5 text-[10px] font-black text-white">
+                  <span className="rounded bg-[#0063FD] px-2 py-0.5 text-[10px] font-black text-white">
                     ĐANG DIỄN RA
                   </span>
                 </div>
-                <p className="text-xs text-[#B45309]">Số lượng có hạn • Tự động kết thúc khi hết hàng</p>
+                <p className="text-xs text-[#64748B]">Số lượng có hạn • Tự động kết thúc khi hết hàng</p>
               </div>
             </div>
 
             <Link href="/khuyen-mai">
               <Button variant="primary" size="sm" className="gap-1 font-black text-xs">
-                Xem Tất Cả Flash Sale <ArrowRight className="h-3.5 w-3.5" />
+                Xem Tất Cả Khuyến Mãi <ArrowRight className="h-3.5 w-3.5" />
               </Button>
             </Link>
           </div>
@@ -148,13 +148,13 @@ export default async function HomePage() {
                 {/* Stock progress meter below each flash card */}
                 <div className="mt-2 rounded-lg bg-white p-2 border border-[#E2E8F0]">
                   <div className="flex justify-between text-[10px] font-bold text-[#475569] mb-1">
-                    <span className="text-[#E11D48] flex items-center gap-1">
-                      <Flame className="h-3 w-3 fill-current" /> Đã bán 18/20
+                    <span className="text-[#0063FD] flex items-center gap-1 font-mono">
+                      Đã bán 18/20
                     </span>
-                    <span className="text-[#B45309]">Còn 2 suất</span>
+                    <span className="text-[#0F172A] font-semibold">Còn 2 suất</span>
                   </div>
                   <div className="h-2 w-full overflow-hidden rounded-full bg-[#E2E8F0]">
-                    <div className="h-full bg-[#E11D48] w-[90%]" />
+                    <div className="h-full bg-[#0063FD] w-[90%]" />
                   </div>
                 </div>
               </div>
@@ -164,14 +164,14 @@ export default async function HomePage() {
       </section>
 
       {/* ========================================================================= */}
-      {/* 4. PREBUILT PC DEALS (Managed via Admin Dashboard, Sorted by Priority) */}
+      {/* 4. PREBUILT PC DEALS (Managed via Admin Dashboard, Electric Blue Accents) */}
       {/* ========================================================================= */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="rounded-2xl border border-[#E2E8F0] bg-[#FFFFFF] p-6 sm:p-8 shadow-xs space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E2E8F0] pb-4">
             <div>
-              <div className="flex items-center gap-2 text-xs font-black text-[#B45309] uppercase tracking-wider mb-1">
-                <Award className="h-4 w-4 text-[#EA580C]" />
+              <div className="flex items-center gap-2 text-xs font-black text-[#0063FD] uppercase tracking-wider mb-1">
+                <Award className="h-4 w-4" />
                 Cấu hình tối ưu bởi kỹ sư QMD-Tech
               </div>
               <h2 className="text-2xl font-black uppercase text-[#0F172A]">
@@ -190,11 +190,11 @@ export default async function HomePage() {
             {prebuiltDeals.map((deal) => (
               <div
                 key={deal.id}
-                className="group flex flex-col justify-between rounded-xl border border-[#E2E8F0] bg-[#FFFFFF] p-5 hover:border-[#E11D48] transition-all duration-200 shadow-xs hover:shadow-md"
+                className="group flex flex-col justify-between rounded-xl border border-[#E2E8F0] bg-[#FFFFFF] p-5 hover:border-[#0063FD] transition-all duration-200 shadow-xs hover:shadow-md"
               >
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <span className="rounded bg-[#E11D48] text-white px-2 py-0.5 text-[10px] font-black uppercase">
+                    <span className="rounded bg-[#0063FD] text-white px-2 py-0.5 text-[10px] font-black uppercase">
                       {deal.badge || "DEAL HOT"}
                     </span>
                     <span className="rounded bg-[#DCFCE7] border border-[#86EFAC] text-[#15803D] px-2 py-0.5 text-[10px] font-bold">
@@ -212,7 +212,7 @@ export default async function HomePage() {
                     />
                   </div>
 
-                  <h3 className="text-sm font-black text-[#0F172A] group-hover:text-[#E11D48] transition-colors line-clamp-2 leading-snug mb-3">
+                  <h3 className="text-sm font-black text-[#0F172A] group-hover:text-[#0063FD] transition-colors line-clamp-2 leading-snug mb-3">
                     {deal.name_vi}
                   </h3>
 
@@ -243,8 +243,8 @@ export default async function HomePage() {
                   </div>
 
                   {/* Gift Tag */}
-                  <div className="rounded bg-[#FFF1F2] border border-[#FECDD3] p-2 text-[11px] text-[#BE123C] flex items-center gap-1.5 mb-4 font-semibold">
-                    <Gift className="h-3.5 w-3.5 text-[#E11D48] shrink-0" />
+                  <div className="rounded bg-[#EFF6FF] border border-[#BFDBFE] p-2 text-[11px] text-[#0063FD] flex items-center gap-1.5 mb-4 font-semibold">
+                    <Gift className="h-3.5 w-3.5 text-[#0063FD] shrink-0" />
                     <span>Tặng kèm gói vệ sinh định kỳ + Lót chuột Gaming</span>
                   </div>
                 </div>
@@ -252,7 +252,7 @@ export default async function HomePage() {
                 <div className="border-t border-[#E2E8F0] pt-3">
                   <div className="flex items-baseline justify-between mb-3">
                     <div>
-                      <div className="text-xl font-black font-mono text-[#B45309]">
+                      <div className="text-xl font-black font-mono text-[#0063FD]">
                         {new Intl.NumberFormat("vi-VN").format(deal.price_vnd)}₫
                       </div>
                       {deal.original_price_vnd && (
@@ -273,7 +273,7 @@ export default async function HomePage() {
                       </Button>
                     </Link>
                     <Link href="/thanh-toan" className="w-full">
-                      <Button variant="gold" size="sm" className="w-full text-xs font-black">
+                      <Button variant="primary" size="sm" className="w-full text-xs font-black">
                         Mua ngay
                       </Button>
                     </Link>
@@ -291,7 +291,7 @@ export default async function HomePage() {
       <section className="mx-auto max-w-7xl px-4 sm:px-6 space-y-8">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E2E8F0] pb-4">
           <div>
-            <div className="flex items-center gap-1.5 text-xs font-black text-[#E11D48] uppercase tracking-wider mb-1">
+            <div className="flex items-center gap-1.5 text-xs font-black text-[#0063FD] uppercase tracking-wider mb-1">
               <Sparkles className="h-4 w-4" />
               Linh kiện thế hệ mới
             </div>
@@ -301,14 +301,14 @@ export default async function HomePage() {
           </div>
 
           <div className="flex flex-wrap gap-2 text-xs">
-            <Link href="/danh-muc" className="rounded-lg bg-[#E11D48] px-3 py-1.5 font-bold text-white shadow-xs">
+            <Link href="/danh-muc" className="rounded-lg bg-[#0063FD] px-3 py-1.5 font-bold text-white shadow-xs">
               Tất Cả
             </Link>
             {categories.slice(0, 5).map((cat) => (
               <Link
                 key={cat.id}
                 href={`/danh-muc/${cat.slug}`}
-                className="rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] px-3 py-1.5 font-semibold text-[#475569] hover:border-[#E11D48] hover:text-[#E11D48] transition-colors shadow-xs"
+                className="rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] px-3 py-1.5 font-semibold text-[#475569] hover:border-[#0063FD] hover:text-[#0063FD] transition-colors shadow-xs"
               >
                 {cat.name_vi}
               </Link>
@@ -329,7 +329,7 @@ export default async function HomePage() {
       <section className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="rounded-2xl border border-[#E2E8F0] bg-[#FFFFFF] p-8 shadow-xs text-center space-y-6">
           <div>
-            <div className="text-xs font-black uppercase tracking-widest text-[#E11D48] mb-1">
+            <div className="text-xs font-black uppercase tracking-widest text-[#0063FD] mb-1">
               ĐỐI TÁC THƯƠNG HIỆU PHÂN PHỐI CHÍNH HÃNG
             </div>
             <h3 className="text-base sm:text-lg font-bold text-[#0F172A]">
@@ -339,7 +339,7 @@ export default async function HomePage() {
 
           {/* Real Official Brand Logos Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 pt-2">
-            <div className="flex h-16 items-center justify-center rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 hover:border-[#E11D48] hover:bg-[#FFFFFF] transition-all shadow-xs" title="ASUS Republic of Gamers">
+            <div className="flex h-16 items-center justify-center rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 hover:border-[#0063FD] hover:bg-[#FFFFFF] transition-all shadow-xs" title="ASUS Republic of Gamers">
               <AsusRogLogo />
             </div>
             <div className="flex h-16 items-center justify-center rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 hover:border-[#76B900] hover:bg-[#FFFFFF] transition-all shadow-xs" title="NVIDIA GeForce">
@@ -351,10 +351,10 @@ export default async function HomePage() {
             <div className="flex h-16 items-center justify-center rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 hover:border-[#ED1C24] hover:bg-[#FFFFFF] transition-all shadow-xs" title="AMD Ryzen">
               <AmdRyzenLogo />
             </div>
-            <div className="flex h-16 items-center justify-center rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 hover:border-[#E11D48] hover:bg-[#FFFFFF] transition-all shadow-xs" title="MSI True Gaming">
+            <div className="flex h-16 items-center justify-center rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 hover:border-[#0063FD] hover:bg-[#FFFFFF] transition-all shadow-xs" title="MSI True Gaming">
               <MsiGamingLogo />
             </div>
-            <div className="flex h-16 items-center justify-center rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 hover:border-[#EA580C] hover:bg-[#FFFFFF] transition-all shadow-xs" title="GIGABYTE AORUS">
+            <div className="flex h-16 items-center justify-center rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 hover:border-[#0063FD] hover:bg-[#FFFFFF] transition-all shadow-xs" title="GIGABYTE AORUS">
               <GigabyteAorusLogo />
             </div>
             <div className="flex h-16 items-center justify-center rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 hover:border-[#0F172A] hover:bg-[#FFFFFF] transition-all shadow-xs" title="Corsair">
@@ -363,7 +363,7 @@ export default async function HomePage() {
             <div className="flex h-16 items-center justify-center rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 hover:border-[#1428A0] hover:bg-[#FFFFFF] transition-all shadow-xs" title="Samsung Memory">
               <SamsungMemoryLogo />
             </div>
-            <div className="flex h-16 items-center justify-center rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 hover:border-[#DC2626] hover:bg-[#FFFFFF] transition-all shadow-xs" title="Kingston FURY">
+            <div className="flex h-16 items-center justify-center rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 hover:border-[#0063FD] hover:bg-[#FFFFFF] transition-all shadow-xs" title="Kingston FURY">
               <KingstonFuryLogo />
             </div>
             <div className="flex h-16 items-center justify-center rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 hover:border-[#7C3AED] hover:bg-[#FFFFFF] transition-all shadow-xs" title="NZXT">

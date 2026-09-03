@@ -123,7 +123,7 @@ export default function CartPage() {
                     <h4 className="truncate text-sm font-semibold text-[#0F172A]">
                       {i18nService.getLocalizedProductName(item.product, locale)}
                     </h4>
-                    <div className="font-mono text-xs text-[#B45309] font-bold mt-1">
+                    <div className="font-mono text-xs text-[#0063FD] font-bold mt-1">
                       {i18nService.formatPrice(item.unit_price_vnd, locale)}
                     </div>
                   </div>
@@ -151,7 +151,7 @@ export default function CartPage() {
                     </button>
                   </div>
 
-                  <div className="font-mono text-sm font-bold text-[#B45309] w-28 text-right">
+                  <div className="font-mono text-sm font-bold text-[#0063FD] w-28 text-right">
                     {i18nService.formatPrice(item.total_price_vnd, locale)}
                   </div>
 
@@ -176,7 +176,7 @@ export default function CartPage() {
               ) : (
                 <span className="text-[#64748B]">
                   Mua thêm{" "}
-                  <strong className="text-[#B45309] font-mono">
+                  <strong className="text-[#0063FD] font-mono">
                     {i18nService.formatPrice(calculation.remainingForFreeShippingVnd, locale)}
                   </strong>{" "}
                   để nhận Miễn Phí Giao Hàng.
@@ -227,7 +227,7 @@ export default function CartPage() {
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value)}
                     placeholder={t("cart.couponPlaceholder")}
-                    className="w-full rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2 text-xs text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                    className="w-full rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
                   />
                   <Button type="submit" variant="secondary" size="sm" className="text-xs">
                     {t("cart.applyCoupon")}
@@ -241,7 +241,7 @@ export default function CartPage() {
                   <span className="text-sm font-bold text-[#0F172A]">
                     {t("cart.total")}
                   </span>
-                  <span className="text-2xl font-black font-mono text-[#B45309]">
+                  <span className="text-2xl font-black font-mono text-[#0063FD]">
                     {i18nService.formatPrice(calculation.cart.total_vnd, locale)}
                   </span>
                 </div>

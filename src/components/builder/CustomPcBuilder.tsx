@@ -182,7 +182,7 @@ export function CustomPcBuilder() {
       <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-[#E2E8F0] pb-6">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <span className="flex items-center gap-1 rounded bg-[#E11D48] px-2.5 py-1 text-xs font-black text-white uppercase tracking-wider">
+            <span className="flex items-center gap-1 rounded bg-[#0063FD] px-2.5 py-1 text-xs font-black text-white uppercase tracking-wider">
               <Flame className="h-3.5 w-3.5" />
               CÔNG CỤ BUILD PC GAMING CHUYÊN NGHIỆP
             </span>
@@ -240,7 +240,7 @@ export function CustomPcBuilder() {
                 className={`rounded-xl border transition-all duration-200 p-4 ${
                   selectedProduct
                     ? "border-[#E2E8F0] bg-[#FFFFFF] shadow-xs"
-                    : "border-dashed border-[#CBD5E1] bg-[#F8FAFC] hover:border-[#E11D48]"
+                    : "border-dashed border-[#CBD5E1] bg-[#F8FAFC] hover:border-[#0063FD]"
                 }`}
               >
                 <div className="flex items-center justify-between gap-4">
@@ -249,7 +249,7 @@ export function CustomPcBuilder() {
                     <div
                       className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border ${
                         selectedProduct
-                          ? "border-[#FECDD3] bg-[#FFF1F2] text-[#E11D48]"
+                          ? "border-[#FECDD3] bg-[#FFF1F2] text-[#0063FD]"
                           : "border-[#E2E8F0] bg-[#FFFFFF] text-[#EA580C]"
                       }`}
                     >
@@ -440,7 +440,7 @@ export function CustomPcBuilder() {
         ) : availableSlotProducts.length === 0 ? (
           <div className="py-12 text-center text-xs text-[#64748B]">
             <p className="font-bold text-[#0F172A]">Chưa có linh kiện nào thuộc danh mục này trong cơ sở dữ liệu.</p>
-            <p className="mt-1">Bạn có thể thêm linh kiện mới trong <Link href="/admin" className="text-[#E11D48] underline font-bold">Admin Dashboard</Link>.</p>
+            <p className="mt-1">Bạn có thể thêm linh kiện mới trong <Link href="/admin" className="text-[#0063FD] underline font-bold">Admin Dashboard</Link>.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-[65vh] overflow-y-auto pr-1">
@@ -480,7 +480,7 @@ export function CustomPcBuilder() {
                 type="text"
                 value={quoteForm.name}
                 onChange={(e) => setQuoteForm({ ...quoteForm, name: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] px-3.5 py-2 text-xs text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] px-3.5 py-2 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
               />
             </div>
 
@@ -494,7 +494,7 @@ export function CustomPcBuilder() {
                   type="tel"
                   value={quoteForm.phone}
                   onChange={(e) => setQuoteForm({ ...quoteForm, phone: e.target.value })}
-                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] px-3.5 py-2 text-xs text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] px-3.5 py-2 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
                 />
               </div>
 
@@ -506,7 +506,7 @@ export function CustomPcBuilder() {
                   type="email"
                   value={quoteForm.email}
                   onChange={(e) => setQuoteForm({ ...quoteForm, email: e.target.value })}
-                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] px-3.5 py-2 text-xs text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] px-3.5 py-2 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
                 />
               </div>
             </div>
@@ -519,7 +519,7 @@ export function CustomPcBuilder() {
                 rows={3}
                 value={quoteForm.notes}
                 onChange={(e) => setQuoteForm({ ...quoteForm, notes: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] px-3.5 py-2 text-xs text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] px-3.5 py-2 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
               />
             </div>
 
