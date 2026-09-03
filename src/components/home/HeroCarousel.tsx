@@ -40,19 +40,19 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 items-stretch">
       {/* ========================================================================= */}
-      {/* 1. MAIN EVENT POSTER CAROUSEL (Full-Bleed Responsive Poster Presentation) */}
+      {/* 1. MAIN EVENT POSTER CAROUSEL (Tight Fit, 100% Full-Bleed Poster)          */}
       {/* ========================================================================= */}
       <div
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
-        className="lg:col-span-8 relative overflow-hidden rounded-xl sm:rounded-2xl border border-[#E2E8F0] bg-[#FFFFFF] shadow-xs group"
+        className="lg:col-span-8 relative overflow-hidden rounded-xl sm:rounded-2xl border border-[#E2E8F0] bg-[#0F172A] shadow-xs group flex flex-col h-full"
       >
         {/* Full-bleed Clickable Event Banner Poster Area */}
         <Link
           href={currentBanner?.target_url || "/danh-muc"}
-          className="relative block aspect-[16/9] sm:aspect-[21/9] lg:aspect-auto lg:h-[390px] w-full overflow-hidden bg-[#0F172A] cursor-pointer"
+          className="relative block aspect-[16/9] sm:aspect-[21/9] lg:aspect-auto lg:h-full lg:min-h-[380px] w-full flex-1 overflow-hidden bg-[#0F172A] cursor-pointer"
         >
           {currentBanner && (
             <Image
@@ -125,13 +125,13 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
       </div>
 
       {/* ========================================================================= */}
-      {/* 2. SIDE PROMO CARDS (Responsive Multi-Device Layout with Animation Icons)  */}
+      {/* 2. SIDE PROMO CARDS (Equal-Height Responsive Layout with Animated Icons)  */}
       {/* ========================================================================= */}
-      <div className="lg:col-span-4 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-2.5 sm:gap-3">
+      <div className="lg:col-span-4 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-2.5 sm:gap-3 lg:flex lg:flex-col lg:justify-between">
         {/* Side Card 1: Custom PC Configurator */}
         <Link
           href="/build-pc"
-          className="group relative flex items-center justify-between overflow-hidden rounded-xl sm:rounded-2xl border border-[#E2E8F0] bg-[#FFFFFF] p-3 sm:p-3.5 lg:p-4 transition-all duration-200 hover:border-[#0063FD] hover:bg-[#EFF6FF] shadow-xs"
+          className="group relative flex-1 flex items-center justify-between overflow-hidden rounded-xl sm:rounded-2xl border border-[#E2E8F0] bg-[#FFFFFF] p-3 sm:p-3.5 lg:p-4 transition-all duration-200 hover:border-[#0063FD] hover:bg-[#EFF6FF] shadow-xs"
         >
           <div className="space-y-1 sm:space-y-1.5 min-w-0 pr-2">
             <span className="inline-flex items-center rounded-md bg-[#0063FD] px-2 py-0.5 text-[9px] sm:text-[10px] font-black uppercase text-white tracking-wider">
@@ -165,7 +165,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
         {/* Side Card 2: 100% Genuine Warranty & Fast Delivery */}
         <Link
           href="/bao-hanh"
-          className="group relative flex items-center justify-between overflow-hidden rounded-xl sm:rounded-2xl border border-[#E2E8F0] bg-[#FFFFFF] p-3 sm:p-3.5 lg:p-4 transition-all duration-200 hover:border-[#0063FD] hover:bg-[#EFF6FF] shadow-xs"
+          className="group relative flex-1 flex items-center justify-between overflow-hidden rounded-xl sm:rounded-2xl border border-[#E2E8F0] bg-[#FFFFFF] p-3 sm:p-3.5 lg:p-4 transition-all duration-200 hover:border-[#0063FD] hover:bg-[#EFF6FF] shadow-xs"
         >
           <div className="space-y-1 sm:space-y-1.5 min-w-0 pr-2">
             <span className="inline-flex items-center rounded-md bg-[#0F172A] px-2 py-0.5 text-[9px] sm:text-[10px] font-black uppercase text-white tracking-wider">
@@ -199,7 +199,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
         {/* Side Card 3: 24/7 Hotline Support */}
         <Link
           href="/lien-he"
-          className="group relative flex items-center justify-between overflow-hidden rounded-xl sm:rounded-2xl border border-[#99F6E4] bg-[#F0FDFA] p-3 sm:p-3.5 lg:p-4 transition-all duration-200 hover:border-[#0D9488] hover:bg-[#CCFBF1]/50 shadow-xs"
+          className="group relative flex-1 flex items-center justify-between overflow-hidden rounded-xl sm:rounded-2xl border border-[#99F6E4] bg-[#F0FDFA] p-3 sm:p-3.5 lg:p-4 transition-all duration-200 hover:border-[#0D9488] hover:bg-[#CCFBF1]/50 shadow-xs"
         >
           <div className="space-y-1 sm:space-y-1.5 min-w-0 pr-2">
             <span className="inline-flex items-center rounded-md bg-[#0D9488] px-2 py-0.5 text-[9px] sm:text-[10px] font-black uppercase text-white tracking-wider">
