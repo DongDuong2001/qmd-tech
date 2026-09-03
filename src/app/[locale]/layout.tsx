@@ -79,10 +79,10 @@ export default async function LocaleLayout({
       lang={locale}
       className={`${beVietnamPro.variable} ${inter.variable} ${jetbrainsMono.variable}`}
     >
-      <body className="min-h-screen bg-[#F8FAFC] text-[#0F172A] antialiased flex flex-col justify-between selection:bg-[#0063FD] selection:text-white">
+      <body className="min-h-screen max-w-full overflow-x-hidden bg-[#F8FAFC] text-[#0F172A] antialiased flex flex-col justify-between selection:bg-[#0063FD] selection:text-white">
         <NextIntlClientProvider messages={messages}>
           <Header />
-          <main className="flex-1">{children}</main>
+          <main className="flex-1 w-full max-w-full overflow-x-hidden">{children}</main>
           <Footer />
         </NextIntlClientProvider>
       </body>

@@ -24,7 +24,7 @@ export function AsusRogLogo({ className = "h-8 w-auto" }: BrandLogoProps) {
       </div>
       <div className="flex flex-col leading-none text-left">
         <span className="text-[13px] font-black tracking-widest text-[#0F172A]">ASUS</span>
-        <span className="text-[7.5px] font-black tracking-wider text-[#E11D48] uppercase">ROG GAMING</span>
+        <span className="text-[7.5px] font-black tracking-wider text-[#0063FD] uppercase">ROG GAMING</span>
       </div>
     </div>
   );

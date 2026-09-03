@@ -41,25 +41,25 @@ export function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-[#E2E8F0] bg-[#FFFFFF] shadow-xs">
+    <header className="sticky top-0 z-50 w-full max-w-full overflow-x-clip border-b border-[#E2E8F0] bg-[#FFFFFF] shadow-xs">
       {/* 1. Top Utility Bar */}
-      <div className="border-b border-[#F1F5F9] bg-[#F8FAFC] py-1.5 text-xs text-[#64748B]">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6">
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1">
-              <span className="h-2 w-2 rounded-full bg-[#16A34A] animate-pulse" />
-              <span>
+      <div className="border-b border-[#F1F5F9] bg-[#F8FAFC] py-1 text-xs text-[#64748B]">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-3 sm:px-6">
+          <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
+            <span className="flex items-center gap-1 truncate text-[11px] sm:text-xs">
+              <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 shrink-0 rounded-full bg-[#16A34A] animate-pulse" />
+              <span className="truncate">
                 3 Showroom: <strong>Hà Nội</strong> • <strong>TP.HCM</strong> • <strong>Đà Nẵng</strong>
               </span>
             </span>
-            <span className="hidden sm:inline-block text-[#CBD5E1]">|</span>
-            <span className="hidden sm:flex items-center gap-1 text-[#0063FD] font-semibold">
+            <span className="hidden md:inline-block text-[#CBD5E1]">|</span>
+            <span className="hidden md:flex items-center gap-1 text-[#0063FD] font-semibold">
               <Truck className="h-3.5 w-3.5 text-[#0063FD]" />
-              Freeship toàn quốc từ 5.000.000₫
+              Freeship từ 5.000.000₫
             </span>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
             <Link
               href="/bao-hanh"
               className="hidden md:flex items-center gap-1 text-[#475569] hover:text-[#0063FD] transition-colors"
@@ -72,20 +72,20 @@ export function Header() {
               className="hidden sm:flex items-center gap-1 text-[#475569] hover:text-[#0063FD] transition-colors"
             >
               <User className="h-3.5 w-3.5 text-[#0063FD]" />
-              Đăng nhập / Đăng ký
+              Tài khoản
             </Link>
-            <span className="text-[#CBD5E1]">|</span>
+            <span className="hidden sm:inline-block text-[#CBD5E1]">|</span>
             <LanguageSwitcher />
           </div>
         </div>
       </div>
 
       {/* 2. Main Header Bar */}
-      <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6">
-        <div className="flex items-center justify-between gap-4">
+      <div className="mx-auto max-w-7xl px-3 py-2.5 sm:px-6 sm:py-3">
+        <div className="flex items-center justify-between gap-2 sm:gap-4">
           {/* Brand Logo with Rounded Image */}
-          <Link href="/" className="flex items-center gap-3 shrink-0 group">
-            <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full border-2 border-[#0063FD] shadow-xs bg-white">
+          <Link href="/" className="flex items-center gap-2 sm:gap-3 shrink-0 group">
+            <div className="relative h-9 w-9 sm:h-11 sm:w-11 shrink-0 overflow-hidden rounded-full border-2 border-[#0063FD] shadow-xs bg-white">
               <Image
                 src="/qmdtech_logo.png"
                 alt="QMD-Tech Logo"
@@ -96,21 +96,21 @@ export function Header() {
               />
             </div>
             <div className="flex flex-col">
-              <div className="flex items-center gap-1.5">
-                <span className="text-2xl font-black tracking-wider text-[#0F172A]">
+              <div className="flex items-center gap-1">
+                <span className="text-lg sm:text-2xl font-black tracking-wider text-[#0F172A]">
                   QMD<span className="text-[#0063FD]">-TECH</span>
                 </span>
-                <span className="rounded bg-[#0F172A] px-1.5 py-0.2 text-[9px] font-black text-white uppercase tracking-wider">
+                <span className="rounded bg-[#0F172A] px-1 py-0.2 text-[8px] sm:text-[9px] font-black text-white uppercase tracking-wider">
                   GAMING
                 </span>
               </div>
-              <span className="text-[10px] font-extrabold tracking-widest text-[#0063FD] uppercase">
+              <span className="hidden xs:block text-[9px] sm:text-[10px] font-extrabold tracking-widest text-[#0063FD] uppercase">
                 PC & Hardware Systems
               </span>
             </div>
           </Link>
 
-          {/* Search Bar with Quick Hot Keywords */}
+          {/* Search Bar with Quick Hot Keywords (Desktop) */}
           <div className="hidden lg:flex flex-1 max-w-2xl flex-col gap-1 mx-4">
             <div className="relative w-full">
               <input
@@ -144,8 +144,8 @@ export function Header() {
           </div>
 
           {/* Right Action Icons & CTAs */}
-          <div className="flex items-center gap-3 shrink-0">
-            {/* Hotline Pill */}
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+            {/* Hotline Pill (Desktop only) */}
             <div className="hidden xl:flex items-center gap-2 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-1.5 text-xs">
               <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#EFF6FF] text-[#0063FD]">
                 <Phone className="h-3.5 w-3.5" />
@@ -156,28 +156,28 @@ export function Header() {
               </div>
             </div>
 
-            {/* Custom PC Builder CTA in Electric Blue */}
-            <Link href="/build-pc">
+            {/* Custom PC Builder CTA in Electric Blue (Hidden on phone to prevent overflow, shown on tablet/PC) */}
+            <Link href="/build-pc" className="hidden sm:inline-flex">
               <Button
                 variant="primary"
                 size="sm"
                 className="gap-1.5 text-xs font-black uppercase tracking-wider py-2 shadow-xs"
               >
                 <Wrench className="h-4 w-4 text-white" />
-                <span className="hidden sm:inline">Xây Dựng</span> Cấu Hình PC
+                <span>Xây Dựng Cấu Hình PC</span>
               </Button>
             </Link>
 
             {/* Cart Button with Count Badge */}
             <Link href="/gio-hang">
-              <div className="relative flex h-10 items-center gap-2 rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] px-3 text-[#0F172A] hover:border-[#0063FD] hover:text-[#0063FD] transition-all shadow-xs">
+              <div className="relative flex h-9 sm:h-10 items-center gap-2 rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] px-2.5 sm:px-3 text-[#0F172A] hover:border-[#0063FD] hover:text-[#0063FD] transition-all shadow-xs">
                 <div className="relative">
-                  <ShoppingCart className="h-5 w-5" />
-                  <span className="absolute -top-2 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#0063FD] text-[10px] font-black text-white">
+                  <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span className="absolute -top-2 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#0063FD] text-[9px] sm:text-[10px] font-black text-white">
                     2
                   </span>
                 </div>
-                <div className="hidden sm:flex flex-col text-left">
+                <div className="hidden md:flex flex-col text-left">
                   <span className="text-[10px] text-[#64748B]">Giỏ hàng</span>
                   <span className="font-mono text-xs font-bold text-[#0063FD]">14.280.000₫</span>
                 </div>
@@ -190,23 +190,29 @@ export function Header() {
               className="lg:hidden rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] p-2 text-[#475569] hover:text-[#0F172A]"
               aria-label="Menu"
             >
-              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {mobileMenuOpen ? <X className="h-4 w-4 sm:h-5 sm:w-5" /> : <Menu className="h-4 w-4 sm:h-5 sm:w-5" />}
             </button>
+          </div>
+        </div>
+
+        {/* Mobile Inline Search Bar */}
+        <div className="mt-2.5 lg:hidden">
+          <div className="relative w-full">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Tìm CPU, RTX 4070 Ti, B650, RAM DDR5..."
+              className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-1.5 pl-8 pr-3 text-xs text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none"
+            />
+            <Search className="absolute left-2.5 top-2 h-3.5 w-3.5 text-[#64748B]" />
           </div>
         </div>
       </div>
 
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-[#E2E8F0] bg-[#FFFFFF] p-4 space-y-3">
-          <div className="relative mb-2">
-            <input
-              type="text"
-              placeholder="Tìm kiếm linh kiện..."
-              className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2 pl-9 pr-4 text-xs text-[#0F172A]"
-            />
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-[#64748B]" />
-          </div>
+        <div className="lg:hidden border-t border-[#E2E8F0] bg-[#FFFFFF] p-4 space-y-3 shadow-lg">
           <div className="grid grid-cols-2 gap-2 text-xs font-bold">
             <Link
               href="/build-pc"
