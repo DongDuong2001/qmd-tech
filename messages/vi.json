@@ -32,9 +32,9 @@
     "contact": "Liên hệ / Showroom"
   },
   "hero": {
-    "badge": "HIỆU NĂNG ĐỈNH CAO • CHÍNH HÃNG 100%",
-    "title": "NÂNG TẦM TRẢI NGHIỆM CHIẾN GAME & ĐỒ HỌA",
-    "subtitle": "Cung cấp linh kiện máy tính cao cấp, dịch vụ build PC theo yêu cầu với công cụ kiểm tra độ tương thích phần cứng thông minh.",
+    "badge": "LINH KIỆN PHẦN CỨNG • CHÍNH HÃNG 100%",
+    "title": "LINH KIỆN MÁY TÍNH & GIẢI PHÁP PC THEO YÊU CẦU",
+    "subtitle": "Cung cấp linh kiện máy tính, dịch vụ build PC theo yêu cầu với công cụ kiểm tra độ tương thích phần cứng thông minh.",
     "ctaBuilder": "Bắt đầu Xây Dựng PC",
     "ctaCatalog": "Khám Phá Linh Kiện"
   },
@@ -48,7 +48,7 @@
     "tierBudget": "Phổ thông / Văn phòng & Game nhẹ",
     "tierMidRange": "Trung cấp / Gaming Full HD & 2K",
     "tierHighEnd": "Cao cấp / Gaming 2K-4K & Đồ họa nặng",
-    "tierEnthusiast": "Đỉnh cao / 4K Ray Tracing & Render 3D",
+    "tierEnthusiast": "Chuyên dụng / 4K Ray Tracing & Render 3D",
     "statusCompatible": "Cấu hình hoàn toàn tương thích",
     "statusWarning": "Có lưu ý về công suất hoặc phụ kiện",
     "statusIncompatible": "Cảnh báo: Có linh kiện không tương thích",

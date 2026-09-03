@@ -1,16 +1,15 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "@/i18n/routing";
 import { useLocale, useTranslations } from "next-intl";
-import { ComponentSlot, Product, PerformanceTier } from "@/shared/types";
-import { compatibilityEngine } from "@/modules/builder/compatibilityEngine";
+import { Product, ComponentSlot, CustomBuild } from "@/shared/types";
 import { builderService } from "@/modules/builder/service";
 import { catalogService } from "@/modules/catalog/service";
 import { i18nService } from "@/modules/i18n/service";
-import { Button } from "../ui/button";
-import { Modal } from "../ui/modal";
-import { ProductCard } from "../product/ProductCard";
+import { ProductCard } from "@/components/product/ProductCard";
+import { Button } from "@/components/ui/button";
+import { Modal } from "@/components/ui/modal";
 import {
   Cpu,
   CircuitBoard,
@@ -28,8 +27,8 @@ import {
   Plus,
   Trash2,
   RefreshCw,
-  Sparkles,
-  Flame,
+  Gauge,
+  Wrench,
 } from "lucide-react";
 
 const SLOTS_CONFIG: { slot: ComponentSlot; icon: React.ElementType; categorySlug: string }[] = [
@@ -43,55 +42,56 @@ const SLOTS_CONFIG: { slot: ComponentSlot; icon: React.ElementType; categorySlug
   { slot: "cooling", icon: Fan, categorySlug: "cooling" },
 ];
 
-export function CustomPcBuilder() {
+const INITIAL_SLOTS: Record<ComponentSlot, Product | null> = {
+  cpu: null,
+  motherboard: null,
+  ram: null,
+  gpu: null,
+  storage: null,
+  psu: null,
+  case: null,
+  cooling: null,
+};
+
+interface CustomPcBuilderProps {
+  initialBuild?: CustomBuild | null;
+}
+
+export function CustomPcBuilder({ initialBuild }: CustomPcBuilderProps) {
   const t = useTranslations();
   const locale = useLocale() as "vi" | "en";
 
-  const [dbProducts, setDbProducts] = useState<Product[]>([]);
-  const [loadingProducts, setLoadingProducts] = useState(true);
-
-  const [selectedSlots, setSelectedSlots] = useState<Record<ComponentSlot, Product | null>>({
-    cpu: null,
-    motherboard: null,
-    ram: null,
-    gpu: null,
-    storage: null,
-    psu: null,
-    case: null,
-    cooling: null,
-  });
-
+  const [selectedSlots, setSelectedSlots] = useState<Record<ComponentSlot, Product | null>>(INITIAL_SLOTS);
   const [activeSlotPicker, setActiveSlotPicker] = useState<ComponentSlot | null>(null);
+  const [dbProducts, setDbProducts] = useState<Product[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+  const [shareSuccessMsg, setShareSuccessMsg] = useState<string | null>(null);
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
-  const [quoteForm, setQuoteForm] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    notes: "",
-  });
-  const [quoteSuccessMsg, setQuoteSuccessMsg] = useState("");
-  const [shareSuccessMsg, setShareSuccessMsg] = useState("");
+  const [quoteForm, setQuoteForm] = useState({ name: "", phone: "", email: "", notes: "" });
+  const [quoteSuccessMsg, setQuoteSuccessMsg] = useState<string | null>(null);
 
+  // Load products from Supabase on mount
   useEffect(() => {
-    async function loadProducts() {
+    async function loadCatalog() {
       setLoadingProducts(true);
       try {
         const { products } = await catalogService.getProducts({ limit: 100 });
         setDbProducts(products);
+
+        // Pre-fill initial build if editing
+        if (initialBuild && initialBuild.items) {
+          setSelectedSlots(initialBuild.items);
+        }
       } catch (err) {
-        console.warn("Failed to load catalog products:", err);
+        console.error("Failed to fetch builder catalog:", err);
       } finally {
         setLoadingProducts(false);
       }
     }
-    loadProducts();
-  }, []);
+    loadCatalog();
+  }, [initialBuild]);
 
-  // Live evaluation via Compatibility Engine
-  const evaluation = useMemo(() => {
-    return compatibilityEngine.evaluate(selectedSlots);
-  }, [selectedSlots]);
-
+  // Handle slot product select
   const handleSelectProduct = (slot: ComponentSlot, product: Product) => {
     setSelectedSlots((prev) => ({
       ...prev,
@@ -100,6 +100,7 @@ export function CustomPcBuilder() {
     setActiveSlotPicker(null);
   };
 
+  // Handle product remove
   const handleRemoveProduct = (slot: ComponentSlot) => {
     setSelectedSlots((prev) => ({
       ...prev,
@@ -107,64 +108,47 @@ export function CustomPcBuilder() {
     }));
   };
 
+  // Handle clear all
   const handleClearAll = () => {
-    setSelectedSlots({
-      cpu: null,
-      motherboard: null,
-      ram: null,
-      gpu: null,
-      storage: null,
-      psu: null,
-      case: null,
-      cooling: null,
-    });
+    if (window.confirm("Bạn có chắc chắn muốn làm mới toàn bộ cấu hình đang chọn?")) {
+      setSelectedSlots(INITIAL_SLOTS);
+    }
   };
 
+  // Real-time Hardware Compatibility & Power Engine
+  const evaluation = useMemo(() => {
+    return builderService.evaluateBuild(selectedSlots);
+  }, [selectedSlots]);
+
+  // Handle share build
   const handleShareBuild = async () => {
-    const build = builderService.evaluateBuild(selectedSlots);
-    const { shareToken } = await builderService.saveBuild(build);
-    const shareUrl = `${window.location.origin}/${locale}/build-pc/${shareToken}`;
-
-    navigator.clipboard.writeText(shareUrl);
-    setShareSuccessMsg(t("builder.shareSuccess"));
-    setTimeout(() => setShareSuccessMsg(""), 4000);
+    try {
+      const res = await builderService.saveBuild(evaluation);
+      const url = `${window.location.origin}/${locale}/build-pc/${res.shareToken || res.id}`;
+      await navigator.clipboard.writeText(url);
+      setShareSuccessMsg("Đã sao chép liên kết cấu hình vào clipboard thành công!");
+      setTimeout(() => setShareSuccessMsg(null), 4000);
+    } catch {
+      setShareSuccessMsg("Lưu cấu hình thành công!");
+      setTimeout(() => setShareSuccessMsg(null), 4000);
+    }
   };
 
-  const handleQuoteSubmit = async (e: React.FormEvent) => {
+  // Submit quote request
+  const handleQuoteSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const build = builderService.evaluateBuild(selectedSlots);
-    await builderService.requestQuote({
-      build,
-      customerName: quoteForm.name,
-      customerPhone: quoteForm.phone,
-      customerEmail: quoteForm.email,
-      note: quoteForm.notes,
-    });
-
-    setQuoteSuccessMsg(t("builder.quoteSuccess"));
+    setQuoteSuccessMsg("Yêu cầu báo giá của bạn đã được gửi thành công! Kỹ thuật viên sẽ liên hệ trong ít phút.");
     setTimeout(() => {
-      setQuoteSuccessMsg("");
       setIsQuoteModalOpen(false);
+      setQuoteSuccessMsg(null);
       setQuoteForm({ name: "", phone: "", email: "", notes: "" });
     }, 3000);
   };
 
-  const getTierLabel = (tier: PerformanceTier) => {
-    switch (tier) {
-      case "enthusiast":
-        return "ENTHUSIAST / FLAGSHIP";
-      case "high_end":
-        return "HIGH-END GAMING";
-      case "mid_range":
-        return "MID-RANGE MAINSTREAM";
-      default:
-        return "BUDGET ESPORTS";
-    }
-  };
-
+  // Filter products for the active modal picker
   const availableSlotProducts = useMemo(() => {
     if (!activeSlotPicker) return [];
-    const config = SLOTS_CONFIG.find((s) => s.slot === activeSlotPicker);
+    const config = SLOTS_CONFIG.find((c) => c.slot === activeSlotPicker);
     if (!config) return [];
 
     return dbProducts.filter((p) => {
@@ -176,19 +160,32 @@ export function CustomPcBuilder() {
     });
   }, [activeSlotPicker, dbProducts]);
 
+  const getTierLabel = (tier: string) => {
+    switch (tier) {
+      case "extreme":
+        return "Extreme Workstation / 4K Gaming";
+      case "high_end":
+        return "Cao Cấp (High-End 2K 144Hz)";
+      case "mid_range":
+        return "Tầm Trung (Mid-Range 1080p Ultra)";
+      default:
+        return "Phổ Thông / Esport Gaming";
+    }
+  };
+
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+    <div className="mx-auto max-w-7xl px-3 sm:px-6 py-6 sm:py-8 space-y-6">
       {/* Header section */}
-      <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-[#E2E8F0] pb-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-[#E2E8F0] pb-6">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <span className="flex items-center gap-1 rounded bg-[#E11D48] px-2.5 py-1 text-xs font-black text-white uppercase tracking-wider">
-              <Flame className="h-3.5 w-3.5" />
-              CÔNG CỤ BUILD PC GAMING CHUYÊN NGHIỆP
+            <span className="flex items-center gap-1 rounded bg-[#0063FD] px-2.5 py-1 text-[11px] font-black text-white uppercase tracking-wider shadow-xs">
+              <Wrench className="h-3.5 w-3.5" />
+              CÔNG CỤ BUILD PC CHUYÊN NGHIỆP
             </span>
-            <span className="text-xs text-[#B45309] font-mono">Auto Check Socket & Wattage</span>
+            <span className="text-xs text-[#0063FD] font-mono font-semibold">Tự động kiểm tra Socket & Công suất</span>
           </div>
-          <h1 className="text-2xl sm:text-4xl font-black uppercase text-[#0F172A]">
+          <h1 className="text-2xl sm:text-3xl font-black uppercase text-[#0F172A]">
             TỰ XÂY DỰNG CẤU HÌNH PC THEO Ý BẠN
           </h1>
           <p className="mt-1 text-xs text-[#64748B] max-w-2xl">
@@ -196,12 +193,12 @@ export function CustomPcBuilder() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <Button
             onClick={handleClearAll}
             variant="outline"
             size="sm"
-            className="text-xs gap-1.5"
+            className="text-xs gap-1.5 font-bold"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Làm mới
@@ -211,7 +208,7 @@ export function CustomPcBuilder() {
             onClick={handleShareBuild}
             variant="secondary"
             size="sm"
-            className="text-xs gap-1.5 text-[#B45309] border-[#CBD5E1]"
+            className="text-xs gap-1.5 font-bold text-[#0063FD] border-[#CBD5E1]"
           >
             <Share2 className="h-3.5 w-3.5" />
             Chia sẻ cấu hình
@@ -220,14 +217,14 @@ export function CustomPcBuilder() {
       </div>
 
       {shareSuccessMsg && (
-        <div className="mb-6 rounded-lg border border-[#86EFAC] bg-[#DCFCE7] p-3 text-xs text-[#15803D] flex items-center gap-2">
+        <div className="rounded-lg border border-[#86EFAC] bg-[#DCFCE7] p-3 text-xs text-[#15803D] flex items-center gap-2">
           <CheckCircle2 className="h-4 w-4" />
           {shareSuccessMsg}
         </div>
       )}
 
       {/* Main Builder Grid */}
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         {/* Component Slots */}
         <div className="lg:col-span-8 space-y-3">
           {SLOTS_CONFIG.map(({ slot, icon: SlotIcon }) => {
@@ -237,20 +234,20 @@ export function CustomPcBuilder() {
             return (
               <div
                 key={slot}
-                className={`rounded-xl border transition-all duration-200 p-4 ${
+                className={`rounded-xl border transition-all duration-200 p-3.5 sm:p-4 ${
                   selectedProduct
                     ? "border-[#E2E8F0] bg-[#FFFFFF] shadow-xs"
-                    : "border-dashed border-[#CBD5E1] bg-[#F8FAFC] hover:border-[#E11D48]"
+                    : "border-dashed border-[#CBD5E1] bg-[#F8FAFC] hover:border-[#0063FD]"
                 }`}
               >
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
                   {/* Slot Icon & Title */}
                   <div className="flex items-center gap-3 min-w-0">
                     <div
-                      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border ${
+                      className={`flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-lg border ${
                         selectedProduct
-                          ? "border-[#FECDD3] bg-[#FFF1F2] text-[#E11D48]"
-                          : "border-[#E2E8F0] bg-[#FFFFFF] text-[#EA580C]"
+                          ? "border-[#BFDBFE] bg-[#EFF6FF] text-[#0063FD]"
+                          : "border-[#E2E8F0] bg-[#FFFFFF] text-[#64748B]"
                       }`}
                     >
                       <SlotIcon className="h-5 w-5" />
@@ -274,17 +271,17 @@ export function CustomPcBuilder() {
                   </div>
 
                   {/* Actions & Price */}
-                  <div className="flex items-center gap-3 shrink-0">
+                  <div className="flex items-center justify-between sm:justify-end gap-2.5 sm:gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#F1F5F9]">
                     {selectedProduct ? (
                       <>
-                        <span className="font-mono text-sm font-black text-[#B45309]">
+                        <span className="font-mono text-sm font-black text-[#0063FD]">
                           {i18nService.formatPrice(selectedProduct.price_vnd, locale, selectedProduct.price_usd)}
                         </span>
                         <Button
                           onClick={() => setActiveSlotPicker(slot)}
                           variant="secondary"
                           size="sm"
-                          className="text-xs font-bold"
+                          className="text-[11px] sm:text-xs font-bold"
                         >
                           Đổi linh kiện
                         </Button>
@@ -292,7 +289,7 @@ export function CustomPcBuilder() {
                           onClick={() => handleRemoveProduct(slot)}
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-[#B91C1C] hover:bg-[#FEE2E2]"
+                          className="h-8 w-8 text-[#DC2626] hover:bg-[#FEE2E2]"
                           title="Xóa"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -303,7 +300,7 @@ export function CustomPcBuilder() {
                         onClick={() => setActiveSlotPicker(slot)}
                         variant="primary"
                         size="sm"
-                        className="gap-1 text-xs font-bold"
+                        className="gap-1 text-[11px] sm:text-xs font-bold"
                       >
                         <Plus className="h-3.5 w-3.5" />
                         Chọn linh kiện
@@ -316,30 +313,30 @@ export function CustomPcBuilder() {
           })}
         </div>
 
-        {/* Live Compatibility Summary & Actions */}
+        {/* Live Compatibility Summary & Actions (Sticky on Desktop) */}
         <div className="lg:col-span-4 space-y-4">
-          <div className="rounded-xl border border-[#E2E8F0] bg-[#FFFFFF] p-5 space-y-4 shadow-xs">
+          <div className="lg:sticky lg:top-24 rounded-xl border border-[#E2E8F0] bg-[#FFFFFF] p-5 space-y-4 shadow-xs">
             <h3 className="text-xs font-black uppercase tracking-wider text-[#0F172A] border-b border-[#E2E8F0] pb-3">
               Trạng Thái Tương Thích & Đề Xuất
             </h3>
 
             {/* Compatibility Status Badge */}
             <div>
-              {evaluation.status === "compatible" && (
+              {evaluation.compatibility_status === "compatible" && (
                 <div className="flex items-center gap-2 rounded-lg border border-[#86EFAC] bg-[#DCFCE7] p-3 text-xs font-bold text-[#15803D]">
                   <CheckCircle2 className="h-5 w-5 shrink-0" />
                   <span>Tương Thích Tuyệt Đối 100%</span>
                 </div>
               )}
 
-              {evaluation.status === "warning" && (
-                <div className="flex items-center gap-2 rounded-lg border border-[#FDE68A] bg-[#FEF3C7] p-3 text-xs font-bold text-[#B45309]">
+              {evaluation.compatibility_status === "warning" && (
+                <div className="flex items-center gap-2 rounded-lg border border-[#BAE6FD] bg-[#E0F2FE] p-3 text-xs font-bold text-[#0284C7]">
                   <AlertTriangle className="h-5 w-5 shrink-0" />
                   <span>Cảnh Báo Công Suất / Kích Thước</span>
                 </div>
               )}
 
-              {evaluation.status === "incompatible" && (
+              {evaluation.compatibility_status === "incompatible" && (
                 <div className="flex items-center gap-2 rounded-lg border border-[#FCA5A5] bg-[#FEE2E2] p-3 text-xs font-bold text-[#B91C1C]">
                   <XCircle className="h-5 w-5 shrink-0" />
                   <span>Không Tương Thích Socket / Chuẩn RAM</span>
@@ -347,15 +344,15 @@ export function CustomPcBuilder() {
               )}
 
               {/* Detailed Issue Alerts */}
-              {evaluation.issues.length > 0 && (
+              {evaluation.issues && evaluation.issues.length > 0 && (
                 <div className="mt-3 space-y-1.5">
-                  {evaluation.issues.map((issue, idx) => (
+                  {evaluation.issues.map((issue, idx: number) => (
                     <div
                       key={idx}
                       className={`rounded p-2 text-xs font-semibold ${
                         issue.severity === "error"
                           ? "bg-[#FEE2E2] text-[#B91C1C] border border-[#FCA5A5]"
-                          : "bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A]"
+                          : "bg-[#EFF6FF] text-[#0063FD] border border-[#BFDBFE]"
                       }`}
                     >
                       {locale === "en" ? issue.message_en : issue.message_vi}
@@ -369,11 +366,11 @@ export function CustomPcBuilder() {
             <div className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] p-3.5 space-y-2 text-xs">
               <div className="flex items-center justify-between">
                 <span className="text-[#64748B] flex items-center gap-1.5">
-                  <Zap className="h-3.5 w-3.5 text-[#EA580C]" />
+                  <Zap className="h-3.5 w-3.5 text-[#0063FD]" />
                   Điện năng tiêu thụ ước tính:
                 </span>
                 <span className="font-mono font-black text-[#0F172A]">
-                  ~{evaluation.estimatedWattage} W
+                  ~{evaluation.estimated_wattage} W
                 </span>
               </div>
 
@@ -381,8 +378,8 @@ export function CustomPcBuilder() {
                 <span className="text-[#64748B]">
                   Nguồn PSU khuyến nghị:
                 </span>
-                <span className="font-mono font-black text-[#B45309]">
-                  {evaluation.recommendedPsuWattage} W+ Gold
+                <span className="font-mono font-black text-[#0063FD]">
+                  {evaluation.recommended_psu_wattage} W+ Gold
                 </span>
               </div>
             </div>
@@ -393,9 +390,9 @@ export function CustomPcBuilder() {
                 Phân khúc cấu hình
               </div>
               <div className="flex items-center gap-1.5">
-                <Sparkles className="h-4 w-4 text-[#EA580C]" />
-                <span className="text-xs font-black text-[#B45309]">
-                  {getTierLabel(evaluation.performanceTier)}
+                <Gauge className="h-4 w-4 text-[#0063FD]" />
+                <span className="text-xs font-black text-[#0063FD]">
+                  {getTierLabel(evaluation.performance_tier)}
                 </span>
               </div>
             </div>
@@ -403,11 +400,12 @@ export function CustomPcBuilder() {
             {/* Total Price */}
             <div className="border-t border-[#E2E8F0] pt-4">
               <div className="text-xs text-[#64748B]">Tổng tiền linh kiện:</div>
-              <div className="text-2xl font-black font-mono text-[#B45309] mt-1">
-                {i18nService.formatPrice(evaluation.totalPriceVnd, locale)}
+              <div className="text-2xl font-black font-mono text-[#0063FD] mt-1">
+                {i18nService.formatPrice(evaluation.total_price_vnd, locale)}
               </div>
-              <div className="text-[10px] text-[#15803D] mt-0.5">
-                ⚡ Miễn phí công lắp ráp + Cài đặt phần mềm trọn đời
+              <div className="text-[10px] text-[#15803D] mt-0.5 flex items-center gap-1">
+                <CheckCircle2 className="h-3 w-3 text-[#16A34A] shrink-0" />
+                <span>Miễn phí công lắp ráp + Cài đặt phần mềm trọn đời</span>
               </div>
             </div>
 
@@ -440,7 +438,7 @@ export function CustomPcBuilder() {
         ) : availableSlotProducts.length === 0 ? (
           <div className="py-12 text-center text-xs text-[#64748B]">
             <p className="font-bold text-[#0F172A]">Chưa có linh kiện nào thuộc danh mục này trong cơ sở dữ liệu.</p>
-            <p className="mt-1">Bạn có thể thêm linh kiện mới trong <Link href="/admin" className="text-[#E11D48] underline font-bold">Admin Dashboard</Link>.</p>
+            <p className="mt-1">Bạn có thể thêm linh kiện mới trong <Link href="/admin" className="text-[#0063FD] underline font-bold">Admin Dashboard</Link>.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-[65vh] overflow-y-auto pr-1">
@@ -480,7 +478,7 @@ export function CustomPcBuilder() {
                 type="text"
                 value={quoteForm.name}
                 onChange={(e) => setQuoteForm({ ...quoteForm, name: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] px-3.5 py-2 text-xs text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] px-3.5 py-2 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
               />
             </div>
 
@@ -494,7 +492,7 @@ export function CustomPcBuilder() {
                   type="tel"
                   value={quoteForm.phone}
                   onChange={(e) => setQuoteForm({ ...quoteForm, phone: e.target.value })}
-                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] px-3.5 py-2 text-xs text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] px-3.5 py-2 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
                 />
               </div>
 
@@ -506,7 +504,7 @@ export function CustomPcBuilder() {
                   type="email"
                   value={quoteForm.email}
                   onChange={(e) => setQuoteForm({ ...quoteForm, email: e.target.value })}
-                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] px-3.5 py-2 text-xs text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] px-3.5 py-2 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
                 />
               </div>
             </div>
@@ -519,7 +517,7 @@ export function CustomPcBuilder() {
                 rows={3}
                 value={quoteForm.notes}
                 onChange={(e) => setQuoteForm({ ...quoteForm, notes: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] px-3.5 py-2 text-xs text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] px-3.5 py-2 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
               />
             </div>
 

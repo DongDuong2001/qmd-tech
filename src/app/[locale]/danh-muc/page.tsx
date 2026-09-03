@@ -45,7 +45,7 @@ export default async function CategoriesPage() {
       <div className="flex flex-wrap gap-2.5">
         <Link
           href="/danh-muc"
-          className="rounded-lg bg-[#E11D48] px-4 py-2 text-xs font-bold text-white shadow-xs"
+          className="rounded-lg bg-[#0063FD] px-4 py-2 text-xs font-bold text-white shadow-xs"
         >
           {t("common.all")}
         </Link>
@@ -55,9 +55,9 @@ export default async function CategoriesPage() {
             <Link
               key={cat.id}
               href={`/danh-muc/${cat.slug}`}
-              className="flex items-center gap-1.5 rounded-lg border border-[#E2E8F0] bg-[#FFFFFF] px-4 py-2 text-xs font-semibold text-[#0F172A] hover:border-[#E11D48] hover:bg-[#FFF1F2] transition-colors shadow-xs"
+              className="flex items-center gap-1.5 rounded-lg border border-[#E2E8F0] bg-[#FFFFFF] px-4 py-2 text-xs font-semibold text-[#0F172A] hover:border-[#0063FD] hover:bg-[#EFF6FF] transition-colors shadow-xs"
             >
-              <Icon className="h-3.5 w-3.5 text-[#EA580C]" />
+              <Icon className="h-3.5 w-3.5 text-[#0063FD]" />
               {cat.name_vi}
             </Link>
           );

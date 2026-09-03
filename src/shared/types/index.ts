@@ -159,3 +159,55 @@ export interface Review {
   is_verified_purchase?: boolean;
   created_at?: string;
 }
+
+export interface EventBanner {
+  id: string;
+  title_vi: string;
+  title_en?: string;
+  subtitle_vi?: string;
+  subtitle_en?: string;
+  tag?: string;
+  image_url: string;
+  target_url: string;
+  display_order: number;
+  is_active: boolean;
+  created_at?: string;
+}
+
+export interface PrebuiltDeal {
+  id: string;
+  name_vi: string;
+  name_en?: string;
+  code: string;
+  price_vnd: number;
+  original_price_vnd?: number | null;
+  image_url: string;
+  badge?: string;
+  cpu: string;
+  vga: string;
+  ram: string;
+  ssd: string;
+  psu?: string;
+  mainboard?: string;
+  case_name?: string;
+  display_order: number;
+  is_featured: boolean;
+  is_active: boolean;
+  supplier_id?: string;
+  created_at?: string;
+}
+
+export interface Supplier {
+  id: string;
+  name: string;
+  code: string;
+  contact_person?: string;
+  phone?: string;
+  email?: string;
+  brands: string[];
+  address?: string;
+  status: "active" | "inactive";
+  notes?: string;
+  created_at?: string;
+}
+

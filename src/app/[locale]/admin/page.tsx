@@ -3,8 +3,22 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
-import { adminService, CreateProductInput } from "@/modules/admin/service";
-import { Product, Category, Order, Review } from "@/shared/types";
+import {
+  adminService,
+  CreateProductInput,
+  CreateBannerInput,
+  CreatePrebuiltDealInput,
+  CreateSupplierInput,
+} from "@/modules/admin/service";
+import {
+  Product,
+  Category,
+  Order,
+  Review,
+  EventBanner,
+  PrebuiltDeal,
+  Supplier,
+} from "@/shared/types";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import {
@@ -13,6 +27,7 @@ import {
   Layers,
   ShoppingBag,
   Star,
+  MessageSquareText,
   Plus,
   Trash2,
   Search,
@@ -29,14 +44,31 @@ import {
   TrendingUp,
   Clock,
   ChevronRight,
+  Image as ImageIcon,
+  Monitor,
+  ArrowUp,
+  ArrowDown,
+  Building,
+  Phone,
+  Mail,
+  Pencil,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 export default function AdminDashboardPage() {
-  const [activeTab, setActiveTab] = useState<"overview" | "products" | "categories" | "orders" | "reviews" | "security">("overview");
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "products" | "categories" | "banners" | "deals" | "suppliers" | "orders" | "reviews" | "security"
+  >("overview");
+
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [banners, setBanners] = useState<EventBanner[]>([]);
+  const [deals, setDeals] = useState<PrebuiltDeal[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -47,11 +79,29 @@ export default function AdminDashboardPage() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [orderStatusFilter, setOrderStatusFilter] = useState<string>("all");
 
-  // Modals
+  // Modals state
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
+  const [isAddBannerOpen, setIsAddBannerOpen] = useState(false);
+  const [isEditBannerOpen, setIsEditBannerOpen] = useState(false);
+  const [editingBannerId, setEditingBannerId] = useState<string | null>(null);
+  const [isAddDealOpen, setIsAddDealOpen] = useState(false);
+  const [isAddSupplierOpen, setIsAddSupplierOpen] = useState(false);
 
-  // New Product Form State
+  // Edit Banner Form State
+  const [editBannerForm, setEditBannerForm] = useState<CreateBannerInput>({
+    title_vi: "",
+    title_en: "",
+    subtitle_vi: "",
+    subtitle_en: "",
+    tag: "SỰ KIỆN",
+    image_url: "",
+    target_url: "/danh-muc",
+    display_order: 1,
+    is_active: true,
+  });
+
+  // Product Form State
   const [productForm, setProductForm] = useState<CreateProductInput>({
     name_vi: "",
     name_en: "",
@@ -68,13 +118,12 @@ export default function AdminDashboardPage() {
     is_featured: false,
   });
 
-  // Specs helper inputs
   const [socketInput, setSocketInput] = useState("");
   const [ramTypeInput, setRamTypeInput] = useState("");
   const [tdpInput, setTdpInput] = useState("");
   const [vramInput, setVramInput] = useState("");
 
-  // New Category Form State
+  // Category Form State
   const [categoryForm, setCategoryForm] = useState({
     slug: "",
     name_vi: "",
@@ -82,25 +131,80 @@ export default function AdminDashboardPage() {
     icon: "Cpu",
   });
 
+  // Banner Form State
+  const [bannerForm, setBannerForm] = useState<CreateBannerInput>({
+    title_vi: "",
+    title_en: "",
+    subtitle_vi: "",
+    subtitle_en: "",
+    tag: "SỰ KIỆN",
+    image_url: "https://images.unsplash.com/photo-1587202372634-32705e3bf49c?auto=format&fit=crop&w=1200&q=80",
+    target_url: "/danh-muc",
+    display_order: 1,
+    is_active: true,
+  });
+
+  // Prebuilt Deal Form State
+  const [dealForm, setDealForm] = useState<CreatePrebuiltDealInput>({
+    name_vi: "",
+    name_en: "",
+    code: "",
+    price_vnd: 0,
+    original_price_vnd: 0,
+    image_url: "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?auto=format&fit=crop&w=800&q=80",
+    badge: "DEAL HOT",
+    cpu: "",
+    vga: "",
+    ram: "",
+    ssd: "",
+    psu: "650W Bronze",
+    mainboard: "B760 / B650",
+    case_name: "Gaming RGB Case",
+    display_order: 1,
+    is_featured: true,
+    is_active: true,
+  });
+
+  // Supplier Form State
+  const [supplierForm, setSupplierForm] = useState<CreateSupplierInput>({
+    name: "",
+    code: "",
+    contact_person: "",
+    phone: "",
+    email: "",
+    brands: ["ASUS", "MSI"],
+    address: "",
+    status: "active",
+    notes: "",
+  });
+  const [brandInputString, setBrandInputString] = useState("ASUS, MSI, Intel");
+
   const loadAllData = async () => {
     setIsRefreshing(true);
     try {
-      const [p, c, o, r] = await Promise.all([
+      const [p, c, o, r, b, d, s] = await Promise.all([
         adminService.getProducts(),
         adminService.getCategories(),
         adminService.getOrders(),
         adminService.getReviews(),
+        adminService.getBanners(),
+        adminService.getPrebuiltDeals(),
+        adminService.getSuppliers(),
       ]);
       setProducts(p);
       setCategories(c);
       setOrders(o);
       setReviews(r);
+      setBanners(b);
+      setDeals(d);
+      setSuppliers(s);
+
       if (c.length > 0 && !productForm.category_id) {
         setProductForm((prev) => ({ ...prev, category_id: c[0].id }));
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      setFeedbackMsg({ type: "error", text: "Lỗi tải dữ liệu Supabase: " + msg });
+      setFeedbackMsg({ type: "error", text: "Lỗi tải dữ liệu: " + msg });
     } finally {
       setLoading(false);
       setIsRefreshing(false);
@@ -116,6 +220,7 @@ export default function AdminDashboardPage() {
     setTimeout(() => setFeedbackMsg(null), 4000);
   };
 
+  // Products
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -125,7 +230,9 @@ export default function AdminDashboardPage() {
       if (tdpInput) specs.tdp_watts = parseInt(tdpInput, 10);
       if (vramInput) specs.vram_gb = parseInt(vramInput, 10);
 
-      const generatedSlug = productForm.slug || productForm.name_vi.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      const generatedSlug =
+        productForm.slug ||
+        productForm.name_vi.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
       await adminService.createProduct({
         ...productForm,
@@ -133,7 +240,7 @@ export default function AdminDashboardPage() {
         specs,
       });
 
-      showNotification("success", "Đã lưu sản phẩm mới vào Supabase Live Database thành công!");
+      showNotification("success", "Đã lưu sản phẩm mới thành công!");
       setIsAddProductOpen(false);
       setProductForm({
         name_vi: "",
@@ -169,6 +276,7 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // Categories
   const handleCreateCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -195,6 +303,192 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // Banners & Event Posters
+  const handleCreateBanner = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await adminService.createBanner(bannerForm);
+      showNotification("success", "Đã đăng poster sự kiện mới thành công!");
+      setIsAddBannerOpen(false);
+      setBannerForm({
+        title_vi: "",
+        title_en: "",
+        subtitle_vi: "",
+        subtitle_en: "",
+        tag: "SỰ KIỆN",
+        image_url: "https://images.unsplash.com/photo-1587202372634-32705e3bf49c?auto=format&fit=crop&w=1200&q=80",
+        target_url: "/danh-muc",
+        display_order: banners.length + 1,
+        is_active: true,
+      });
+      loadAllData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi tạo banner: " + msg);
+    }
+  };
+
+  const handleStartEditBanner = (banner: EventBanner) => {
+    setEditingBannerId(banner.id);
+    setEditBannerForm({
+      title_vi: banner.title_vi,
+      title_en: banner.title_en,
+      subtitle_vi: banner.subtitle_vi || "",
+      subtitle_en: banner.subtitle_en || "",
+      tag: banner.tag || "SỰ KIỆN",
+      image_url: banner.image_url,
+      target_url: banner.target_url,
+      display_order: banner.display_order,
+      is_active: banner.is_active,
+    });
+    setIsEditBannerOpen(true);
+  };
+
+  const handleUpdateBanner = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingBannerId) return;
+    try {
+      await adminService.updateBanner(editingBannerId, editBannerForm);
+      showNotification("success", "Đã cập nhật thông tin poster sự kiện thành công!");
+      setIsEditBannerOpen(false);
+      setEditingBannerId(null);
+      loadAllData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi cập nhật banner: " + msg);
+    }
+  };
+
+  const handleToggleBannerActive = async (banner: EventBanner) => {
+    try {
+      await adminService.updateBanner(banner.id, { is_active: !banner.is_active });
+      showNotification("success", banner.is_active ? "Đã tạm ẩn poster khỏi trang chủ" : "Đã kích hoạt hiển thị poster lên trang chủ!");
+      loadAllData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi cập nhật trạng thái: " + msg);
+    }
+  };
+
+  const handleDeleteBanner = async (id: string) => {
+    if (!confirm("Bạn có chắc chắn muốn xóa poster này?")) return;
+    try {
+      await adminService.deleteBanner(id);
+      showNotification("success", "Đã xóa poster sự kiện!");
+      loadAllData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi xóa banner: " + msg);
+    }
+  };
+
+  // Prebuilt Deals
+  const handleCreateDeal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await adminService.createPrebuiltDeal(dealForm);
+      showNotification("success", "Đã thêm cấu hình PC ráp sẵn mới!");
+      setIsAddDealOpen(false);
+      setDealForm({
+        name_vi: "",
+        name_en: "",
+        code: "",
+        price_vnd: 0,
+        original_price_vnd: 0,
+        image_url: "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?auto=format&fit=crop&w=800&q=80",
+        badge: "DEAL HOT",
+        cpu: "",
+        vga: "",
+        ram: "",
+        ssd: "",
+        psu: "650W Bronze",
+        mainboard: "B760 / B650",
+        case_name: "Gaming RGB Case",
+        display_order: deals.length + 1,
+        is_featured: true,
+        is_active: true,
+      });
+      loadAllData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi tạo cấu hình PC: " + msg);
+    }
+  };
+
+  const handleDeleteDeal = async (id: string) => {
+    if (!confirm("Bạn có chắc muốn xóa cấu hình PC này?")) return;
+    try {
+      await adminService.deletePrebuiltDeal(id);
+      showNotification("success", "Đã xóa cấu hình PC thành công!");
+      loadAllData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi xóa deal: " + msg);
+    }
+  };
+
+  const handleMoveDeal = async (index: number, direction: "up" | "down") => {
+    const newDeals = [...deals];
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= newDeals.length) return;
+
+    const temp = newDeals[index];
+    newDeals[index] = newDeals[targetIndex];
+    newDeals[targetIndex] = temp;
+
+    setDeals(newDeals);
+    const reorderedIds = newDeals.map((d) => d.id);
+    await adminService.reorderPrebuiltDeals(reorderedIds);
+    showNotification("success", "Đã cập nhật thứ tự hiển thị trang chủ!");
+  };
+
+  // Suppliers
+  const handleCreateSupplier = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const brandsArray = brandInputString
+        .split(",")
+        .map((b) => b.trim())
+        .filter(Boolean);
+
+      await adminService.createSupplier({
+        ...supplierForm,
+        brands: brandsArray,
+      });
+
+      showNotification("success", "Đã thêm nhà phân phối / nguồn hàng mới!");
+      setIsAddSupplierOpen(false);
+      setSupplierForm({
+        name: "",
+        code: "",
+        contact_person: "",
+        phone: "",
+        email: "",
+        brands: [],
+        address: "",
+        status: "active",
+        notes: "",
+      });
+      loadAllData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi tạo nhà phân phối: " + msg);
+    }
+  };
+
+  const handleDeleteSupplier = async (id: string) => {
+    if (!confirm("Bạn có chắc muốn xóa nhà phân phối này?")) return;
+    try {
+      await adminService.deleteSupplier(id);
+      showNotification("success", "Đã xóa nhà phân phối!");
+      loadAllData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi xóa nhà phân phối: " + msg);
+    }
+  };
+
+  // Orders
   const handleUpdateOrderStatus = async (orderId: string, status: Order["status"]) => {
     try {
       await adminService.updateOrderStatus(orderId, status);
@@ -232,7 +526,6 @@ export default function AdminDashboardPage() {
 
   const lowStockCount = products.filter((p) => p.stock <= 5).length;
   const totalStockUnits = products.reduce((acc, p) => acc + (p.stock || 0), 0);
-
   const uniqueBrands = Array.from(new Set(products.map((p) => p.brand))).filter(Boolean);
 
   return (
@@ -245,7 +538,7 @@ export default function AdminDashboardPage() {
           {/* Admin Header & Logo */}
           <div className="p-5 border-b border-[#1E293B] flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border-2 border-[#E11D48] shadow-sm bg-white">
+              <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border-2 border-[#0063FD] shadow-sm bg-white">
                 <Image
                   src="/qmdtech_logo.png"
                   alt="QMD-Tech Admin"
@@ -256,7 +549,7 @@ export default function AdminDashboardPage() {
               </div>
               <div className="flex flex-col leading-none">
                 <span className="text-sm font-black tracking-wider text-white">
-                  QMD<span className="text-[#E11D48]">-TECH</span>
+                  QMD<span className="text-[#0063FD]">-TECH</span>
                 </span>
                 <span className="text-[10px] font-black uppercase tracking-widest text-[#B45309] mt-0.5">
                   ADMIN CONSOLE
@@ -274,7 +567,7 @@ export default function AdminDashboardPage() {
               onClick={() => setActiveTab("overview")}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "overview"
-                  ? "bg-[#E11D48] text-white shadow-xs font-black"
+                  ? "bg-[#0063FD] text-white shadow-xs font-black"
                   : "hover:bg-[#1E293B] hover:text-white"
               }`}
             >
@@ -289,7 +582,7 @@ export default function AdminDashboardPage() {
               onClick={() => setActiveTab("products")}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "products"
-                  ? "bg-[#E11D48] text-white shadow-xs font-black"
+                  ? "bg-[#0063FD] text-white shadow-xs font-black"
                   : "hover:bg-[#1E293B] hover:text-white"
               }`}
             >
@@ -306,7 +599,7 @@ export default function AdminDashboardPage() {
               onClick={() => setActiveTab("categories")}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "categories"
-                  ? "bg-[#E11D48] text-white shadow-xs font-black"
+                  ? "bg-[#0063FD] text-white shadow-xs font-black"
                   : "hover:bg-[#1E293B] hover:text-white"
               }`}
             >
@@ -319,11 +612,65 @@ export default function AdminDashboardPage() {
               </span>
             </button>
 
+            {/* BANNERS TAB */}
+            <button
+              onClick={() => setActiveTab("banners")}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
+                activeTab === "banners"
+                  ? "bg-[#0063FD] text-white shadow-xs font-black"
+                  : "hover:bg-[#1E293B] hover:text-white"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <ImageIcon className="h-4 w-4" />
+                <span>Banner & Sự kiện</span>
+              </div>
+              <span className="rounded-full bg-[#1E293B] px-2 py-0.5 text-[10px] font-mono text-slate-300">
+                {banners.length}
+              </span>
+            </button>
+
+            {/* PREBUILT DEALS TAB */}
+            <button
+              onClick={() => setActiveTab("deals")}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
+                activeTab === "deals"
+                  ? "bg-[#0063FD] text-white shadow-xs font-black"
+                  : "hover:bg-[#1E293B] hover:text-white"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <Monitor className="h-4 w-4" />
+                <span>PC Ráp Sẵn (Deals)</span>
+              </div>
+              <span className="rounded-full bg-[#0063FD] px-2 py-0.5 text-[10px] font-mono text-white font-black">
+                {deals.length}
+              </span>
+            </button>
+
+            {/* SUPPLIERS TAB */}
+            <button
+              onClick={() => setActiveTab("suppliers")}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
+                activeTab === "suppliers"
+                  ? "bg-[#0063FD] text-white shadow-xs font-black"
+                  : "hover:bg-[#1E293B] hover:text-white"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <Building className="h-4 w-4" />
+                <span>Nguồn hàng & NCC</span>
+              </div>
+              <span className="rounded-full bg-[#1E293B] px-2 py-0.5 text-[10px] font-mono text-slate-300">
+                {suppliers.length}
+              </span>
+            </button>
+
             <button
               onClick={() => setActiveTab("orders")}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "orders"
-                  ? "bg-[#E11D48] text-white shadow-xs font-black"
+                  ? "bg-[#0063FD] text-white shadow-xs font-black"
                   : "hover:bg-[#1E293B] hover:text-white"
               }`}
             >
@@ -332,7 +679,7 @@ export default function AdminDashboardPage() {
                 <span>Quản lý đơn hàng</span>
               </div>
               {orders.length > 0 && (
-                <span className="rounded-full bg-[#EA580C] px-2 py-0.5 text-[10px] font-mono text-white font-black">
+                <span className="rounded-full bg-[#16A34A] px-2 py-0.5 text-[10px] font-mono text-white font-black">
                   {orders.length}
                 </span>
               )}
@@ -342,12 +689,12 @@ export default function AdminDashboardPage() {
               onClick={() => setActiveTab("reviews")}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "reviews"
-                  ? "bg-[#E11D48] text-white shadow-xs font-black"
+                  ? "bg-[#0063FD] text-white shadow-xs font-black"
                   : "hover:bg-[#1E293B] hover:text-white"
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <Star className="h-4 w-4" />
+                <MessageSquareText className="h-4 w-4" />
                 <span>Đánh giá khách hàng</span>
               </div>
               <span className="rounded-full bg-[#1E293B] px-2 py-0.5 text-[10px] font-mono text-slate-300">
@@ -359,7 +706,7 @@ export default function AdminDashboardPage() {
               onClick={() => setActiveTab("security")}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "security"
-                  ? "bg-[#E11D48] text-white shadow-xs font-black"
+                  ? "bg-[#0063FD] text-white shadow-xs font-black"
                   : "hover:bg-[#1E293B] hover:text-white"
               }`}
             >
@@ -410,6 +757,9 @@ export default function AdminDashboardPage() {
               {activeTab === "overview" && "Bảng Điều Khiển Tổng Quan"}
               {activeTab === "products" && "Quản Lý Danh Mục Sản Phẩm"}
               {activeTab === "categories" && "Phân Loại Linh Kiện Phần Cứng"}
+              {activeTab === "banners" && "Quản Lý Banner & Poster Sự Kiện"}
+              {activeTab === "deals" && "Cấu Hình PC Ráp Sẵn & Bố Trí Trang Chủ"}
+              {activeTab === "suppliers" && "Danh Sách Nguồn Hàng & Nhà Phân Phối"}
               {activeTab === "orders" && "Trung Tâm Xử Lý Đơn Hàng"}
               {activeTab === "reviews" && "Kiểm Duyệt Đánh Giá Khách Hàng"}
               {activeTab === "security" && "Trạng Thái Bảo Mật & Hệ Thống"}
@@ -432,20 +782,55 @@ export default function AdminDashboardPage() {
               className="text-xs gap-1.5 text-[#475569]"
               title="Làm mới dữ liệu từ Supabase"
             >
-              <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin text-[#E11D48]" : ""}`} />
+              <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin text-[#0063FD]" : ""}`} />
               <span className="hidden sm:inline">Làm mới</span>
             </Button>
 
-            {/* Quick Add Product CTA */}
-            <Button
-              onClick={() => setIsAddProductOpen(true)}
-              variant="primary"
-              size="sm"
-              className="gap-1 text-xs font-black shadow-xs uppercase"
-            >
-              <Plus className="h-4 w-4" />
-              Thêm Linh Kiện
-            </Button>
+            {/* Context Action Button */}
+            {activeTab === "products" && (
+              <Button
+                onClick={() => setIsAddProductOpen(true)}
+                variant="primary"
+                size="sm"
+                className="gap-1 text-xs font-black shadow-xs uppercase"
+              >
+                <Plus className="h-4 w-4" />
+                Thêm Linh Kiện
+              </Button>
+            )}
+            {activeTab === "banners" && (
+              <Button
+                onClick={() => setIsAddBannerOpen(true)}
+                variant="primary"
+                size="sm"
+                className="gap-1 text-xs font-black shadow-xs uppercase"
+              >
+                <Plus className="h-4 w-4" />
+                Đăng Poster Mới
+              </Button>
+            )}
+            {activeTab === "deals" && (
+              <Button
+                onClick={() => setIsAddDealOpen(true)}
+                variant="primary"
+                size="sm"
+                className="gap-1 text-xs font-black shadow-xs uppercase"
+              >
+                <Plus className="h-4 w-4" />
+                Thêm Cấu Hình PC
+              </Button>
+            )}
+            {activeTab === "suppliers" && (
+              <Button
+                onClick={() => setIsAddSupplierOpen(true)}
+                variant="primary"
+                size="sm"
+                className="gap-1 text-xs font-black shadow-xs uppercase"
+              >
+                <Plus className="h-4 w-4" />
+                Thêm Nhà Cung Cấp
+              </Button>
+            )}
           </div>
         </header>
 
@@ -515,7 +900,7 @@ export default function AdminDashboardPage() {
                 <div className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-xs">
                   <div className="flex items-center justify-between text-[#64748B] mb-2">
                     <span className="text-xs font-bold uppercase">Linh Kiện Trong Kho</span>
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FFF1F2] text-[#E11D48]">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FFF1F2] text-[#0063FD]">
                       <Package className="h-4 w-4" />
                     </div>
                   </div>
@@ -524,38 +909,38 @@ export default function AdminDashboardPage() {
                     <span className="text-xs font-normal text-[#64748B]">({totalStockUnits} chiếc)</span>
                   </div>
                   <div className="text-[11px] text-[#B91C1C] mt-2 font-semibold">
-                    {lowStockCount > 0 ? `⚠️ ${lowStockCount} sản phẩm sắp hết hàng` : "Tồn kho an toàn"}
+                    {lowStockCount > 0 ? `Cảnh báo: ${lowStockCount} sản phẩm sắp hết hàng` : "Tồn kho an toàn"}
                   </div>
                 </div>
 
                 <div className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-xs">
                   <div className="flex items-center justify-between text-[#64748B] mb-2">
-                    <span className="text-xs font-bold uppercase">Phân Loại Danh Mục</span>
+                    <span className="text-xs font-bold uppercase">Cấu Hình PC & Banner</span>
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FEF3C7] text-[#B45309]">
-                      <Layers className="h-4 w-4" />
+                      <Monitor className="h-4 w-4" />
                     </div>
                   </div>
                   <div className="text-2xl font-black font-mono text-[#0F172A]">
-                    {categories.length}
+                    {deals.length}{" "}
+                    <span className="text-xs font-normal text-[#64748B]">({banners.length} banner)</span>
                   </div>
                   <div className="text-[11px] text-[#64748B] mt-2">
-                    CPU, VGA, RAM, SSD, Mainboard...
+                    {suppliers.length} nhà cung cấp đang hợp tác
                   </div>
                 </div>
               </div>
 
-              {/* Recent Orders and Fast Navigation */}
+              {/* Recent Orders & Fast Actions */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                {/* Recent Orders Preview */}
                 <div className="lg:col-span-8 rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-xs space-y-4">
                   <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
                     <h3 className="text-sm font-black uppercase text-[#0F172A] flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-[#E11D48]" />
+                      <Clock className="h-4 w-4 text-[#0063FD]" />
                       Đơn hàng gần đây
                     </h3>
                     <button
                       onClick={() => setActiveTab("orders")}
-                      className="text-xs font-bold text-[#E11D48] hover:underline"
+                      className="text-xs font-bold text-[#0063FD] hover:underline"
                     >
                       Xem tất cả ({orders.length}) →
                     </button>
@@ -589,7 +974,6 @@ export default function AdminDashboardPage() {
                   )}
                 </div>
 
-                {/* Quick Hardware Actions */}
                 <div className="lg:col-span-4 rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-xs space-y-4">
                   <h3 className="text-sm font-black uppercase text-[#0F172A] border-b border-[#E2E8F0] pb-3">
                     Thao tác nhanh
@@ -597,34 +981,34 @@ export default function AdminDashboardPage() {
 
                   <div className="space-y-2.5">
                     <button
-                      onClick={() => setIsAddProductOpen(true)}
-                      className="w-full flex items-center justify-between p-3 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#E11D48] hover:bg-white transition-all text-xs font-bold text-left"
+                      onClick={() => setIsAddBannerOpen(true)}
+                      className="w-full flex items-center justify-between p-3 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#0063FD] hover:bg-white transition-all text-xs font-bold text-left"
                     >
                       <div className="flex items-center gap-2.5">
-                        <Plus className="h-4 w-4 text-[#E11D48]" />
-                        <span>Thêm linh kiện mới</span>
+                        <ImageIcon className="h-4 w-4 text-[#0063FD]" />
+                        <span>Đăng poster sự kiện mới</span>
                       </div>
                       <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
                     </button>
 
                     <button
-                      onClick={() => setIsAddCategoryOpen(true)}
-                      className="w-full flex items-center justify-between p-3 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#E11D48] hover:bg-white transition-all text-xs font-bold text-left"
+                      onClick={() => setIsAddDealOpen(true)}
+                      className="w-full flex items-center justify-between p-3 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#0063FD] hover:bg-white transition-all text-xs font-bold text-left"
                     >
                       <div className="flex items-center gap-2.5">
-                        <Layers className="h-4 w-4 text-[#EA580C]" />
-                        <span>Tạo danh mục mới</span>
+                        <Monitor className="h-4 w-4 text-[#0063FD]" />
+                        <span>Tạo cấu hình PC ráp sẵn</span>
                       </div>
                       <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
                     </button>
 
                     <button
-                      onClick={() => setActiveTab("security")}
-                      className="w-full flex items-center justify-between p-3 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#E11D48] hover:bg-white transition-all text-xs font-bold text-left"
+                      onClick={() => setIsAddSupplierOpen(true)}
+                      className="w-full flex items-center justify-between p-3 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#16A34A] hover:bg-white transition-all text-xs font-bold text-left"
                     >
                       <div className="flex items-center gap-2.5">
-                        <ShieldCheck className="h-4 w-4 text-[#16A34A]" />
-                        <span>Kiểm tra trạng thái bảo mật</span>
+                        <Building className="h-4 w-4 text-[#16A34A]" />
+                        <span>Thêm nguồn hàng / Nhà phân phối</span>
                       </div>
                       <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
                     </button>
@@ -639,7 +1023,6 @@ export default function AdminDashboardPage() {
           {/* ========================================================================= */}
           {activeTab === "products" && (
             <div className="space-y-4">
-              {/* Product Filters Toolbar */}
               <div className="rounded-xl border border-[#E2E8F0] bg-white p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
                 <div className="flex flex-1 items-center gap-2">
                   <div className="relative flex-1 max-w-sm">
@@ -648,16 +1031,15 @@ export default function AdminDashboardPage() {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Tìm theo tên linh kiện, mã SKU..."
-                      className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2 pl-9 pr-3 text-xs text-[#0F172A] focus:border-[#E11D48] focus:bg-white focus:outline-none"
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2 pl-9 pr-3 text-xs text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none"
                     />
                     <Search className="absolute left-3 top-2.5 h-4 w-4 text-[#94A3B8]" />
                   </div>
 
-                  {/* Brand Filter */}
                   <select
                     value={brandFilter}
                     onChange={(e) => setBrandFilter(e.target.value)}
-                    className="rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2 px-3 text-xs text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                    className="rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2 px-3 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
                   >
                     <option value="all">Tất cả thương hiệu</option>
                     {uniqueBrands.map((b) => (
@@ -667,11 +1049,10 @@ export default function AdminDashboardPage() {
                     ))}
                   </select>
 
-                  {/* Category Filter */}
                   <select
                     value={categoryFilter}
                     onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2 px-3 text-xs text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                    className="rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2 px-3 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
                   >
                     <option value="all">Tất cả danh mục</option>
                     {categories.map((c) => (
@@ -687,7 +1068,6 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              {/* Products Table */}
               <div className="overflow-x-auto rounded-xl border border-[#E2E8F0] bg-white shadow-xs">
                 <table className="w-full text-left text-xs">
                   <thead className="border-b border-[#E2E8F0] bg-[#F8FAFC] text-[11px] font-black uppercase text-[#475569]">
@@ -705,7 +1085,7 @@ export default function AdminDashboardPage() {
                     {loading ? (
                       <tr>
                         <td colSpan={7} className="p-12 text-center text-[#64748B]">
-                          Đang đồng bộ dữ liệu từ Supabase...
+                          Đang đồng bộ dữ liệu...
                         </td>
                       </tr>
                     ) : filteredProducts.length === 0 ? (
@@ -713,7 +1093,6 @@ export default function AdminDashboardPage() {
                         <td colSpan={7} className="p-12 text-center text-[#64748B]">
                           <Boxes className="mx-auto h-10 w-10 text-[#CBD5E1] mb-2" />
                           <p className="font-bold text-sm text-[#0F172A]">Không tìm thấy linh kiện nào.</p>
-                          <p className="text-xs text-[#64748B] mt-1">Hãy thêm sản phẩm mới hoặc thay đổi bộ lọc tìm kiếm.</p>
                         </td>
                       </tr>
                     ) : (
@@ -795,7 +1174,7 @@ export default function AdminDashboardPage() {
                   return (
                     <div
                       key={cat.id}
-                      className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-xs flex items-center justify-between hover:border-[#E11D48] transition-all"
+                      className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-xs flex items-center justify-between hover:border-[#0063FD] transition-all"
                     >
                       <div>
                         <div className="text-sm font-black text-[#0F172A]">{cat.name_vi}</div>
@@ -819,11 +1198,299 @@ export default function AdminDashboardPage() {
           )}
 
           {/* ========================================================================= */}
-          {/* TAB 4: ORDERS FULFILLMENT */}
+          {/* TAB 4: EVENT BANNERS & POSTERS */}
+          {/* ========================================================================= */}
+          {activeTab === "banners" && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-black uppercase tracking-wider text-[#64748B]">
+                  Danh sách Banner & Poster sự kiện trang chủ ({banners.length} poster)
+                </h3>
+                <Button
+                  onClick={() => setIsAddBannerOpen(true)}
+                  variant="primary"
+                  size="sm"
+                  className="gap-1 text-xs font-bold"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Đăng Poster Mới
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {banners.map((b) => (
+                  <div
+                    key={b.id}
+                    className="rounded-xl border border-[#E2E8F0] bg-white overflow-hidden shadow-xs flex flex-col justify-between hover:border-[#0063FD] transition-all"
+                  >
+                    <div className="relative h-44 w-full bg-[#0F172A]">
+                      <Image
+                        src={b.image_url}
+                        alt={b.title_vi}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                        className="object-cover"
+                      />
+                      <div className="absolute top-2 left-2 rounded bg-[#0063FD] px-2 py-0.5 text-[10px] font-black text-white uppercase shadow-sm">
+                        {b.tag || "SỰ KIỆN"}
+                      </div>
+                      <div className="absolute top-2 right-2">
+                        <span
+                          className={`rounded px-2 py-0.5 text-[10px] font-bold shadow-sm ${
+                            b.is_active
+                              ? "bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC]"
+                              : "bg-[#F1F5F9] text-[#64748B] border border-[#CBD5E1]"
+                          }`}
+                        >
+                          {b.is_active ? "Đang hiển thị" : "Tạm ẩn"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="p-4 space-y-2 flex-1">
+                      <div className="flex items-center justify-between text-[10px] font-mono font-bold text-[#64748B]">
+                        <span>Thứ tự: #{b.display_order}</span>
+                        <span className="truncate max-w-[140px] text-[#0063FD]">Link: {b.target_url}</span>
+                      </div>
+                      <h4 className="text-sm font-black text-[#0F172A] line-clamp-1">{b.title_vi}</h4>
+                      {b.subtitle_vi && (
+                        <p className="text-xs text-[#64748B] line-clamp-2">{b.subtitle_vi}</p>
+                      )}
+                    </div>
+
+                    <div className="p-3 border-t border-[#E2E8F0] bg-[#F8FAFC] flex items-center justify-between gap-2">
+                      <button
+                        onClick={() => handleToggleBannerActive(b)}
+                        className={`text-xs font-bold flex items-center gap-1 px-2.5 py-1 rounded-lg border transition-colors ${
+                          b.is_active
+                            ? "border-[#CBD5E1] bg-white text-[#64748B] hover:text-[#0F172A]"
+                            : "border-[#86EFAC] bg-[#DCFCE7] text-[#15803D]"
+                        }`}
+                        title={b.is_active ? "Ẩn khỏi trang chủ" : "Bật hiển thị"}
+                      >
+                        {b.is_active ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                        <span>{b.is_active ? "Ẩn" : "Hiện"}</span>
+                      </button>
+
+                      <div className="flex items-center gap-1.5">
+                        <Button
+                          onClick={() => handleStartEditBanner(b)}
+                          variant="secondary"
+                          size="sm"
+                          className="gap-1 text-xs font-bold"
+                        >
+                          <Pencil className="h-3.5 w-3.5 text-[#0063FD]" />
+                          Sửa
+                        </Button>
+
+                        <button
+                          onClick={() => handleDeleteBanner(b.id)}
+                          className="rounded p-1.5 text-[#DC2626] hover:bg-[#FEE2E2] transition-colors"
+                          title="Xóa poster"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* TAB 5: PREBUILT PC DEALS (Bố Trí & Sắp Xếp Deal Máy Ráp Sẵn) */}
+          {/* ========================================================================= */}
+          {activeTab === "deals" && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xs font-black uppercase tracking-wider text-[#64748B]">
+                    Cấu Hình PC Ráp Sẵn ({deals.length} cấu hình)
+                  </h3>
+                  <p className="text-[11px] text-[#64748B]">
+                    Sử dụng nút Lên/Xuống để sắp xếp thứ tự hiển thị của các deal máy trên trang chủ.
+                  </p>
+                </div>
+                <Button
+                  onClick={() => setIsAddDealOpen(true)}
+                  variant="primary"
+                  size="sm"
+                  className="gap-1 text-xs font-bold"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Thêm Cấu Hình Mới
+                </Button>
+              </div>
+
+              <div className="space-y-3">
+                {deals.map((d, index) => (
+                  <div
+                    key={d.id}
+                    className="rounded-xl border border-[#E2E8F0] bg-white p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4"
+                  >
+                    <div className="flex items-center gap-4">
+                      {/* Priority Sort Controls */}
+                      <div className="flex flex-col gap-1 items-center bg-[#F8FAFC] p-1.5 rounded-lg border border-[#E2E8F0]">
+                        <button
+                          onClick={() => handleMoveDeal(index, "up")}
+                          disabled={index === 0}
+                          className="p-1 rounded hover:bg-[#E2E8F0] disabled:opacity-30"
+                          title="Đẩy lên vị trí ưu tiên hơn"
+                        >
+                          <ArrowUp className="h-3.5 w-3.5 text-[#0F172A]" />
+                        </button>
+                        <span className="font-mono font-bold text-xs text-[#0063FD]">
+                          #{index + 1}
+                        </span>
+                        <button
+                          onClick={() => handleMoveDeal(index, "down")}
+                          disabled={index === deals.length - 1}
+                          className="p-1 rounded hover:bg-[#E2E8F0] disabled:opacity-30"
+                          title="Hạ xuống vị trí sau"
+                        >
+                          <ArrowDown className="h-3.5 w-3.5 text-[#0F172A]" />
+                        </button>
+                      </div>
+
+                      <div className="relative h-16 w-20 shrink-0 overflow-hidden rounded-lg bg-[#F8FAFC] border border-[#E2E8F0]">
+                        <Image
+                          src={d.image_url}
+                          alt={d.name_vi}
+                          fill
+                          sizes="80px"
+                          className="object-cover"
+                        />
+                      </div>
+
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="rounded bg-[#0063FD] text-white px-2 py-0.2 text-[10px] font-black uppercase">
+                            {d.badge || "DEAL HOT"}
+                          </span>
+                          <span className="font-bold text-sm text-[#0F172A]">{d.name_vi}</span>
+                        </div>
+                        <div className="text-xs text-[#64748B] mt-1 space-x-2">
+                          <span className="font-mono font-bold text-[#2563EB]">{d.code}</span>
+                          <span>•</span>
+                          <span>{d.cpu}</span>
+                          <span>•</span>
+                          <span>{d.vga}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between md:justify-end gap-4">
+                      <div className="text-right">
+                        <div className="font-mono font-black text-sm text-[#B45309]">
+                          {new Intl.NumberFormat("vi-VN").format(d.price_vnd)}₫
+                        </div>
+                        {d.original_price_vnd && (
+                          <div className="text-[10px] font-mono text-[#94A3B8] line-through">
+                            {new Intl.NumberFormat("vi-VN").format(d.original_price_vnd)}₫
+                          </div>
+                        )}
+                      </div>
+
+                      <button
+                        onClick={() => handleDeleteDeal(d.id)}
+                        className="rounded p-2 text-[#B91C1C] hover:bg-[#FEE2E2] transition-colors"
+                        title="Xóa cấu hình"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* TAB 6: HARDWARE SUPPLIERS & VENDORS */}
+          {/* ========================================================================= */}
+          {activeTab === "suppliers" && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-black uppercase tracking-wider text-[#64748B]">
+                  Quản lý nguồn hàng & Nhà phân phối ({suppliers.length} đối tác)
+                </h3>
+                <Button
+                  onClick={() => setIsAddSupplierOpen(true)}
+                  variant="primary"
+                  size="sm"
+                  className="gap-1 text-xs font-bold"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Thêm Nhà Cung Cấp
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {suppliers.map((s) => (
+                  <div
+                    key={s.id}
+                    className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-xs flex flex-col justify-between space-y-3"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-black text-sm text-[#0F172A]">{s.name}</div>
+                          <span className="font-mono text-xs font-bold text-[#2563EB]">{s.code}</span>
+                        </div>
+                        <span className="rounded bg-[#DCFCE7] text-[#15803D] px-2 py-0.5 text-[10px] font-bold uppercase">
+                          {s.status}
+                        </span>
+                      </div>
+
+                      <div className="space-y-1.5 text-xs text-[#475569] mt-3">
+                        <p className="flex items-center gap-1.5">
+                          <UserCheck className="h-3.5 w-3.5 text-[#64748B]" />
+                          <span>Người liên hệ: <strong>{s.contact_person || "Chưa cập nhật"}</strong></span>
+                        </p>
+                        <p className="flex items-center gap-1.5">
+                          <Phone className="h-3.5 w-3.5 text-[#16A34A]" />
+                          <span className="font-mono">{s.phone}</span>
+                        </p>
+                        <p className="flex items-center gap-1.5">
+                          <Mail className="h-3.5 w-3.5 text-[#2563EB]" />
+                          <span>{s.email}</span>
+                        </p>
+                      </div>
+
+                      {/* Brand pills */}
+                      <div className="flex flex-wrap gap-1 mt-3">
+                        {s.brands.map((brand, i) => (
+                          <span
+                            key={i}
+                            className="rounded bg-[#F1F5F9] border border-[#CBD5E1] px-2 py-0.5 text-[10px] font-bold text-[#334155]"
+                          >
+                            {brand}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="border-t border-[#E2E8F0] pt-3 flex items-center justify-between text-xs">
+                      <span className="text-[11px] text-[#64748B] truncate max-w-xs">{s.address}</span>
+                      <button
+                        onClick={() => handleDeleteSupplier(s.id)}
+                        className="text-[#B91C1C] hover:underline font-bold text-xs"
+                      >
+                        Xóa nhà phân phối
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* TAB 7: ORDERS FULFILLMENT */}
           {/* ========================================================================= */}
           {activeTab === "orders" && (
             <div className="space-y-4">
-              {/* Order Status Filters */}
               <div className="flex gap-2 border-b border-[#E2E8F0] pb-2 text-xs font-bold">
                 {["all", "pending", "processing", "shipping", "completed", "cancelled"].map((st) => (
                   <button
@@ -913,7 +1580,7 @@ export default function AdminDashboardPage() {
           )}
 
           {/* ========================================================================= */}
-          {/* TAB 5: REVIEWS MODERATION */}
+          {/* TAB 8: REVIEWS */}
           {/* ========================================================================= */}
           {activeTab === "reviews" && (
             <div className="space-y-4">
@@ -964,7 +1631,7 @@ export default function AdminDashboardPage() {
           )}
 
           {/* ========================================================================= */}
-          {/* TAB 6: SECURITY & SYSTEM STATUS */}
+          {/* TAB 9: SECURITY & SYSTEM */}
           {/* ========================================================================= */}
           {activeTab === "security" && (
             <div className="space-y-6">
@@ -976,7 +1643,7 @@ export default function AdminDashboardPage() {
                   </div>
                   <div className="text-sm font-bold text-[#0F172A]">Bật hoàn toàn (Enforced)</div>
                   <p className="text-xs text-[#64748B]">
-                    Phiên xác thực bảo vệ chống lại 100% các cuộc tấn công đánh cắp phiên qua XSS.
+                    Phiên xác thực bảo vệ chống lại các cuộc tấn công đánh cắp phiên qua XSS.
                   </p>
                 </div>
 
@@ -992,13 +1659,13 @@ export default function AdminDashboardPage() {
                 </div>
 
                 <div className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-xs space-y-2">
-                  <div className="flex items-center gap-2 text-[#EA580C]">
+                  <div className="flex items-center gap-2 text-[#0063FD]">
                     <Server className="h-5 w-5" />
                     <span className="font-black uppercase text-xs">Cơ Sở Dữ Liệu</span>
                   </div>
                   <div className="text-sm font-bold text-[#0F172A]">Supabase PostgreSQL</div>
                   <p className="text-xs text-[#64748B]">
-                    Kết nối an toàn qua REST/GraphQL API với RLS (Row Level Security).
+                    Kết nối an toàn qua REST API với RLS (Row Level Security).
                   </p>
                 </div>
               </div>
@@ -1027,7 +1694,7 @@ export default function AdminDashboardPage() {
                 placeholder="VD: Card màn hình ASUS ROG Strix RTX 4070 Ti Super 16GB"
                 value={productForm.name_vi}
                 onChange={(e) => setProductForm({ ...productForm, name_vi: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
               />
             </div>
 
@@ -1038,7 +1705,7 @@ export default function AdminDashboardPage() {
                 placeholder="VD: ASUS ROG Strix GeForce RTX 4070 Ti Super 16GB"
                 value={productForm.name_en}
                 onChange={(e) => setProductForm({ ...productForm, name_en: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
               />
             </div>
           </div>
@@ -1052,7 +1719,7 @@ export default function AdminDashboardPage() {
                 placeholder="VD: GPU-ASUS-4070TIS"
                 value={productForm.sku}
                 onChange={(e) => setProductForm({ ...productForm, sku: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
               />
             </div>
 
@@ -1061,7 +1728,7 @@ export default function AdminDashboardPage() {
               <select
                 value={productForm.brand}
                 onChange={(e) => setProductForm({ ...productForm, brand: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
               >
                 <option value="ASUS">ASUS</option>
                 <option value="MSI">MSI</option>
@@ -1081,7 +1748,7 @@ export default function AdminDashboardPage() {
               <select
                 value={productForm.category_id}
                 onChange={(e) => setProductForm({ ...productForm, category_id: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
               >
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -1100,7 +1767,7 @@ export default function AdminDashboardPage() {
                 type="number"
                 value={productForm.price_vnd}
                 onChange={(e) => setProductForm({ ...productForm, price_vnd: parseInt(e.target.value || "0", 10) })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
               />
             </div>
 
@@ -1110,7 +1777,7 @@ export default function AdminDashboardPage() {
                 type="number"
                 value={productForm.original_price_vnd}
                 onChange={(e) => setProductForm({ ...productForm, original_price_vnd: parseInt(e.target.value || "0", 10) })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
               />
             </div>
 
@@ -1121,7 +1788,7 @@ export default function AdminDashboardPage() {
                 type="number"
                 value={productForm.stock}
                 onChange={(e) => setProductForm({ ...productForm, stock: parseInt(e.target.value || "0", 10) })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
               />
             </div>
           </div>
@@ -1129,7 +1796,7 @@ export default function AdminDashboardPage() {
           {/* PC Builder Compatibility Specs */}
           <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-3.5 space-y-2">
             <div className="font-black text-[#0F172A] uppercase text-[11px] flex items-center gap-1.5">
-              <Activity className="h-3.5 w-3.5 text-[#E11D48]" />
+              <Activity className="h-3.5 w-3.5 text-[#0063FD]" />
               Thông số tương thích công cụ Custom PC Builder
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
@@ -1182,13 +1849,13 @@ export default function AdminDashboardPage() {
               type="url"
               value={productForm.images[0] || ""}
               onChange={(e) => setProductForm({ ...productForm, images: [e.target.value] })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
             />
           </div>
 
           <div className="pt-3 border-t border-[#E2E8F0]">
             <Button type="submit" variant="primary" size="md" className="w-full font-black uppercase text-xs">
-              Lưu Sản Phẩm Vào Database Supabase
+              Lưu Sản Phẩm Vào Kho
             </Button>
           </div>
         </form>
@@ -1213,18 +1880,7 @@ export default function AdminDashboardPage() {
               placeholder="VD: Card Màn Hình (VGA)"
               value={categoryForm.name_vi}
               onChange={(e) => setCategoryForm({ ...categoryForm, name_vi: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block font-bold text-[#475569] mb-1">Tên danh mục (Tiếng Anh)</label>
-            <input
-              type="text"
-              placeholder="VD: Graphics Cards (VGA)"
-              value={categoryForm.name_en}
-              onChange={(e) => setCategoryForm({ ...categoryForm, name_en: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
             />
           </div>
 
@@ -1236,13 +1892,434 @@ export default function AdminDashboardPage() {
               placeholder="VD: gpu"
               value={categoryForm.slug}
               onChange={(e) => setCategoryForm({ ...categoryForm, slug: e.target.value.toLowerCase().trim() })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#E11D48] focus:outline-none font-mono"
+              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
             />
           </div>
 
           <div className="pt-2">
             <Button type="submit" variant="primary" size="md" className="w-full font-black uppercase text-xs">
               Tạo Danh Mục Mới
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* ========================================================================= */}
+      {/* ADD BANNER MODAL */}
+      {/* ========================================================================= */}
+      <Modal
+        isOpen={isAddBannerOpen}
+        onClose={() => setIsAddBannerOpen(false)}
+        title="ĐĂNG BANNER / POSTER SỰ KIỆN TRANG CHỦ"
+        description="Hình ảnh hiển thị trên Carousel trang chủ cho khách hàng"
+        maxWidth="lg"
+      >
+        <form onSubmit={handleCreateBanner} className="space-y-3 text-xs">
+          <div>
+            <label className="block font-bold text-[#475569] mb-1">Tiêu đề Poster (Tiếng Việt) *</label>
+            <input
+              required
+              type="text"
+              placeholder="VD: Mở Bán GeForce RTX 40 Super Series"
+              value={bannerForm.title_vi}
+              onChange={(e) => setBannerForm({ ...bannerForm, title_vi: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block font-bold text-[#475569] mb-1">Mô tả phụ / Thông điệp ngắn</label>
+            <input
+              type="text"
+              placeholder="VD: Tặng kèm gói quà tặng gaming cao cấp khi đặt mua"
+              value={bannerForm.subtitle_vi}
+              onChange={(e) => setBannerForm({ ...bannerForm, subtitle_vi: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block font-bold text-[#475569] mb-1">Nhãn Tag (VD: SỰ KIỆN MỚI, FLASH SALE)</label>
+              <input
+                type="text"
+                value={bannerForm.tag}
+                onChange={(e) => setBannerForm({ ...bannerForm, tag: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block font-bold text-[#475569] mb-1">Đường dẫn liên kết (Target URL)</label>
+              <input
+                type="text"
+                value={bannerForm.target_url}
+                onChange={(e) => setBannerForm({ ...bannerForm, target_url: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-bold text-[#475569] mb-1">Ảnh Banner URL (Khuyên dùng tỷ lệ 16:9 hoặc 21:9) *</label>
+            <input
+              required
+              type="url"
+              value={bannerForm.image_url}
+              onChange={(e) => setBannerForm({ ...bannerForm, image_url: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+            />
+            {bannerForm.image_url && (
+              <div className="mt-2 relative aspect-[21/9] w-full overflow-hidden rounded-lg border border-[#E2E8F0] bg-[#0F172A]">
+                <Image
+                  src={bannerForm.image_url}
+                  alt="Xem trước banner"
+                  fill
+                  sizes="400px"
+                  className="object-cover"
+                />
+                <div className="absolute top-2 left-2 rounded bg-[#0063FD] px-2 py-0.5 text-[9px] font-black text-white uppercase">
+                  {bannerForm.tag || "XEM TRƯỚC"}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="pt-2">
+            <Button type="submit" variant="primary" size="md" className="w-full font-black uppercase text-xs">
+              Lưu & Xuất Bản Poster Lên Trang Chủ
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* ========================================================================= */}
+      {/* EDIT BANNER MODAL */}
+      {/* ========================================================================= */}
+      <Modal
+        isOpen={isEditBannerOpen}
+        onClose={() => setIsEditBannerOpen(false)}
+        title="CHỈNH SỬA BANNER / POSTER SỰ KIỆN"
+        description="Cập nhật hình ảnh, tiêu đề, liên kết và trạng thái hiển thị của poster"
+        maxWidth="lg"
+      >
+        <form onSubmit={handleUpdateBanner} className="space-y-3 text-xs">
+          <div>
+            <label className="block font-bold text-[#475569] mb-1">Tiêu đề Poster (Tiếng Việt) *</label>
+            <input
+              required
+              type="text"
+              value={editBannerForm.title_vi}
+              onChange={(e) => setEditBannerForm({ ...editBannerForm, title_vi: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block font-bold text-[#475569] mb-1">Mô tả phụ / Thông điệp ngắn</label>
+            <input
+              type="text"
+              value={editBannerForm.subtitle_vi}
+              onChange={(e) => setEditBannerForm({ ...editBannerForm, subtitle_vi: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block font-bold text-[#475569] mb-1">Nhãn Tag (VD: SỰ KIỆN MỚI, FLASH SALE)</label>
+              <input
+                type="text"
+                value={editBannerForm.tag}
+                onChange={(e) => setEditBannerForm({ ...editBannerForm, tag: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block font-bold text-[#475569] mb-1">Đường dẫn liên kết (Target URL)</label>
+              <input
+                type="text"
+                value={editBannerForm.target_url}
+                onChange={(e) => setEditBannerForm({ ...editBannerForm, target_url: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 items-center">
+            <div>
+              <label className="block font-bold text-[#475569] mb-1">Thứ tự hiển thị (Display Order)</label>
+              <input
+                type="number"
+                value={editBannerForm.display_order}
+                onChange={(e) => setEditBannerForm({ ...editBannerForm, display_order: parseInt(e.target.value || "1", 10) })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+              />
+            </div>
+            <div className="pt-4">
+              <label className="flex items-center gap-2 cursor-pointer font-bold text-[#0F172A]">
+                <input
+                  type="checkbox"
+                  checked={editBannerForm.is_active}
+                  onChange={(e) => setEditBannerForm({ ...editBannerForm, is_active: e.target.checked })}
+                  className="rounded border-[#CBD5E1] text-[#0063FD] focus:ring-[#0063FD] h-4 w-4"
+                />
+                <span>Kích hoạt hiển thị lên trang chủ</span>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-bold text-[#475569] mb-1">Ảnh Banner URL (Khuyên dùng tỷ lệ 16:9 hoặc 21:9) *</label>
+            <input
+              required
+              type="url"
+              value={editBannerForm.image_url}
+              onChange={(e) => setEditBannerForm({ ...editBannerForm, image_url: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+            />
+            {editBannerForm.image_url && (
+              <div className="mt-2 relative aspect-[21/9] w-full overflow-hidden rounded-lg border border-[#E2E8F0] bg-[#0F172A]">
+                <Image
+                  src={editBannerForm.image_url}
+                  alt="Xem trước banner chỉnh sửa"
+                  fill
+                  sizes="400px"
+                  className="object-cover"
+                />
+                <div className="absolute top-2 left-2 rounded bg-[#0063FD] px-2 py-0.5 text-[9px] font-black text-white uppercase">
+                  {editBannerForm.tag || "XEM TRƯỚC"}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="pt-2">
+            <Button type="submit" variant="primary" size="md" className="w-full font-black uppercase text-xs">
+              Lưu Thay Đổi Poster
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* ========================================================================= */}
+      {/* ADD PREBUILT DEAL MODAL */}
+      {/* ========================================================================= */}
+      <Modal
+        isOpen={isAddDealOpen}
+        onClose={() => setIsAddDealOpen(false)}
+        title="THÊM CẤU HÌNH PC RÁP SẴN MỚI"
+        description="Đăng cấu hình máy bộ để khách hàng có thể mua ngay trên trang chủ"
+        maxWidth="2xl"
+      >
+        <form onSubmit={handleCreateDeal} className="space-y-3 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block font-bold text-[#475569] mb-1">Tên cấu hình PC *</label>
+              <input
+                required
+                type="text"
+                placeholder="VD: PC QMD-G01 Core i5-13400F | RTX 4060"
+                value={dealForm.name_vi}
+                onChange={(e) => setDealForm({ ...dealForm, name_vi: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block font-bold text-[#475569] mb-1">Mã cấu hình (Code SKU) *</label>
+              <input
+                required
+                type="text"
+                placeholder="VD: PC-QMD-G01"
+                value={dealForm.code}
+                onChange={(e) => setDealForm({ ...dealForm, code: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block font-bold text-[#475569] mb-1">Giá bán (VND) *</label>
+              <input
+                required
+                type="number"
+                value={dealForm.price_vnd}
+                onChange={(e) => setDealForm({ ...dealForm, price_vnd: parseInt(e.target.value || "0", 10) })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+              />
+            </div>
+            <div>
+              <label className="block font-bold text-[#475569] mb-1">Giá niêm yết cũ (VND)</label>
+              <input
+                type="number"
+                value={dealForm.original_price_vnd ?? 0}
+                onChange={(e) => setDealForm({ ...dealForm, original_price_vnd: parseInt(e.target.value || "0", 10) })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+              />
+            </div>
+            <div>
+              <label className="block font-bold text-[#475569] mb-1">Nhãn Tag (Badge)</label>
+              <input
+                type="text"
+                value={dealForm.badge}
+                onChange={(e) => setDealForm({ ...dealForm, badge: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block font-bold text-[#475569] mb-1">Vi xử lý CPU *</label>
+              <input
+                required
+                type="text"
+                placeholder="VD: Intel Core i5-13400F"
+                value={dealForm.cpu}
+                onChange={(e) => setDealForm({ ...dealForm, cpu: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block font-bold text-[#475569] mb-1">Card màn hình VGA *</label>
+              <input
+                required
+                type="text"
+                placeholder="VD: ASUS Dual RTX 4060 8GB"
+                value={dealForm.vga}
+                onChange={(e) => setDealForm({ ...dealForm, vga: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block font-bold text-[#475569] mb-1">Bộ nhớ RAM *</label>
+              <input
+                required
+                type="text"
+                placeholder="VD: 16GB (2x8GB) DDR4 3200MHz"
+                value={dealForm.ram}
+                onChange={(e) => setDealForm({ ...dealForm, ram: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block font-bold text-[#475569] mb-1">Ổ cứng SSD *</label>
+              <input
+                required
+                type="text"
+                placeholder="VD: 500GB NVMe M.2 Gen4"
+                value={dealForm.ssd}
+                onChange={(e) => setDealForm({ ...dealForm, ssd: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-bold text-[#475569] mb-1">Ảnh đại diện cấu hình URL</label>
+            <input
+              type="url"
+              value={dealForm.image_url}
+              onChange={(e) => setDealForm({ ...dealForm, image_url: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+            />
+          </div>
+
+          <div className="pt-2">
+            <Button type="submit" variant="primary" size="md" className="w-full font-black uppercase text-xs">
+              Lưu Cấu Hình PC Ráp Sẵn
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* ========================================================================= */}
+      {/* ADD SUPPLIER MODAL */}
+      {/* ========================================================================= */}
+      <Modal
+        isOpen={isAddSupplierOpen}
+        onClose={() => setIsAddSupplierOpen(false)}
+        title="THÊM NHÀ PHÂN PHỐI / NGUỒN HÀNG MỚI"
+        description="Quản lý thông tin đối tác cung cấp linh kiện cho hệ thống QMD-Tech"
+        maxWidth="lg"
+      >
+        <form onSubmit={handleCreateSupplier} className="space-y-3 text-xs">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block font-bold text-[#475569] mb-1">Tên công ty / Nhà phân phối *</label>
+              <input
+                required
+                type="text"
+                placeholder="VD: Synnex FPT Distribution"
+                value={supplierForm.name}
+                onChange={(e) => setSupplierForm({ ...supplierForm, name: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block font-bold text-[#475569] mb-1">Mã nhà cung cấp (Code) *</label>
+              <input
+                required
+                type="text"
+                placeholder="VD: SUP-FPT"
+                value={supplierForm.code}
+                onChange={(e) => setSupplierForm({ ...supplierForm, code: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block font-bold text-[#475569] mb-1">Người liên hệ phụ trách</label>
+              <input
+                type="text"
+                placeholder="VD: Nguyễn Hoàng Long"
+                value={supplierForm.contact_person}
+                onChange={(e) => setSupplierForm({ ...supplierForm, contact_person: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block font-bold text-[#475569] mb-1">Số điện thoại hotline</label>
+              <input
+                type="text"
+                placeholder="VD: 024.7300.7300"
+                value={supplierForm.phone}
+                onChange={(e) => setSupplierForm({ ...supplierForm, phone: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-bold text-[#475569] mb-1">Thương hiệu phân phối (cách nhau bằng dấu phẩy)</label>
+            <input
+              type="text"
+              placeholder="VD: ASUS, Intel, Kingston, Western Digital"
+              value={brandInputString}
+              onChange={(e) => setBrandInputString(e.target.value)}
+              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block font-bold text-[#475569] mb-1">Địa chỉ kho / Trụ sở chính</label>
+            <input
+              type="text"
+              placeholder="VD: Tòa nhà FPT, Phố Duy Tân, Cầu Giấy, Hà Nội"
+              value={supplierForm.address}
+              onChange={(e) => setSupplierForm({ ...supplierForm, address: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+            />
+          </div>
+
+          <div className="pt-2">
+            <Button type="submit" variant="primary" size="md" className="w-full font-black uppercase text-xs">
+              Lưu Thông Tin Nhà Cung Cấp
             </Button>
           </div>
         </form>

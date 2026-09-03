@@ -10,14 +10,14 @@
     --text-primary: #0f172a;
     --text-secondary: #475569;
     --text-muted: #64748b;
-    --brand-primary: #e11d48;
-    --brand-secondary: #ea580c;
-    --brand-gold: #b45309;
-    --brand-blue: #2563eb;
+    --brand-primary: #0063fd;
+    --brand-secondary: #0f172a;
+    --brand-gold: #0284c7;
+    --brand-blue: #0063fd;
     --success: #16a34a;
-    --warning: #d97706;
+    --warning: #0284c7;
     --danger: #dc2626;
-    --price: #b45309;
+    --price: #0063fd;
   }
 }
 

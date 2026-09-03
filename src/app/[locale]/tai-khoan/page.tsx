@@ -220,7 +220,7 @@ export default function AccountPage() {
             <div className="rounded-xl border border-[#E2E8F0] bg-[#FFFFFF] p-6 shadow-xs">
               <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-4 mb-4">
                 <h2 className="text-base font-black uppercase text-[#0F172A] flex items-center gap-2">
-                  <ShoppingBag className="h-4 w-4 text-[#E11D48]" /> Lịch Sử Đơn Hàng Của Bạn
+                  <ShoppingBag className="h-4 w-4 text-[#0063FD]" /> Lịch Sử Đơn Hàng Của Bạn
                 </h2>
                 <span className="text-xs font-bold text-[#64748B]">{userOrders.length} đơn hàng</span>
               </div>
@@ -315,7 +315,7 @@ export default function AccountPage() {
                     <Link
                       key={b.id}
                       href={`/build-pc/${b.share_token || b.id}`}
-                      className="block p-2.5 rounded-lg border border-[#E2E8F0] hover:border-[#E11D48] transition-colors"
+                      className="block p-2.5 rounded-lg border border-[#E2E8F0] hover:border-[#0063FD] transition-colors"
                     >
                       <div className="font-bold text-[#0F172A] flex justify-between">
                         <span>Cấu hình #{(b.share_token || b.id).slice(0, 8)}</span>
@@ -371,7 +371,7 @@ export default function AccountPage() {
             }}
             className={`rounded-md py-1.5 text-xs font-extrabold uppercase transition-colors ${
               authMode === "login"
-                ? "bg-[#FFFFFF] text-[#E11D48] shadow-xs"
+                ? "bg-[#FFFFFF] text-[#0063FD] shadow-xs"
                 : "text-[#64748B] hover:text-[#0F172A]"
             }`}
           >
@@ -384,7 +384,7 @@ export default function AccountPage() {
             }}
             className={`rounded-md py-1.5 text-xs font-extrabold uppercase transition-colors ${
               authMode === "register"
-                ? "bg-[#FFFFFF] text-[#E11D48] shadow-xs"
+                ? "bg-[#FFFFFF] text-[#0063FD] shadow-xs"
                 : "text-[#64748B] hover:text-[#0F172A]"
             }`}
           >
@@ -422,7 +422,7 @@ export default function AccountPage() {
                   placeholder="name@example.com"
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
-                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] py-2 pl-9 pr-3 text-xs text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] py-2 pl-9 pr-3 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
                 />
                 <Mail className="absolute left-3 top-2.5 h-4 w-4 text-[#94A3B8]" />
               </div>
@@ -437,7 +437,7 @@ export default function AccountPage() {
                   placeholder="••••••••"
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
-                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] py-2 pl-9 pr-3 text-xs text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] py-2 pl-9 pr-3 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
                 />
                 <Lock className="absolute left-3 top-2.5 h-4 w-4 text-[#94A3B8]" />
               </div>
@@ -450,7 +450,7 @@ export default function AccountPage() {
                   type="checkbox"
                   checked={loginRememberMe}
                   onChange={(e) => setLoginRememberMe(e.target.checked)}
-                  className="h-4 w-4 rounded text-[#E11D48] border-[#CBD5E1] focus:ring-[#E11D48]"
+                  className="h-4 w-4 rounded text-[#0063FD] border-[#CBD5E1] focus:ring-[#0063FD]"
                 />
                 <span className="font-bold text-[#0F172A] text-xs">Ghi nhớ đăng nhập (30 ngày)</span>
               </label>
@@ -482,7 +482,7 @@ export default function AccountPage() {
                   placeholder="Nguyễn Văn A"
                   value={regFullName}
                   onChange={(e) => setRegFullName(e.target.value)}
-                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] py-2 pl-9 pr-3 text-xs text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] py-2 pl-9 pr-3 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
                 />
                 <UserIcon className="absolute left-3 top-2.5 h-4 w-4 text-[#94A3B8]" />
               </div>
@@ -497,7 +497,7 @@ export default function AccountPage() {
                   placeholder="0901234567"
                   value={regPhone}
                   onChange={(e) => setRegPhone(e.target.value)}
-                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] py-2 pl-9 pr-3 text-xs text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] py-2 pl-9 pr-3 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
                 />
                 <Phone className="absolute left-3 top-2.5 h-4 w-4 text-[#94A3B8]" />
               </div>
@@ -512,7 +512,7 @@ export default function AccountPage() {
                   placeholder="name@example.com"
                   value={regEmail}
                   onChange={(e) => setRegEmail(e.target.value)}
-                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] py-2 pl-9 pr-3 text-xs text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] py-2 pl-9 pr-3 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
                 />
                 <Mail className="absolute left-3 top-2.5 h-4 w-4 text-[#94A3B8]" />
               </div>
@@ -528,7 +528,7 @@ export default function AccountPage() {
                   placeholder="••••••••"
                   value={regPassword}
                   onChange={(e) => setRegPassword(e.target.value)}
-                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] py-2 pl-9 pr-3 text-xs text-[#0F172A] focus:border-[#E11D48] focus:outline-none"
+                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] py-2 pl-9 pr-3 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
                 />
                 <Lock className="absolute left-3 top-2.5 h-4 w-4 text-[#94A3B8]" />
               </div>
@@ -542,7 +542,7 @@ export default function AccountPage() {
                   type="checkbox"
                   checked={regRememberMe}
                   onChange={(e) => setRegRememberMe(e.target.checked)}
-                  className="h-4 w-4 rounded text-[#E11D48] border-[#CBD5E1] focus:ring-[#E11D48]"
+                  className="h-4 w-4 rounded text-[#0063FD] border-[#CBD5E1] focus:ring-[#0063FD]"
                 />
                 <span className="font-bold text-[#0F172A] text-xs">Ghi nhớ phiên đăng nhập (30 ngày)</span>
               </label>
