@@ -51,6 +51,9 @@ import {
   Building,
   Phone,
   Mail,
+  Pencil,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 export default function AdminDashboardPage() {
@@ -80,8 +83,23 @@ export default function AdminDashboardPage() {
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
   const [isAddBannerOpen, setIsAddBannerOpen] = useState(false);
+  const [isEditBannerOpen, setIsEditBannerOpen] = useState(false);
+  const [editingBannerId, setEditingBannerId] = useState<string | null>(null);
   const [isAddDealOpen, setIsAddDealOpen] = useState(false);
   const [isAddSupplierOpen, setIsAddSupplierOpen] = useState(false);
+
+  // Edit Banner Form State
+  const [editBannerForm, setEditBannerForm] = useState<CreateBannerInput>({
+    title_vi: "",
+    title_en: "",
+    subtitle_vi: "",
+    subtitle_en: "",
+    tag: "SỰ KIỆN",
+    image_url: "",
+    target_url: "/danh-muc",
+    display_order: 1,
+    is_active: true,
+  });
 
   // Product Form State
   const [productForm, setProductForm] = useState<CreateProductInput>({
@@ -307,6 +325,48 @@ export default function AdminDashboardPage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       showNotification("error", "Lỗi tạo banner: " + msg);
+    }
+  };
+
+  const handleStartEditBanner = (banner: EventBanner) => {
+    setEditingBannerId(banner.id);
+    setEditBannerForm({
+      title_vi: banner.title_vi,
+      title_en: banner.title_en,
+      subtitle_vi: banner.subtitle_vi || "",
+      subtitle_en: banner.subtitle_en || "",
+      tag: banner.tag || "SỰ KIỆN",
+      image_url: banner.image_url,
+      target_url: banner.target_url,
+      display_order: banner.display_order,
+      is_active: banner.is_active,
+    });
+    setIsEditBannerOpen(true);
+  };
+
+  const handleUpdateBanner = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingBannerId) return;
+    try {
+      await adminService.updateBanner(editingBannerId, editBannerForm);
+      showNotification("success", "Đã cập nhật thông tin poster sự kiện thành công!");
+      setIsEditBannerOpen(false);
+      setEditingBannerId(null);
+      loadAllData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi cập nhật banner: " + msg);
+    }
+  };
+
+  const handleToggleBannerActive = async (banner: EventBanner) => {
+    try {
+      await adminService.updateBanner(banner.id, { is_active: !banner.is_active });
+      showNotification("success", banner.is_active ? "Đã tạm ẩn poster khỏi trang chủ" : "Đã kích hoạt hiển thị poster lên trang chủ!");
+      loadAllData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi cập nhật trạng thái: " + msg);
     }
   };
 
@@ -1161,7 +1221,7 @@ export default function AdminDashboardPage() {
                 {banners.map((b) => (
                   <div
                     key={b.id}
-                    className="rounded-xl border border-[#E2E8F0] bg-white overflow-hidden shadow-xs flex flex-col justify-between"
+                    className="rounded-xl border border-[#E2E8F0] bg-white overflow-hidden shadow-xs flex flex-col justify-between hover:border-[#0063FD] transition-all"
                   >
                     <div className="relative h-44 w-full bg-[#0F172A]">
                       <Image
@@ -1171,37 +1231,66 @@ export default function AdminDashboardPage() {
                         sizes="(max-width: 768px) 100vw, 33vw"
                         className="object-cover"
                       />
-                      <div className="absolute top-2 left-2 rounded bg-[#0063FD] px-2 py-0.5 text-[10px] font-black text-white uppercase">
+                      <div className="absolute top-2 left-2 rounded bg-[#0063FD] px-2 py-0.5 text-[10px] font-black text-white uppercase shadow-sm">
                         {b.tag || "SỰ KIỆN"}
+                      </div>
+                      <div className="absolute top-2 right-2">
+                        <span
+                          className={`rounded px-2 py-0.5 text-[10px] font-bold shadow-sm ${
+                            b.is_active
+                              ? "bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC]"
+                              : "bg-[#F1F5F9] text-[#64748B] border border-[#CBD5E1]"
+                          }`}
+                        >
+                          {b.is_active ? "Đang hiển thị" : "Tạm ẩn"}
+                        </span>
                       </div>
                     </div>
 
-                    <div className="p-4 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="font-mono text-[10px] font-bold text-[#64748B]">
-                          Thứ tự: #{b.display_order}
-                        </span>
-                        <span className="rounded bg-[#DCFCE7] text-[#15803D] px-2 py-0.2 text-[10px] font-bold">
-                          Đang hiển thị
-                        </span>
+                    <div className="p-4 space-y-2 flex-1">
+                      <div className="flex items-center justify-between text-[10px] font-mono font-bold text-[#64748B]">
+                        <span>Thứ tự: #{b.display_order}</span>
+                        <span className="truncate max-w-[140px] text-[#0063FD]">Link: {b.target_url}</span>
                       </div>
                       <h4 className="text-sm font-black text-[#0F172A] line-clamp-1">{b.title_vi}</h4>
                       {b.subtitle_vi && (
                         <p className="text-xs text-[#64748B] line-clamp-2">{b.subtitle_vi}</p>
                       )}
-                      <div className="text-[10px] font-mono text-[#2563EB] truncate">
-                        Link: {b.target_url}
-                      </div>
                     </div>
 
-                    <div className="p-3 border-t border-[#E2E8F0] bg-[#F8FAFC] flex justify-end">
+                    <div className="p-3 border-t border-[#E2E8F0] bg-[#F8FAFC] flex items-center justify-between gap-2">
                       <button
-                        onClick={() => handleDeleteBanner(b.id)}
-                        className="text-xs text-[#B91C1C] hover:underline font-bold flex items-center gap-1"
+                        onClick={() => handleToggleBannerActive(b)}
+                        className={`text-xs font-bold flex items-center gap-1 px-2.5 py-1 rounded-lg border transition-colors ${
+                          b.is_active
+                            ? "border-[#CBD5E1] bg-white text-[#64748B] hover:text-[#0F172A]"
+                            : "border-[#86EFAC] bg-[#DCFCE7] text-[#15803D]"
+                        }`}
+                        title={b.is_active ? "Ẩn khỏi trang chủ" : "Bật hiển thị"}
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
-                        <span>Xóa poster</span>
+                        {b.is_active ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                        <span>{b.is_active ? "Ẩn" : "Hiện"}</span>
                       </button>
+
+                      <div className="flex items-center gap-1.5">
+                        <Button
+                          onClick={() => handleStartEditBanner(b)}
+                          variant="secondary"
+                          size="sm"
+                          className="gap-1 text-xs font-bold"
+                        >
+                          <Pencil className="h-3.5 w-3.5 text-[#0063FD]" />
+                          Sửa
+                        </Button>
+
+                        <button
+                          onClick={() => handleDeleteBanner(b.id)}
+                          className="rounded p-1.5 text-[#DC2626] hover:bg-[#FEE2E2] transition-colors"
+                          title="Xóa poster"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -1879,11 +1968,134 @@ export default function AdminDashboardPage() {
               onChange={(e) => setBannerForm({ ...bannerForm, image_url: e.target.value })}
               className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
             />
+            {bannerForm.image_url && (
+              <div className="mt-2 relative aspect-[21/9] w-full overflow-hidden rounded-lg border border-[#E2E8F0] bg-[#0F172A]">
+                <Image
+                  src={bannerForm.image_url}
+                  alt="Xem trước banner"
+                  fill
+                  sizes="400px"
+                  className="object-cover"
+                />
+                <div className="absolute top-2 left-2 rounded bg-[#0063FD] px-2 py-0.5 text-[9px] font-black text-white uppercase">
+                  {bannerForm.tag || "XEM TRƯỚC"}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="pt-2">
             <Button type="submit" variant="primary" size="md" className="w-full font-black uppercase text-xs">
               Lưu & Xuất Bản Poster Lên Trang Chủ
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* ========================================================================= */}
+      {/* EDIT BANNER MODAL */}
+      {/* ========================================================================= */}
+      <Modal
+        isOpen={isEditBannerOpen}
+        onClose={() => setIsEditBannerOpen(false)}
+        title="CHỈNH SỬA BANNER / POSTER SỰ KIỆN"
+        description="Cập nhật hình ảnh, tiêu đề, liên kết và trạng thái hiển thị của poster"
+        maxWidth="lg"
+      >
+        <form onSubmit={handleUpdateBanner} className="space-y-3 text-xs">
+          <div>
+            <label className="block font-bold text-[#475569] mb-1">Tiêu đề Poster (Tiếng Việt) *</label>
+            <input
+              required
+              type="text"
+              value={editBannerForm.title_vi}
+              onChange={(e) => setEditBannerForm({ ...editBannerForm, title_vi: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block font-bold text-[#475569] mb-1">Mô tả phụ / Thông điệp ngắn</label>
+            <input
+              type="text"
+              value={editBannerForm.subtitle_vi}
+              onChange={(e) => setEditBannerForm({ ...editBannerForm, subtitle_vi: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block font-bold text-[#475569] mb-1">Nhãn Tag (VD: SỰ KIỆN MỚI, FLASH SALE)</label>
+              <input
+                type="text"
+                value={editBannerForm.tag}
+                onChange={(e) => setEditBannerForm({ ...editBannerForm, tag: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block font-bold text-[#475569] mb-1">Đường dẫn liên kết (Target URL)</label>
+              <input
+                type="text"
+                value={editBannerForm.target_url}
+                onChange={(e) => setEditBannerForm({ ...editBannerForm, target_url: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 items-center">
+            <div>
+              <label className="block font-bold text-[#475569] mb-1">Thứ tự hiển thị (Display Order)</label>
+              <input
+                type="number"
+                value={editBannerForm.display_order}
+                onChange={(e) => setEditBannerForm({ ...editBannerForm, display_order: parseInt(e.target.value || "1", 10) })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+              />
+            </div>
+            <div className="pt-4">
+              <label className="flex items-center gap-2 cursor-pointer font-bold text-[#0F172A]">
+                <input
+                  type="checkbox"
+                  checked={editBannerForm.is_active}
+                  onChange={(e) => setEditBannerForm({ ...editBannerForm, is_active: e.target.checked })}
+                  className="rounded border-[#CBD5E1] text-[#0063FD] focus:ring-[#0063FD] h-4 w-4"
+                />
+                <span>Kích hoạt hiển thị lên trang chủ</span>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-bold text-[#475569] mb-1">Ảnh Banner URL (Khuyên dùng tỷ lệ 16:9 hoặc 21:9) *</label>
+            <input
+              required
+              type="url"
+              value={editBannerForm.image_url}
+              onChange={(e) => setEditBannerForm({ ...editBannerForm, image_url: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+            />
+            {editBannerForm.image_url && (
+              <div className="mt-2 relative aspect-[21/9] w-full overflow-hidden rounded-lg border border-[#E2E8F0] bg-[#0F172A]">
+                <Image
+                  src={editBannerForm.image_url}
+                  alt="Xem trước banner chỉnh sửa"
+                  fill
+                  sizes="400px"
+                  className="object-cover"
+                />
+                <div className="absolute top-2 left-2 rounded bg-[#0063FD] px-2 py-0.5 text-[9px] font-black text-white uppercase">
+                  {editBannerForm.tag || "XEM TRƯỚC"}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="pt-2">
+            <Button type="submit" variant="primary" size="md" className="w-full font-black uppercase text-xs">
+              Lưu Thay Đổi Poster
             </Button>
           </div>
         </form>

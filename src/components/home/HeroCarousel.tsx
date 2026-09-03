@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import { EventBanner } from "@/shared/types";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 
 interface HeroCarouselProps {
   banners: EventBanner[];
@@ -42,17 +42,17 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4">
       {/* ========================================================================= */}
-      {/* 1. MAIN EVENT POSTER CAROUSEL (Responsive 16:9 on Mobile, 21:9 on Desktop) */}
+      {/* 1. MAIN EVENT POSTER CAROUSEL (Full-Bleed Responsive Poster Presentation) */}
       {/* ========================================================================= */}
       <div
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
-        className="lg:col-span-8 relative flex flex-col justify-between overflow-hidden rounded-xl sm:rounded-2xl border border-[#E2E8F0] bg-[#FFFFFF] shadow-xs"
+        className="lg:col-span-8 relative overflow-hidden rounded-xl sm:rounded-2xl border border-[#E2E8F0] bg-[#FFFFFF] shadow-xs group"
       >
         {/* Full-bleed Clickable Event Banner Poster Area */}
         <Link
           href={currentBanner?.target_url || "/danh-muc"}
-          className="relative block aspect-[16/9] sm:aspect-[21/9] lg:aspect-auto lg:h-[390px] w-full overflow-hidden bg-[#F8FAFC] group cursor-pointer"
+          className="relative block aspect-[16/9] sm:aspect-[21/9] lg:aspect-auto lg:h-[390px] w-full overflow-hidden bg-[#0F172A] cursor-pointer"
         >
           {currentBanner && (
             <Image
@@ -67,22 +67,28 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
 
           {/* Subtle Tag Badge on Top-Left */}
           {currentBanner?.tag && (
-            <div className="absolute top-2 sm:top-3 left-2 sm:left-3 z-10">
-              <span className="inline-flex items-center rounded-md sm:rounded-lg bg-[#0063FD] px-2 sm:px-3 py-0.5 sm:py-1 text-[9px] sm:text-[11px] font-black uppercase tracking-wider text-white shadow-md">
+            <div className="absolute top-2.5 sm:top-3.5 left-2.5 sm:left-3.5 z-10">
+              <span className="inline-flex items-center rounded-md sm:rounded-lg bg-[#0063FD] px-2.5 sm:px-3 py-0.5 sm:py-1 text-[9px] sm:text-[11px] font-black uppercase tracking-wider text-white shadow-md">
                 {currentBanner.tag}
               </span>
             </div>
           )}
 
-          {/* Slide Progress Dots (Bottom-Right of Banner) */}
+          {/* Slide Progress Dots (Centered at Bottom of Poster) */}
           {activeBanners.length > 1 && (
-            <div className="absolute bottom-2 sm:bottom-3 right-2 sm:right-3 z-10 flex items-center gap-1 sm:gap-1.5 rounded-full bg-black/60 backdrop-blur-xs px-2 py-0.5 sm:px-2.5 sm:py-1">
+            <div className="absolute bottom-2.5 sm:bottom-3.5 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 rounded-full bg-black/50 backdrop-blur-xs px-2.5 py-1">
               {activeBanners.map((_, idx) => (
-                <span
+                <button
                   key={idx}
-                  className={`h-1 sm:h-1.5 rounded-full transition-all ${
-                    currentIndex === idx ? "w-3.5 sm:w-5 bg-[#0063FD]" : "w-1 sm:w-1.5 bg-white/70"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setCurrentIndex(idx);
+                  }}
+                  className={`h-1.5 rounded-full transition-all ${
+                    currentIndex === idx ? "w-5 bg-[#0063FD]" : "w-1.5 bg-white/70 hover:bg-white"
                   }`}
+                  aria-label={`Slide ${idx + 1}`}
                 />
               ))}
             </div>
@@ -98,7 +104,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
                 e.stopPropagation();
                 prevSlide();
               }}
-              className="absolute left-1.5 sm:left-3 top-1/2 -translate-y-1/2 z-20 flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 text-[#0F172A] hover:bg-white hover:text-[#0063FD] transition-all shadow-md"
+              className="absolute left-2 sm:left-3.5 top-1/2 -translate-y-1/2 z-20 flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 text-[#0F172A] hover:bg-white hover:text-[#0063FD] transition-all shadow-md opacity-80 group-hover:opacity-100"
               aria-label="Slide trước"
             >
               <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -109,47 +115,12 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
                 e.stopPropagation();
                 nextSlide();
               }}
-              className="absolute right-1.5 sm:right-3 top-1/2 -translate-y-1/2 z-20 flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 text-[#0F172A] hover:bg-white hover:text-[#0063FD] transition-all shadow-md"
+              className="absolute right-2 sm:right-3.5 top-1/2 -translate-y-1/2 z-20 flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 text-[#0F172A] hover:bg-white hover:text-[#0063FD] transition-all shadow-md opacity-80 group-hover:opacity-100"
               aria-label="Slide tiếp theo"
             >
               <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
           </>
-        )}
-
-        {/* Event Tabs Navigation: Compact title on Mobile, Full 3 tabs on Tablet & Desktop */}
-        {activeBanners.length > 1 && (
-          <div className="border-t border-[#E2E8F0] bg-[#F8FAFC]">
-            {/* Mobile View: Clean single active event title with slide counter */}
-            <div className="flex sm:hidden items-center justify-between px-3 py-2 text-xs">
-              <span className="truncate font-bold text-[#0063FD] text-[11px]">
-                {currentBanner?.title_vi}
-              </span>
-              <span className="font-mono text-[10px] text-[#64748B] shrink-0 ml-2">
-                {currentIndex + 1}/{activeBanners.length}
-              </span>
-            </div>
-
-            {/* Tablet & Desktop View: 3-column Interactive Tabs */}
-            <div className="hidden sm:grid sm:grid-cols-3">
-              {activeBanners.map((banner, index) => (
-                <button
-                  key={banner.id}
-                  onClick={() => setCurrentIndex(index)}
-                  className={`px-3 py-2.5 text-left text-xs transition-all border-r last:border-r-0 border-[#E2E8F0] ${
-                    currentIndex === index
-                      ? "bg-[#FFFFFF] text-[#0063FD] font-bold border-b-2 border-b-[#0063FD]"
-                      : "text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9]"
-                  }`}
-                >
-                  <div className="truncate text-[11px] font-bold">{banner.title_vi}</div>
-                  <div className="text-[10px] text-[#94A3B8] truncate">
-                    {banner.subtitle_vi || banner.tag || "Khuyến mãi"}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
         )}
       </div>
 
@@ -160,83 +131,101 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
         {/* Side Card 1: Custom PC Configurator */}
         <Link
           href="/build-pc"
-          className="flex-1 rounded-xl sm:rounded-2xl border border-[#E2E8F0] bg-[#FFFFFF] p-3 sm:p-3.5 lg:p-4 shadow-xs hover:border-[#0063FD] hover:shadow-md transition-all flex items-center justify-between group"
+          className="group relative flex items-center justify-between overflow-hidden rounded-xl sm:rounded-2xl border border-[#E2E8F0] bg-[#FFFFFF] p-3 sm:p-3.5 lg:p-4 transition-all duration-200 hover:border-[#0063FD] hover:bg-[#EFF6FF] shadow-xs"
         >
-          <div className="space-y-0.5 sm:space-y-1 pr-2">
-            <span className="inline-block rounded bg-[#EFF6FF] border border-[#BFDBFE] px-1.5 sm:px-2 py-0.5 text-[8px] sm:text-[9px] font-black text-[#0063FD] uppercase">
-              TỰ RÁP MÁY TÍNH
+          <div className="space-y-1 sm:space-y-1.5 min-w-0 pr-2">
+            <span className="inline-flex items-center rounded-md bg-[#0063FD] px-2 py-0.5 text-[9px] sm:text-[10px] font-black uppercase text-white tracking-wider">
+              Tùy biến PC
             </span>
-            <h3 className="text-xs sm:text-sm font-black text-[#0F172A] group-hover:text-[#0063FD] transition-colors leading-snug">
-              Xây Dựng Cấu Hình PC Theo Yêu Cầu
+            <h3 className="text-xs sm:text-sm font-black text-[#0F172A] group-hover:text-[#0063FD] transition-colors truncate">
+              Xây Dựng Cấu Hình PC
             </h3>
-            <p className="text-[10px] sm:text-[11px] text-[#64748B] line-clamp-1 sm:line-clamp-2">
-              Tự động kiểm tra tương thích socket, nguồn điện & vỏ case
+            <p className="text-[10px] sm:text-[11px] text-[#64748B] line-clamp-1">
+              Kiểm tra tương thích chân socket & nguồn tự động
             </p>
+            <div className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-[#0063FD] pt-0.5">
+              <span>Bắt đầu lắp ráp</span>
+              <ArrowRight className="h-3 w-3 sm:h-3.5 sm:w-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
           </div>
-          <div className="relative flex h-10 w-10 sm:h-12 sm:w-12 lg:h-13 lg:w-13 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-[#EFF6FF] border border-[#BFDBFE] p-1 group-hover:scale-105 transition-transform shadow-xs">
+
+          {/* Animated GIF Icon: PC Building Tool */}
+          <div className="relative h-10 w-10 sm:h-12 sm:w-12 lg:h-13 lg:w-13 shrink-0 overflow-hidden rounded-xl border border-[#BFDBFE] bg-white p-1 shadow-xs">
             <Image
               src="/animation-icon/pc-build.gif"
               alt="Build PC Animation"
-              width={48}
-              height={48}
+              fill
               unoptimized
-              className="object-contain h-full w-full"
+              sizes="52px"
+              className="object-contain"
             />
           </div>
         </Link>
 
-        {/* Side Card 2: Genuine Warranty & Support */}
+        {/* Side Card 2: 100% Genuine Warranty & Fast Delivery */}
         <Link
           href="/bao-hanh"
-          className="flex-1 rounded-xl sm:rounded-2xl border border-[#E2E8F0] bg-[#FFFFFF] p-3 sm:p-3.5 lg:p-4 shadow-xs hover:border-[#16A34A] hover:shadow-md transition-all flex items-center justify-between group"
+          className="group relative flex items-center justify-between overflow-hidden rounded-xl sm:rounded-2xl border border-[#E2E8F0] bg-[#FFFFFF] p-3 sm:p-3.5 lg:p-4 transition-all duration-200 hover:border-[#0063FD] hover:bg-[#EFF6FF] shadow-xs"
         >
-          <div className="space-y-0.5 sm:space-y-1 pr-2">
-            <span className="inline-block rounded bg-[#DCFCE7] border border-[#86EFAC] px-1.5 sm:px-2 py-0.5 text-[8px] sm:text-[9px] font-black text-[#15803D] uppercase">
-              CAM KẾT 100%
+          <div className="space-y-1 sm:space-y-1.5 min-w-0 pr-2">
+            <span className="inline-flex items-center rounded-md bg-[#0F172A] px-2 py-0.5 text-[9px] sm:text-[10px] font-black uppercase text-white tracking-wider">
+              Cam kết dịch vụ
             </span>
-            <h3 className="text-xs sm:text-sm font-black text-[#0F172A] group-hover:text-[#16A34A] transition-colors leading-snug">
-              Chính Sách Bảo Hành & Đổi Mới
+            <h3 className="text-xs sm:text-sm font-black text-[#0F172A] group-hover:text-[#0063FD] transition-colors truncate">
+              Chính Hãng & Bảo Hành
             </h3>
-            <p className="text-[10px] sm:text-[11px] text-[#64748B] line-clamp-1 sm:line-clamp-2">
-              Bảo hành chính hãng 12 - 36 tháng, hỗ trợ kỹ thuật trọn đời
+            <p className="text-[10px] sm:text-[11px] text-[#64748B] line-clamp-1">
+              Đổi mới 30 ngày • Bảo hành tận nơi tại 3 miền
             </p>
+            <div className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-[#0063FD] pt-0.5">
+              <span>Chính sách chi tiết</span>
+              <ArrowRight className="h-3 w-3 sm:h-3.5 sm:w-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
           </div>
-          <div className="relative flex h-10 w-10 sm:h-12 sm:w-12 lg:h-13 lg:w-13 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-[#DCFCE7] border border-[#86EFAC] p-1 group-hover:scale-105 transition-transform shadow-xs">
+
+          {/* Animated GIF Icon: Guarantee Seal */}
+          <div className="relative h-10 w-10 sm:h-12 sm:w-12 lg:h-13 lg:w-13 shrink-0 overflow-hidden rounded-xl border border-[#E2E8F0] bg-white p-1 shadow-xs">
             <Image
               src="/animation-icon/guarantee.gif"
-              alt="Guarantee Animation"
-              width={48}
-              height={48}
+              alt="Guarantee Seal Animation"
+              fill
               unoptimized
-              className="object-contain h-full w-full"
+              sizes="52px"
+              className="object-contain"
             />
           </div>
         </Link>
 
-        {/* Side Card 3: Hotline Support */}
+        {/* Side Card 3: 24/7 Hotline Support */}
         <Link
           href="/lien-he"
-          className="flex-1 rounded-xl sm:rounded-2xl border border-[#E2E8F0] bg-[#FFFFFF] p-3 sm:p-3.5 lg:p-4 shadow-xs hover:border-[#14B8A6] hover:shadow-md transition-all flex items-center justify-between group"
+          className="group relative flex items-center justify-between overflow-hidden rounded-xl sm:rounded-2xl border border-[#99F6E4] bg-[#F0FDFA] p-3 sm:p-3.5 lg:p-4 transition-all duration-200 hover:border-[#0D9488] hover:bg-[#CCFBF1]/50 shadow-xs"
         >
-          <div className="space-y-0.5 sm:space-y-1 pr-2">
-            <span className="inline-block rounded bg-[#CCFBF1] border border-[#99F6E4] px-1.5 sm:px-2 py-0.5 text-[8px] sm:text-[9px] font-black text-[#0F766E] uppercase">
-              TƯ VẤN TRỰC TIẾP
+          <div className="space-y-1 sm:space-y-1.5 min-w-0 pr-2">
+            <span className="inline-flex items-center rounded-md bg-[#0D9488] px-2 py-0.5 text-[9px] sm:text-[10px] font-black uppercase text-white tracking-wider">
+              Tư vấn trực tiếp
             </span>
-            <h3 className="text-xs sm:text-sm font-black text-[#0F172A] group-hover:text-[#0D9488] transition-colors leading-snug">
-              Hotline Tư Vấn: 1900 8888
+            <h3 className="text-xs sm:text-sm font-black text-[#0F766E] group-hover:text-[#0D9488] transition-colors truncate">
+              Hotline 1900.8888 (24/7)
             </h3>
-            <p className="text-[10px] sm:text-[11px] text-[#64748B] line-clamp-1 sm:line-clamp-2">
-              Hỗ trợ báo giá dự án, giải pháp gaming gear & doanh nghiệp
+            <p className="text-[10px] sm:text-[11px] text-[#0F766E]/80 line-clamp-1">
+              Kỹ sư phần cứng hỗ trợ cấu hình & kỹ thuật
             </p>
+            <div className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-[#0D9488] pt-0.5">
+              <span>Liên hệ ngay</span>
+              <ArrowRight className="h-3 w-3 sm:h-3.5 sm:w-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
           </div>
-          <div className="relative flex h-10 w-10 sm:h-12 sm:w-12 lg:h-13 lg:w-13 shrink-0 items-center justify-center rounded-xl bg-[#F0FDFA] border border-[#99F6E4] p-1 group-hover:scale-105 transition-transform shadow-xs">
+
+          {/* Animated GIF Icon: Hotline Support */}
+          <div className="relative h-10 w-10 sm:h-12 sm:w-12 lg:h-13 lg:w-13 shrink-0 overflow-hidden rounded-xl border border-[#99F6E4] bg-white p-1 shadow-xs">
             <Image
               src="/animation-icon/hotline.gif"
-              alt="Hotline Animation"
-              width={48}
-              height={48}
+              alt="Hotline Support Animation"
+              fill
               unoptimized
-              className="object-contain h-full w-full"
+              sizes="52px"
+              className="object-contain"
             />
           </div>
         </Link>

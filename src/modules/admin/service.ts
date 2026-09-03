@@ -437,6 +437,32 @@ export class AdminService {
     return newBanner;
   }
 
+  async updateBanner(id: string, updates: Partial<CreateBannerInput>): Promise<EventBanner | null> {
+    try {
+      const { data, error } = await supabase
+        .from("banners")
+        .update(updates)
+        .eq("id", id)
+        .select()
+        .single();
+      if (!error && data) {
+        return data as EventBanner;
+      }
+    } catch {
+      // Fallback
+    }
+
+    const idx = this.localBanners.findIndex((b) => b.id === id);
+    if (idx !== -1) {
+      this.localBanners[idx] = {
+        ...this.localBanners[idx],
+        ...updates,
+      };
+      return this.localBanners[idx];
+    }
+    return null;
+  }
+
   async deleteBanner(id: string): Promise<boolean> {
     try {
       await supabase.from("banners").delete().eq("id", id);
