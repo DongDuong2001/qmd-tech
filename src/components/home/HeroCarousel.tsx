@@ -4,15 +4,12 @@ import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import { EventBanner } from "@/shared/types";
-import { Button } from "../ui/button";
 import {
   ChevronLeft,
   ChevronRight,
-  Sparkles,
   Wrench,
   ShieldCheck,
   Headphones,
-  ArrowRight,
 } from "lucide-react";
 
 interface HeroCarouselProps {
@@ -51,15 +48,18 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
       {/* ========================================================================= */}
-      {/* 1. MAIN CAROUSEL SLIDER (High-Contrast & Crystal-Clear Readability) */}
+      {/* 1. MAIN EVENT POSTER CAROUSEL (Full Artwork View - Vietnamese Retailer) */}
       {/* ========================================================================= */}
       <div
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
-        className="lg:col-span-8 relative flex flex-col justify-between overflow-hidden rounded-2xl border border-[#E2E8F0] bg-[#0F172A] shadow-xs"
+        className="lg:col-span-8 relative flex flex-col justify-between overflow-hidden rounded-2xl border border-[#E2E8F0] bg-[#FFFFFF] shadow-xs"
       >
-        {/* Main Banner Image & Content Area */}
-        <div className="relative h-72 sm:h-84 md:h-96 w-full overflow-hidden">
+        {/* Full-bleed Clickable Event Banner Poster Area */}
+        <Link
+          href={currentBanner?.target_url || "/danh-muc"}
+          className="relative block h-72 sm:h-84 md:h-96 w-full overflow-hidden bg-[#F8FAFC] group cursor-pointer"
+        >
           {currentBanner && (
             <Image
               src={currentBanner.image_url}
@@ -67,83 +67,77 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
               fill
               priority
               sizes="(max-width: 1024px) 100vw, 66vw"
-              className="object-cover opacity-80 transition-all duration-700 ease-in-out"
+              className="object-cover transition-all duration-700 ease-in-out group-hover:scale-[1.02]"
             />
           )}
 
-          {/* Strong Gradient Scrim to ensure 100% text readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A] via-[#0F172A]/70 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0F172A]/85 via-[#0F172A]/40 to-transparent" />
-
-          {/* High-Contrast Frosted Text Box */}
-          <div className="absolute inset-x-0 bottom-0 p-5 sm:p-7">
-            <div className="max-w-xl space-y-2.5 rounded-xl bg-[#0F172A]/80 backdrop-blur-md p-4 sm:p-5 border border-white/15 shadow-xl text-white">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-[#0063FD] px-3 py-0.5 text-[11px] font-black uppercase tracking-wider text-white shadow-sm">
-                <Sparkles className="h-3.5 w-3.5" />
-                <span>{currentBanner?.tag || "SỰ KIỆN NỔI BẬT"}</span>
-              </div>
-
-              <h2 className="text-lg sm:text-xl md:text-2xl font-black uppercase text-white tracking-tight leading-tight drop-shadow-md">
-                {currentBanner?.title_vi}
-              </h2>
-
-              {currentBanner?.subtitle_vi && (
-                <p className="text-xs sm:text-sm text-[#E2E8F0] line-clamp-2 leading-relaxed">
-                  {currentBanner.subtitle_vi}
-                </p>
-              )}
-
-              <div className="pt-1">
-                <Link href={currentBanner?.target_url || "/danh-muc"}>
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    className="font-black uppercase text-xs gap-1.5 px-5 shadow-sm"
-                  >
-                    <span>Khám Phá Ngay</span>
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </Button>
-                </Link>
-              </div>
+          {/* Subtle Tag Badge on Top-Left */}
+          {currentBanner?.tag && (
+            <div className="absolute top-3 left-3 z-10">
+              <span className="inline-flex items-center rounded-lg bg-[#0063FD] px-3 py-1 text-[11px] font-black uppercase tracking-wider text-white shadow-md">
+                {currentBanner.tag}
+              </span>
             </div>
-          </div>
-
-          {/* Left / Right Slide Arrow Controls */}
-          {activeBanners.length > 1 && (
-            <>
-              <button
-                onClick={prevSlide}
-                className="absolute left-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-[#0F172A] hover:bg-white hover:text-[#0063FD] transition-all shadow-lg z-10"
-                aria-label="Slide trước"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-              <button
-                onClick={nextSlide}
-                className="absolute right-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-[#0F172A] hover:bg-white hover:text-[#0063FD] transition-all shadow-lg z-10"
-                aria-label="Slide tiếp theo"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
-            </>
           )}
-        </div>
 
-        {/* Carousel Preview Tabs (Bottom Navigation in Electric Blue Theme) */}
+          {/* Slide Progress Dots (Bottom-Right of Banner) */}
+          {activeBanners.length > 1 && (
+            <div className="absolute bottom-3 right-3 z-10 flex items-center gap-1.5 rounded-full bg-black/50 backdrop-blur-xs px-2.5 py-1">
+              {activeBanners.map((_, idx) => (
+                <span
+                  key={idx}
+                  className={`h-1.5 rounded-full transition-all ${
+                    currentIndex === idx ? "w-5 bg-[#0063FD]" : "w-1.5 bg-white/70"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+        </Link>
+
+        {/* Left / Right Slide Arrow Controls */}
         {activeBanners.length > 1 && (
-          <div className="grid grid-cols-3 border-t border-[#1E293B] bg-[#0F172A]">
+          <>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                prevSlide();
+              }}
+              className="absolute left-3 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-[#0F172A] hover:bg-white hover:text-[#0063FD] transition-all shadow-md"
+              aria-label="Slide trước"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                nextSlide();
+              }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-[#0F172A] hover:bg-white hover:text-[#0063FD] transition-all shadow-md"
+              aria-label="Slide tiếp theo"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </>
+        )}
+
+        {/* Event Tabs Navigation in Clean Light Theme */}
+        {activeBanners.length > 1 && (
+          <div className="grid grid-cols-3 border-t border-[#E2E8F0] bg-[#F8FAFC]">
             {activeBanners.map((banner, index) => (
               <button
                 key={banner.id}
                 onClick={() => setCurrentIndex(index)}
-                className={`px-3 py-2.5 text-left text-xs transition-all border-r last:border-r-0 border-[#1E293B] ${
+                className={`px-3 py-2.5 text-left text-xs transition-all border-r last:border-r-0 border-[#E2E8F0] ${
                   currentIndex === index
-                    ? "bg-[#1E293B] text-[#38BDF8] font-bold border-b-2 border-b-[#0063FD]"
-                    : "text-[#94A3B8] hover:text-white hover:bg-[#1E293B]/60"
+                    ? "bg-[#FFFFFF] text-[#0063FD] font-bold border-b-2 border-b-[#0063FD]"
+                    : "text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9]"
                 }`}
               >
                 <div className="truncate text-[11px] font-bold">{banner.title_vi}</div>
-                <div className="text-[10px] text-[#64748B] truncate">{banner.tag || "Khuyến mãi"}</div>
+                <div className="text-[10px] text-[#94A3B8] truncate">{banner.subtitle_vi || banner.tag || "Khuyến mãi"}</div>
               </button>
             ))}
           </div>
