@@ -200,23 +200,23 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
           </div>
         </Link>
 
-        {/* Side Card 3: Hotline Support with hotline.gif animation */}
+        {/* Side Card 3: Hotline Support with hotline.gif animation (Matched with #33CCCC Teal tone) */}
         <Link
           href="/lien-he"
-          className="flex-1 rounded-2xl border border-[#E2E8F0] bg-[#FFFFFF] p-4 sm:p-4 lg:p-4.5 shadow-xs hover:border-[#0284C7] hover:shadow-md transition-all flex items-center justify-between group"
+          className="flex-1 rounded-2xl border border-[#E2E8F0] bg-[#FFFFFF] p-4 sm:p-4 lg:p-4.5 shadow-xs hover:border-[#14B8A6] hover:shadow-md transition-all flex items-center justify-between group"
         >
           <div className="space-y-1 pr-2">
-            <span className="inline-block rounded bg-[#E0F2FE] border border-[#BAE6FD] px-2 py-0.5 text-[9px] sm:text-[10px] font-black text-[#0284C7] uppercase">
+            <span className="inline-block rounded bg-[#CCFBF1] border border-[#99F6E4] px-2 py-0.5 text-[9px] sm:text-[10px] font-black text-[#0F766E] uppercase">
               TƯ VẤN TRỰC TIẾP
             </span>
-            <h3 className="text-xs sm:text-sm font-black text-[#0F172A] group-hover:text-[#0284C7] transition-colors leading-snug">
+            <h3 className="text-xs sm:text-sm font-black text-[#0F172A] group-hover:text-[#0D9488] transition-colors leading-snug">
               Hotline Tư Vấn: 1900 8888
             </h3>
             <p className="text-[10px] sm:text-[11px] text-[#64748B] line-clamp-2">
               Hỗ trợ báo giá dự án, giải pháp gaming gear & doanh nghiệp
             </p>
           </div>
-          <div className="relative flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-xl bg-[#E0F2FE] border border-[#BAE6FD] p-1.5 group-hover:scale-105 transition-transform shadow-xs">
+          <div className="relative flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-xl bg-[#F0FDFA] border border-[#99F6E4] p-1.5 group-hover:scale-105 transition-transform shadow-xs">
             <Image
               src="/animation-icon/hotline.gif"
               alt="Hotline Animation"
