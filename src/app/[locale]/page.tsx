@@ -33,7 +33,6 @@ import {
   Gamepad2,
   Keyboard,
   Headphones,
-  Sparkles,
   ArrowRight,
   Wrench,
   Award,
@@ -292,7 +291,7 @@ export default async function HomePage() {
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E2E8F0] pb-3 sm:pb-4">
           <div>
             <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-black text-[#0063FD] uppercase tracking-wider mb-0.5 sm:mb-1">
-              <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <CircuitBoard className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               Linh kiện thế hệ mới
             </div>
             <h2 className="text-lg sm:text-2xl font-black uppercase text-[#0F172A]">

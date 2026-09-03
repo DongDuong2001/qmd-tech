@@ -15,7 +15,7 @@ import {
   User,
   Menu,
   X,
-  Sparkles,
+  TrendingUp,
   Truck,
   Award,
   Tag,
@@ -127,7 +127,7 @@ export function Header() {
             </div>
             <div className="flex items-center gap-2 overflow-hidden text-[11px] text-[#64748B]">
               <span className="text-[#0063FD] font-bold flex items-center gap-0.5 shrink-0">
-                <Sparkles className="h-3 w-3" /> Xu hướng:
+                <TrendingUp className="h-3 w-3" /> Xu hướng:
               </span>
               <div className="flex gap-2 overflow-x-auto no-scrollbar whitespace-nowrap">
                 {hotKeywords.map((kw) => (

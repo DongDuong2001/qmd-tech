@@ -28,7 +28,7 @@ import {
   Plus,
   Trash2,
   RefreshCw,
-  Sparkles,
+  Gauge,
   Flame,
 } from "lucide-react";
 
@@ -393,8 +393,8 @@ export function CustomPcBuilder() {
                 Phân khúc cấu hình
               </div>
               <div className="flex items-center gap-1.5">
-                <Sparkles className="h-4 w-4 text-[#EA580C]" />
-                <span className="text-xs font-black text-[#B45309]">
+                <Gauge className="h-4 w-4 text-[#0063FD]" />
+                <span className="text-xs font-black text-[#0063FD]">
                   {getTierLabel(evaluation.performanceTier)}
                 </span>
               </div>
@@ -403,11 +403,12 @@ export function CustomPcBuilder() {
             {/* Total Price */}
             <div className="border-t border-[#E2E8F0] pt-4">
               <div className="text-xs text-[#64748B]">Tổng tiền linh kiện:</div>
-              <div className="text-2xl font-black font-mono text-[#B45309] mt-1">
+              <div className="text-2xl font-black font-mono text-[#0063FD] mt-1">
                 {i18nService.formatPrice(evaluation.totalPriceVnd, locale)}
               </div>
-              <div className="text-[10px] text-[#15803D] mt-0.5">
-                ⚡ Miễn phí công lắp ráp + Cài đặt phần mềm trọn đời
+              <div className="text-[10px] text-[#15803D] mt-0.5 flex items-center gap-1">
+                <CheckCircle2 className="h-3 w-3 text-[#16A34A] shrink-0" />
+                <span>Miễn phí công lắp ráp + Cài đặt phần mềm trọn đời</span>
               </div>
             </div>
 

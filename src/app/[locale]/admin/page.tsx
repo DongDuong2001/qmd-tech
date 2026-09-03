@@ -27,6 +27,7 @@ import {
   Layers,
   ShoppingBag,
   Star,
+  MessageSquareText,
   Plus,
   Trash2,
   Search,
@@ -633,7 +634,7 @@ export default function AdminDashboardPage() {
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <Star className="h-4 w-4" />
+                <MessageSquareText className="h-4 w-4" />
                 <span>Đánh giá khách hàng</span>
               </div>
               <span className="rounded-full bg-[#1E293B] px-2 py-0.5 text-[10px] font-mono text-slate-300">
