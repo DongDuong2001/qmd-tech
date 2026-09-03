@@ -79,7 +79,7 @@ export function Footer() {
               </span>
             </div>
             <p className="text-xs leading-relaxed text-[#64748B]">
-              Hệ thống bán lẻ linh kiện máy tính, PC Gaming & Workstation chuyên nghiệp hàng đầu Việt Nam.
+              Hệ thống phân phối linh kiện máy tính, PC Gaming & máy trạm Workstation chính hãng.
             </p>
             <div className="text-xs space-y-1 text-[#475569]">
               <p className="flex items-center gap-1.5">
@@ -162,14 +162,14 @@ export function Footer() {
             </div>
 
             <div className="mt-4 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] p-3 text-[11px] text-[#64748B]">
-              🛡️ Giấy phép ĐKKD số 010888888 do Sở KH&ĐT TP. Hà Nội cấp.
+              Giấy phép ĐKKD số 010888888 do Sở KH&ĐT TP. Hà Nội cấp.
             </div>
           </div>
         </div>
 
         {/* Bottom Copyright */}
         <div className="mt-12 border-t border-[#E2E8F0] pt-6 text-center text-xs text-[#94A3B8]">
-          © {new Date().getFullYear()} QMD-Tech Corporation. Nền tảng thương mại linh kiện PC Gaming cao cấp hàng đầu Việt Nam.
+          © {new Date().getFullYear()} QMD-Tech Corporation. Nền tảng thương mại linh kiện PC Gaming và máy tính để bàn chính hãng.
         </div>
       </div>
     </footer>
