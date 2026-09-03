@@ -64,18 +64,18 @@ export function ProductCard({
     <div
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative flex flex-col justify-between rounded-xl border border-[#E2E8F0] bg-[#FFFFFF] p-3.5 shadow-xs transition-all duration-300 hover:border-[#E11D48] hover:shadow-md"
+      className="group relative flex flex-col justify-between rounded-xl border border-[#E2E8F0] bg-[#FFFFFF] p-3.5 shadow-xs transition-all duration-300 hover:border-[#0063FD] hover:shadow-md"
     >
       <div>
         {/* Top Badges: Brand & Stock/Discount Tag */}
         <div className="flex items-center justify-between gap-1.5 mb-2.5">
-          <span className="rounded bg-[#EFF6FF] border border-[#BFDBFE] px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-[#1D4ED8]">
+          <span className="rounded bg-[#EFF6FF] border border-[#BFDBFE] px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-[#0063FD]">
             {product.brand}
           </span>
 
           <div className="flex items-center gap-1">
             {discountPercent && discountPercent > 0 && (
-              <Badge variant="discount" className="text-[10px]">
+              <Badge variant="discount" className="text-[10px] bg-[#0063FD] text-white">
                 -{discountPercent}%
               </Badge>
             )}
@@ -90,7 +90,7 @@ export function ProductCard({
         {/* Product Image */}
         <Link
           href={`/san-pham/${product.slug}`}
-          className="relative block h-40 w-full overflow-hidden rounded-lg bg-[#F8FAFC] border border-[#F1F5F9] mb-2.5 group-hover:border-[#E11D48]/30 transition-colors"
+          className="relative block h-40 w-full overflow-hidden rounded-lg bg-[#F8FAFC] border border-[#F1F5F9] mb-2.5 group-hover:border-[#0063FD]/30 transition-colors"
         >
           {product.images[0] ? (
             <Image
@@ -121,7 +121,7 @@ export function ProductCard({
         {/* Product Title */}
         <Link
           href={`/san-pham/${product.slug}`}
-          className="block text-xs sm:text-sm font-bold text-[#0F172A] line-clamp-2 hover:text-[#E11D48] transition-colors mb-2 leading-snug"
+          className="block text-xs sm:text-sm font-bold text-[#0F172A] line-clamp-2 hover:text-[#0063FD] transition-colors mb-2 leading-snug"
         >
           {productName}
         </Link>
@@ -139,21 +139,21 @@ export function ProductCard({
             </span>
           )}
           {product.specs.tdp_watts && (
-            <span className="rounded bg-[#FEF3C7] px-1.5 py-0.5 text-[10px] font-mono font-bold text-[#B45309] border border-[#FDE68A]">
+            <span className="rounded bg-[#EFF6FF] px-1.5 py-0.5 text-[10px] font-mono font-bold text-[#0063FD] border border-[#BFDBFE]">
               {product.specs.tdp_watts}W
             </span>
           )}
           {product.specs.vram_gb && (
-            <span className="rounded bg-[#EFF6FF] px-1.5 py-0.5 text-[10px] font-mono font-bold text-[#1D4ED8] border border-[#BFDBFE]">
+            <span className="rounded bg-[#EFF6FF] px-1.5 py-0.5 text-[10px] font-mono font-bold text-[#0063FD] border border-[#BFDBFE]">
               {product.specs.vram_gb}GB VRAM
             </span>
           )}
         </div>
 
         {/* Promotional Gift Tag (Factual Phrasing) */}
-        <div className="rounded border border-[#FED7AA] bg-[#FFF7ED] p-1.5 mb-2.5 text-[10px] text-[#C2410C] flex items-center gap-1.5">
-          <Gift className="h-3 w-3 shrink-0 text-[#EA580C]" />
-          <span className="truncate font-semibold">Tặng gói vệ sinh máy + Lót chuột khi mua kèm</span>
+        <div className="rounded border border-[#BFDBFE] bg-[#EFF6FF] p-1.5 mb-2.5 text-[10px] text-[#0063FD] flex items-center gap-1.5 font-semibold">
+          <Gift className="h-3 w-3 shrink-0 text-[#0063FD]" />
+          <span className="truncate">Tặng gói vệ sinh máy + Lót chuột khi mua kèm</span>
         </div>
       </div>
 
@@ -162,7 +162,7 @@ export function ProductCard({
         {/* Slashed and Current Price */}
         <div className="flex items-baseline justify-between mb-2">
           <div>
-            <div className="text-base sm:text-lg font-black font-mono text-[#B45309] leading-tight">
+            <div className="text-base sm:text-lg font-black font-mono text-[#0063FD] leading-tight">
               {formattedPrice}
             </div>
             {formattedOriginalPrice && (
@@ -195,16 +195,16 @@ export function ProductCard({
             <Button
               onClick={() => onAddToCart?.(product)}
               disabled={isOutOfStock}
-              variant="primary"
+              variant="outline"
               size="sm"
-              className="w-full gap-1 text-[11px] font-bold py-1.5"
+              className="w-full gap-1 text-[11px] font-bold py-1.5 border-[#CBD5E1] hover:border-[#0063FD] hover:text-[#0063FD]"
             >
               <ShoppingCart className="h-3 w-3" />
               Thêm giỏ
             </Button>
             <Link href={`/san-pham/${product.slug}`} className="w-full">
               <Button
-                variant="gold"
+                variant="primary"
                 size="sm"
                 className="w-full text-[11px] font-black py-1.5"
               >
@@ -236,7 +236,7 @@ export function ProductCard({
         <div className="rounded-xl border border-[#CBD5E1] bg-[#FFFFFF] p-3.5 shadow-xl text-xs space-y-2.5 pointer-events-auto">
           <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
             <div className="font-black text-[#0F172A] flex items-center gap-1.5 uppercase text-[11px]">
-              <Activity className="h-3.5 w-3.5 text-[#E11D48]" />
+              <Activity className="h-3.5 w-3.5 text-[#0063FD]" />
               <span>Thông Số Kỹ Thuật</span>
             </div>
             <span className="font-mono text-[10px] text-[#64748B]">SKU: {product.sku}</span>
@@ -246,7 +246,7 @@ export function ProductCard({
             {product.specs.socket && (
               <div className="flex items-center justify-between">
                 <span className="text-[#64748B] flex items-center gap-1">
-                  <Cpu className="h-3 w-3 text-[#2563EB]" /> Socket:
+                  <Cpu className="h-3 w-3 text-[#0063FD]" /> Socket:
                 </span>
                 <span className="font-mono font-bold text-[#0F172A]">{String(product.specs.socket)}</span>
               </div>
@@ -262,13 +262,13 @@ export function ProductCard({
             {product.specs.vram_gb && (
               <div className="flex items-center justify-between">
                 <span className="text-[#64748B]">VRAM:</span>
-                <span className="font-mono font-bold text-[#1D4ED8]">{String(product.specs.vram_gb)} GB</span>
+                <span className="font-mono font-bold text-[#0063FD]">{String(product.specs.vram_gb)} GB</span>
               </div>
             )}
             {product.specs.tdp_watts && (
               <div className="flex items-center justify-between">
                 <span className="text-[#64748B]">Công suất TDP:</span>
-                <span className="font-mono font-bold text-[#B45309]">{String(product.specs.tdp_watts)} W</span>
+                <span className="font-mono font-bold text-[#0F172A]">{String(product.specs.tdp_watts)} W</span>
               </div>
             )}
             {product.specs.form_factor && (
@@ -280,7 +280,7 @@ export function ProductCard({
             {product.specs.capacity_gb && (
               <div className="flex items-center justify-between">
                 <span className="text-[#64748B] flex items-center gap-1">
-                  <HardDrive className="h-3 w-3 text-[#EA580C]" /> Dung lượng:
+                  <HardDrive className="h-3 w-3 text-[#0284C7]" /> Dung lượng:
                 </span>
                 <span className="font-mono font-bold text-[#0F172A]">{String(product.specs.capacity_gb)} GB</span>
               </div>
@@ -295,7 +295,7 @@ export function ProductCard({
 
           <Link
             href={`/san-pham/${product.slug}`}
-            className="flex items-center justify-center gap-1 w-full rounded-lg bg-[#F8FAFC] py-1.5 text-[11px] font-bold text-[#0F172A] hover:bg-[#E11D48] hover:text-white transition-colors border border-[#E2E8F0]"
+            className="flex items-center justify-center gap-1 w-full rounded-lg bg-[#F8FAFC] py-1.5 text-[11px] font-bold text-[#0F172A] hover:bg-[#0063FD] hover:text-white transition-colors border border-[#E2E8F0]"
           >
             <span>Xem thông số chi tiết đầy đủ</span>
             <ChevronRight className="h-3 w-3" />
