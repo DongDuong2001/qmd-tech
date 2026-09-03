@@ -170,17 +170,16 @@ export function Header() {
 
             {/* Cart Button with Count Badge */}
             <Link href="/gio-hang">
-              <div className="relative flex h-9 sm:h-10 items-center gap-2 rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] px-2.5 sm:px-3 text-[#0F172A] hover:border-[#0063FD] hover:text-[#0063FD] transition-all shadow-xs">
-                <div className="relative">
-                  <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span className="absolute -top-2 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#0063FD] text-[9px] sm:text-[10px] font-black text-white">
+              <div className="group relative flex h-9 sm:h-10 items-center gap-2 rounded-xl border border-[#CBD5E1] bg-[#FFFFFF] px-2.5 sm:px-3 text-[#0F172A] hover:border-[#0063FD] hover:bg-[#EFF6FF] transition-all shadow-xs">
+                <div className="relative flex items-center justify-center">
+                  <ShoppingCart className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-[#0F172A] group-hover:text-[#0063FD] transition-colors" />
+                  <span className="absolute -top-2 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#0063FD] px-1 text-[9px] font-mono font-black text-white shadow-xs">
                     2
                   </span>
                 </div>
-                <div className="hidden md:flex flex-col text-left">
-                  <span className="text-[10px] text-[#64748B]">Giỏ hàng</span>
-                  <span className="font-mono text-xs font-bold text-[#0063FD]">14.280.000₫</span>
-                </div>
+                <span className="hidden xl:inline font-mono text-xs font-bold text-[#0063FD]">
+                  14.280.000₫
+                </span>
               </div>
             </Link>
 
