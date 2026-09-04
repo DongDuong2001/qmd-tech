@@ -30,19 +30,61 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "QMD-Tech — Gaming PC & Linh Kiện Máy Tính Chuyên Nghiệp",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://qmdtech.vercel.app"),
+  title: {
+    default: "QMD-Tech — Gaming PC & Linh Kiện Máy Tính Chuyên Nghiệp",
+    template: "%s | QMD-Tech Gaming & Workstation",
+  },
   description:
-    "Hệ thống bán lẻ linh kiện PC Gaming chính hãng: CPU, VGA RTX 40 Series, Mainboard, RAM DDR5, SSD NVMe và công cụ Custom PC Builder thông minh.",
+    "Hệ thống phân phối linh kiện PC Gaming và máy tính đồ họa chính hãng: CPU Intel/Ryzen, Card RTX 40 Series, Mainboard, RAM DDR5, SSD NVMe và công cụ Custom PC Builder thông minh.",
   keywords: [
     "QMD-Tech",
     "PC Gaming",
-    "KCCShop",
-    "GearVN",
+    "Build PC",
     "RTX 4070 Ti Super",
     "Ryzen 7 7800X3D",
-    "Build PC gaming",
     "Linh kiện máy tính",
+    "Mainboard B650",
+    "RAM DDR5",
   ],
+  authors: [{ name: "QMD-Tech", url: "https://qmdtech.vercel.app" }],
+  creator: "QMD-Tech",
+  publisher: "QMD-Tech",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  openGraph: {
+    type: "website",
+    locale: "vi_VN",
+    url: "https://qmdtech.vercel.app",
+    siteName: "QMD-Tech",
+    title: "QMD-Tech — Gaming PC & Linh Kiện Máy Tính Chuyên Nghiệp",
+    description:
+      "Hệ thống phân phối linh kiện PC Gaming và máy tính đồ họa chính hãng, bảo hành 30 ngày đổi mới.",
+    images: [
+      {
+        url: "/qmdtech_logo.png",
+        width: 800,
+        height: 800,
+        alt: "QMD-Tech Official Logo",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "QMD-Tech — Gaming PC & Linh Kiện Máy Tính Chuyên Nghiệp",
+    description:
+      "Hệ thống phân phối linh kiện PC Gaming và máy tính đồ họa chính hãng.",
+    images: ["/qmdtech_logo.png"],
+  },
   icons: {
     icon: [
       { url: "/qmdtech_logo.png", type: "image/png" },
