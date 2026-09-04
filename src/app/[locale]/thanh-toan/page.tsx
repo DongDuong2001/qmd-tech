@@ -5,7 +5,6 @@ import { Link } from "@/i18n/routing";
 import { useLocale, useTranslations } from "next-intl";
 import { i18nService } from "@/modules/i18n/service";
 import { orderService } from "@/modules/orders/service";
-import { catalogService } from "@/modules/catalog/service";
 import { CartItem } from "@/shared/types";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, ShieldCheck, CreditCard, Banknote, Smartphone } from "lucide-react";
@@ -34,17 +33,12 @@ export default function CheckoutPage() {
     async function loadCartItems() {
       setLoading(true);
       try {
-        const { products } = await catalogService.getProducts({ limit: 2 });
-        if (products.length > 0) {
-          setItems([
-            {
-              product_id: products[0].id,
-              product: products[0],
-              quantity: 1,
-              unit_price_vnd: products[0].price_vnd,
-              total_price_vnd: products[0].price_vnd,
-            },
-          ]);
+        const res = await fetch("/api/cart");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.items && data.items.length > 0) {
+            setItems(data.items);
+          }
         }
       } catch (err) {
         console.warn("Failed to load checkout items:", err);
@@ -81,6 +75,9 @@ export default function CheckoutPage() {
         notes: form.notes,
       });
 
+      // Clear the secure HttpOnly cart cookie upon successful checkout
+      await fetch("/api/cart", { method: "DELETE" }).catch(() => {});
+
       setCreatedOrderCode(order.order_code);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -101,7 +98,7 @@ export default function CheckoutPage() {
         </h1>
         <div className="rounded-xl border border-[#E2E8F0] bg-[#FFFFFF] p-6 space-y-3 font-mono text-sm shadow-xs">
           <div className="text-[#64748B]">{t("checkout.orderCode")}</div>
-          <div className="text-xl font-bold text-[#B45309]">{createdOrderCode}</div>
+          <div className="text-xl font-bold text-[#0063FD]">{createdOrderCode}</div>
           <div className="text-xs text-[#64748B] pt-2 border-t border-[#E2E8F0]">
             Tổng thanh toán: <strong className="text-[#0F172A]">{i18nService.formatPrice(totalVnd, locale)}</strong> (Phương thức: {paymentMethod.toUpperCase()})
           </div>
