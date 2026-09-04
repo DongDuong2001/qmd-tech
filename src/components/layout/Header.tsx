@@ -19,6 +19,7 @@ import {
   Truck,
   Award,
   Tag,
+  BookOpen,
 } from "lucide-react";
 
 export function Header() {
@@ -60,6 +61,14 @@ export function Header() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+            <Link
+              href="/blog"
+              className="hidden sm:flex items-center gap-1 text-[#475569] hover:text-[#0063FD] transition-colors font-medium"
+            >
+              <BookOpen className="h-3.5 w-3.5 text-[#0063FD]" />
+              Blog Công Nghệ
+            </Link>
+            <span className="hidden sm:inline-block text-[#CBD5E1]">|</span>
             <Link
               href="/bao-hanh"
               className="hidden md:flex items-center gap-1 text-[#475569] hover:text-[#0063FD] transition-colors"
@@ -222,9 +231,17 @@ export function Header() {
               Build PC
             </Link>
             <Link
-              href="/khuyen-mai"
+              href="/blog"
               onClick={() => setMobileMenuOpen(false)}
               className="flex items-center gap-2 rounded-lg bg-[#EFF6FF] border border-[#BFDBFE] p-2.5 text-[#0063FD]"
+            >
+              <BookOpen className="h-4 w-4 text-[#0063FD]" />
+              Blog Công Nghệ
+            </Link>
+            <Link
+              href="/khuyen-mai"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-2 rounded-lg bg-[#F8FAFC] border border-[#CBD5E1] p-2.5 text-[#0F172A]"
             >
               <Tag className="h-4 w-4 text-[#0063FD]" />
               Khuyến Mãi
@@ -236,14 +253,6 @@ export function Header() {
             >
               <Award className="h-4 w-4 text-[#0063FD]" />
               Tất cả danh mục
-            </Link>
-            <Link
-              href="/bao-hanh"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-2 rounded-lg bg-[#F8FAFC] border border-[#CBD5E1] p-2.5 text-[#0F172A]"
-            >
-              <ShieldCheck className="h-4 w-4 text-[#16A34A]" />
-              Bảo hành
             </Link>
           </div>
         </div>

@@ -1,6 +1,17 @@
 import { describe, it, expect } from "vitest";
 import { checkRateLimit } from "../rateLimiter";
-import { getSecureCookieOptions, getClearCookieOptions, REMEMBER_ME_MAX_AGE, DEFAULT_SESSION_MAX_AGE } from "../cookies";
+import {
+  getSecureCookieOptions,
+  getClearCookieOptions,
+  getCartCookieOptions,
+  getAdminCookieOptions,
+  serializeCartData,
+  deserializeCartData,
+  REMEMBER_ME_MAX_AGE,
+  DEFAULT_SESSION_MAX_AGE,
+  CART_MAX_AGE,
+  ADMIN_SESSION_MAX_AGE,
+} from "../cookies";
 
 describe("Security Suite", () => {
   describe("RateLimiter", () => {
@@ -32,9 +43,36 @@ describe("Security Suite", () => {
       expect(rememberOpts.httpOnly).toBe(true);
       expect(rememberOpts.maxAge).toBe(REMEMBER_ME_MAX_AGE);
 
+      const cartOpts = getCartCookieOptions();
+      expect(cartOpts.httpOnly).toBe(true);
+      expect(cartOpts.maxAge).toBe(CART_MAX_AGE);
+
+      const adminOpts = getAdminCookieOptions();
+      expect(adminOpts.httpOnly).toBe(true);
+      expect(adminOpts.maxAge).toBe(ADMIN_SESSION_MAX_AGE);
+
       const clearOpts = getClearCookieOptions();
       expect(clearOpts.maxAge).toBe(0);
       expect(clearOpts.httpOnly).toBe(true);
     });
+
+    it("should correctly serialize and deserialize cart items without localStorage", () => {
+      const mockItems = [
+        { product_id: "prod-1", quantity: 2 },
+        { product_id: "prod-2", quantity: 1 },
+      ];
+
+      const serialized = serializeCartData(mockItems);
+      expect(typeof serialized).toBe("string");
+      expect(serialized.length).toBeGreaterThan(0);
+
+      const deserialized = deserializeCartData(serialized);
+      expect(deserialized).toEqual(mockItems);
+
+      // Handle invalid or corrupted cookies gracefully
+      expect(deserializeCartData(undefined)).toEqual([]);
+      expect(deserializeCartData("invalid_base64_json!@#$")).toEqual([]);
+    });
   });
 });
+

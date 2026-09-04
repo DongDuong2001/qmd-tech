@@ -5,7 +5,6 @@ import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import { useLocale, useTranslations } from "next-intl";
 import { cartService } from "@/modules/cart/service";
-import { catalogService } from "@/modules/catalog/service";
 import { i18nService } from "@/modules/i18n/service";
 import { CartItem } from "@/shared/types";
 import { Button } from "@/components/ui/button";
@@ -20,42 +19,65 @@ export default function CartPage() {
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState("");
 
-  useEffect(() => {
-    async function initCart() {
-      setLoading(true);
-      try {
-        const { products } = await catalogService.getProducts({ limit: 2 });
-        if (products.length > 0) {
-          setItems([
-            {
-              product_id: products[0].id,
-              product: products[0],
-              quantity: 1,
-              unit_price_vnd: products[0].price_vnd,
-              total_price_vnd: products[0].price_vnd,
-            },
-          ]);
+  // Load Cart from Secure HttpOnly Cookie
+  const fetchCart = async () => {
+    try {
+      const res = await fetch("/api/cart");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setItems(data.items || []);
         }
-      } catch (err) {
-        console.warn("Failed to initialize cart:", err);
-      } finally {
-        setLoading(false);
       }
+    } catch (err) {
+      console.warn("Failed to fetch cart from cookie:", err);
+    } finally {
+      setLoading(false);
     }
-    initCart();
+  };
+
+  useEffect(() => {
+    fetchCart();
   }, []);
 
   const calculation = cartService.calculateCart(items, appliedCoupon);
 
-  const handleUpdateQuantity = (productId: string, delta: number) => {
+  const handleUpdateQuantity = async (productId: string, delta: number) => {
     const current = items.find((i) => i.product_id === productId);
     if (!current) return;
     const newQty = current.quantity + delta;
-    setItems(cartService.updateQuantity(items, productId, newQty));
+
+    try {
+      const res = await fetch("/api/cart", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ product_id: productId, quantity: newQty }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setItems(data.items || []);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to update quantity:", err);
+    }
   };
 
-  const handleRemoveItem = (productId: string) => {
-    setItems(cartService.removeItem(items, productId));
+  const handleRemoveItem = async (productId: string) => {
+    try {
+      const res = await fetch(`/api/cart?product_id=${productId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setItems(data.items || []);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to remove item:", err);
+    }
   };
 
   const handleApplyCoupon = (e: React.FormEvent) => {
@@ -66,7 +88,7 @@ export default function CartPage() {
   if (loading) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-20 text-center text-xs text-[#64748B]">
-        Đang tải thông tin giỏ hàng từ cơ sở dữ liệu...
+        Đang tải thông tin giỏ hàng an toàn từ hệ thống...
       </div>
     );
   }

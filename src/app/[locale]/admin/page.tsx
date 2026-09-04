@@ -18,9 +18,12 @@ import {
   EventBanner,
   PrebuiltDeal,
   Supplier,
+  BlogPost,
+  CreateBlogPostInput,
 } from "@/shared/types";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
+import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import {
   LayoutDashboard,
   Package,
@@ -54,11 +57,15 @@ import {
   Pencil,
   Eye,
   EyeOff,
+  LogOut,
+  X,
+  BookOpen,
+  FileText,
 } from "lucide-react";
 
 export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState<
-    "overview" | "products" | "categories" | "banners" | "deals" | "suppliers" | "orders" | "reviews" | "security"
+    "overview" | "products" | "categories" | "banners" | "deals" | "suppliers" | "blogs" | "orders" | "reviews" | "security"
   >("overview");
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -68,6 +75,7 @@ export default function AdminDashboardPage() {
   const [banners, setBanners] = useState<EventBanner[]>([]);
   const [deals, setDeals] = useState<PrebuiltDeal[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [blogs, setBlogs] = useState<BlogPost[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -78,6 +86,7 @@ export default function AdminDashboardPage() {
   const [brandFilter, setBrandFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [orderStatusFilter, setOrderStatusFilter] = useState<string>("all");
+  const [blogCategoryFilter, setBlogCategoryFilter] = useState("all");
 
   // Modals state
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
@@ -87,6 +96,42 @@ export default function AdminDashboardPage() {
   const [editingBannerId, setEditingBannerId] = useState<string | null>(null);
   const [isAddDealOpen, setIsAddDealOpen] = useState(false);
   const [isAddSupplierOpen, setIsAddSupplierOpen] = useState(false);
+  const [isAddBlogOpen, setIsAddBlogOpen] = useState(false);
+  const [isEditBlogOpen, setIsEditBlogOpen] = useState(false);
+  const [editingBlogId, setEditingBlogId] = useState<string | null>(null);
+
+  // Blog Form State
+  const [blogForm, setBlogForm] = useState<CreateBlogPostInput>({
+    title_vi: "",
+    title_en: "",
+    slug: "",
+    excerpt_vi: "",
+    excerpt_en: "",
+    content_html_vi: "<h2>1. Tổng quan về công nghệ</h2>\n<p>Nội dung giới thiệu chi tiết về linh kiện và giải pháp phần cứng...</p>",
+    content_html_en: "",
+    cover_image: "https://images.unsplash.com/photo-1587202372634-32705e3bf49c?auto=format&fit=crop&w=1200&q=80",
+    author_name: "QMD Hardware Team",
+    category: "Kiến Thức Phần Cứng",
+    tags: ["PC Gaming", "Hardware"],
+    is_published: true,
+    reading_time_mins: 5,
+  });
+
+  const [editBlogForm, setEditBlogForm] = useState<CreateBlogPostInput>({
+    title_vi: "",
+    title_en: "",
+    slug: "",
+    excerpt_vi: "",
+    excerpt_en: "",
+    content_html_vi: "",
+    content_html_en: "",
+    cover_image: "",
+    author_name: "QMD Hardware Team",
+    category: "Kiến Thức Phần Cứng",
+    tags: [],
+    is_published: true,
+    reading_time_mins: 5,
+  });
 
   // Edit Banner Form State
   const [editBannerForm, setEditBannerForm] = useState<CreateBannerInput>({
@@ -182,7 +227,7 @@ export default function AdminDashboardPage() {
   const loadAllData = async () => {
     setIsRefreshing(true);
     try {
-      const [p, c, o, r, b, d, s] = await Promise.all([
+      const [p, c, o, r, b, d, s, bl] = await Promise.all([
         adminService.getProducts(),
         adminService.getCategories(),
         adminService.getOrders(),
@@ -190,6 +235,7 @@ export default function AdminDashboardPage() {
         adminService.getBanners(),
         adminService.getPrebuiltDeals(),
         adminService.getSuppliers(),
+        adminService.getBlogPosts(),
       ]);
       setProducts(p);
       setCategories(c);
@@ -198,6 +244,7 @@ export default function AdminDashboardPage() {
       setBanners(b);
       setDeals(d);
       setSuppliers(s);
+      setBlogs(bl);
 
       if (c.length > 0 && !productForm.category_id) {
         setProductForm((prev) => ({ ...prev, category_id: c[0].id }));
@@ -500,6 +547,83 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // Blog Posts Handlers
+  const handleCreateBlogPost = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await adminService.createBlogPost(blogForm);
+      showNotification("success", "Đã xuất bản bài viết công nghệ mới!");
+      setIsAddBlogOpen(false);
+      setBlogForm({
+        title_vi: "",
+        title_en: "",
+        slug: "",
+        excerpt_vi: "",
+        excerpt_en: "",
+        content_html_vi: "<h2>1. Tổng quan về công nghệ</h2>\n<p>Nội dung giới thiệu chi tiết...</p>",
+        content_html_en: "",
+        cover_image: "https://images.unsplash.com/photo-1587202372634-32705e3bf49c?auto=format&fit=crop&w=1200&q=80",
+        author_name: "QMD Hardware Team",
+        category: "Kiến Thức Phần Cứng",
+        tags: ["PC Gaming", "Hardware"],
+        is_published: true,
+        reading_time_mins: 5,
+      });
+      loadAllData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi tạo bài viết: " + msg);
+    }
+  };
+
+  const handleUpdateBlogPost = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingBlogId) return;
+    try {
+      await adminService.updateBlogPost(editingBlogId, editBlogForm);
+      showNotification("success", "Đã lưu thay đổi bài viết thành công!");
+      setIsEditBlogOpen(false);
+      setEditingBlogId(null);
+      loadAllData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi cập nhật bài viết: " + msg);
+    }
+  };
+
+  const handleTogglePublishBlog = async (blog: BlogPost) => {
+    try {
+      await adminService.updateBlogPost(blog.id, { is_published: !blog.is_published });
+      showNotification("success", `Đã ${blog.is_published ? "tạm ẩn bài viết về bản nháp" : "công khai bài viết lên trang web"}!`);
+      loadAllData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi thay đổi trạng thái: " + msg);
+    }
+  };
+
+  const handleDeleteBlogPost = async (id: string) => {
+    if (!confirm("Bạn có chắc muốn xóa bài viết công nghệ này?")) return;
+    try {
+      await adminService.deleteBlogPost(id);
+      showNotification("success", "Đã xóa bài viết thành công!");
+      loadAllData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi xóa bài viết: " + msg);
+    }
+  };
+
+  const handleAdminLogout = async () => {
+    if (!confirm("Bạn có chắc chắn muốn đăng xuất khỏi hệ thống Quản trị?")) return;
+    try {
+      await fetch("/api/auth/admin-login", { method: "DELETE" });
+      window.location.href = "/vi/admin/login";
+    } catch {
+      window.location.href = "/vi/admin/login";
+    }
+  };
+
   // Filtered Products
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
@@ -518,6 +642,19 @@ export default function AdminDashboardPage() {
     if (orderStatusFilter === "all") return orders;
     return orders.filter((o) => o.status === orderStatusFilter);
   }, [orders, orderStatusFilter]);
+
+  // Filtered Blogs
+  const filteredBlogs = useMemo(() => {
+    return blogs.filter((b) => {
+      const matchCat = blogCategoryFilter === "all" || b.category === blogCategoryFilter;
+      const matchSearch =
+        searchQuery === "" ||
+        b.title_vi.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        b.author_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        b.slug.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchCat && matchSearch;
+    });
+  }, [blogs, blogCategoryFilter, searchQuery]);
 
   // Financial & Inventory Statistics
   const totalRevenue = orders
@@ -666,6 +803,24 @@ export default function AdminDashboardPage() {
               </span>
             </button>
 
+            {/* BLOGS & TECH NEWS TAB */}
+            <button
+              onClick={() => setActiveTab("blogs")}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
+                activeTab === "blogs"
+                  ? "bg-[#0063FD] text-white shadow-xs font-black"
+                  : "hover:bg-[#1E293B] hover:text-white"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <FileText className="h-4 w-4" />
+                <span>Bài viết & Tin tức</span>
+              </div>
+              <span className="rounded-full bg-[#0063FD] px-2 py-0.5 text-[10px] font-mono text-white font-black">
+                {blogs.length}
+              </span>
+            </button>
+
             <button
               onClick={() => setActiveTab("orders")}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
@@ -731,14 +886,24 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          <Link
-            href="/"
-            target="_blank"
-            className="flex items-center justify-center gap-1.5 w-full rounded-lg border border-[#334155] bg-[#1E293B] py-2 text-xs font-bold text-slate-200 hover:bg-[#334155] transition-colors"
-          >
-            <ExternalLink className="h-3.5 w-3.5 text-[#38BDF8]" />
-            Xem trang bán hàng
-          </Link>
+          <div className="grid grid-cols-2 gap-2">
+            <Link
+              href="/"
+              target="_blank"
+              className="flex items-center justify-center gap-1 w-full rounded-lg border border-[#334155] bg-[#1E293B] py-2 text-[11px] font-bold text-slate-200 hover:bg-[#334155] transition-colors"
+            >
+              <ExternalLink className="h-3.5 w-3.5 text-[#38BDF8]" />
+              Web Shop
+            </Link>
+            <button
+              onClick={handleAdminLogout}
+              className="flex items-center justify-center gap-1 w-full rounded-lg border border-[#475569] bg-[#1E293B] py-2 text-[11px] font-bold text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 transition-colors"
+              title="Đăng xuất khỏi hệ thống"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              Đăng xuất
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -760,6 +925,7 @@ export default function AdminDashboardPage() {
               {activeTab === "banners" && "Quản Lý Banner & Poster Sự Kiện"}
               {activeTab === "deals" && "Cấu Hình PC Ráp Sẵn & Bố Trí Trang Chủ"}
               {activeTab === "suppliers" && "Danh Sách Nguồn Hàng & Nhà Phân Phối"}
+              {activeTab === "blogs" && "Quản Lý Bài Viết & Tin Công Nghệ"}
               {activeTab === "orders" && "Trung Tâm Xử Lý Đơn Hàng"}
               {activeTab === "reviews" && "Kiểm Duyệt Đánh Giá Khách Hàng"}
               {activeTab === "security" && "Trạng Thái Bảo Mật & Hệ Thống"}
@@ -831,6 +997,17 @@ export default function AdminDashboardPage() {
                 Thêm Nhà Cung Cấp
               </Button>
             )}
+            {activeTab === "blogs" && (
+              <Button
+                onClick={() => setIsAddBlogOpen(true)}
+                variant="primary"
+                size="sm"
+                className="gap-1 text-xs font-black shadow-xs uppercase"
+              >
+                <Plus className="h-4 w-4" />
+                Viết Bài Mới
+              </Button>
+            )}
           </div>
         </header>
 
@@ -853,8 +1030,8 @@ export default function AdminDashboardPage() {
                 )}
                 <span>{feedbackMsg.text}</span>
               </div>
-              <button onClick={() => setFeedbackMsg(null)} className="text-slate-400 hover:text-slate-600">
-                ✕
+              <button onClick={() => setFeedbackMsg(null)} className="text-slate-400 hover:text-slate-600 p-0.5 rounded">
+                <X className="h-3.5 w-3.5" />
               </button>
             </div>
           )}
@@ -1483,6 +1660,190 @@ export default function AdminDashboardPage() {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* TAB: BLOG POSTS & HARDWARE INSIGHTS (Rich Text Publishing)               */}
+          {/* ========================================================================= */}
+          {activeTab === "blogs" && (
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-[#E2E8F0] pb-3">
+                {/* Category Filters */}
+                <div className="flex flex-wrap gap-1.5 text-xs font-bold">
+                  {[
+                    { id: "all", label: "Tất cả bài viết" },
+                    { id: "Kiến Thức Phần Cứng", label: "Kiến thức phần cứng" },
+                    { id: "Đánh Giá & Review", label: "Đánh giá & Review" },
+                    { id: "Hướng Dẫn Build PC", label: "Hướng dẫn Build PC" },
+                    { id: "Tin Công Nghệ", label: "Tin công nghệ" },
+                  ].map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setBlogCategoryFilter(cat.id)}
+                      className={`px-3 py-1.5 rounded-lg transition-colors text-xs font-bold ${
+                        blogCategoryFilter === cat.id
+                          ? "bg-[#0063FD] text-white shadow-xs"
+                          : "bg-white border border-[#CBD5E1] text-[#475569] hover:text-[#0F172A]"
+                      }`}
+                    >
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+
+                <Button
+                  onClick={() => setIsAddBlogOpen(true)}
+                  variant="primary"
+                  size="sm"
+                  className="gap-1.5 text-xs font-black uppercase shadow-xs self-start sm:self-auto"
+                >
+                  <Plus className="h-4 w-4" />
+                  Soạn Bài Viết Mới
+                </Button>
+              </div>
+
+              {filteredBlogs.length === 0 ? (
+                <div className="rounded-2xl border border-[#E2E8F0] bg-white p-12 text-center space-y-3 shadow-xs">
+                  <BookOpen className="mx-auto h-12 w-12 text-[#94A3B8]" />
+                  <h4 className="text-sm font-bold text-[#0F172A]">Chưa có bài viết công nghệ nào</h4>
+                  <p className="text-xs text-[#64748B] max-w-md mx-auto">
+                    Hãy sử dụng Trình Soạn Thảo Rich Text Editor để tạo các bài viết review linh kiện, hướng dẫn lắp ráp và tin tức phần cứng.
+                  </p>
+                  <Button
+                    onClick={() => setIsAddBlogOpen(true)}
+                    variant="primary"
+                    size="sm"
+                    className="font-bold text-xs"
+                  >
+                    Viết Bài Đầu Tiên
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredBlogs.map((blog) => (
+                    <article
+                      key={blog.id}
+                      className="rounded-xl border border-[#E2E8F0] bg-white overflow-hidden shadow-xs hover:border-[#0063FD] hover:shadow-md transition-all flex flex-col justify-between"
+                    >
+                      <div>
+                        {/* Cover Image */}
+                        <div className="relative aspect-[16/9] w-full bg-[#0F172A] overflow-hidden">
+                          {blog.cover_image && (
+                            <Image
+                              src={blog.cover_image}
+                              alt={blog.title_vi}
+                              fill
+                              sizes="(max-width: 768px) 100vw, 33vw"
+                              className="object-cover"
+                            />
+                          )}
+                          <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+                            <span className="rounded bg-[#0063FD] px-2 py-0.5 text-[9px] font-black uppercase text-white shadow-xs">
+                              {blog.category}
+                            </span>
+                          </div>
+                          <div className="absolute top-2.5 right-2.5">
+                            <span
+                              className={`rounded px-2 py-0.5 text-[9px] font-bold uppercase shadow-xs ${
+                                blog.is_published
+                                  ? "bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC]"
+                                  : "bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A]"
+                              }`}
+                            >
+                              {blog.is_published ? "Đã Xuất Bản" : "Bản Nháp"}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Content Header */}
+                        <div className="p-4 space-y-2">
+                          <h4 className="font-bold text-sm text-[#0F172A] line-clamp-2 leading-snug">
+                            {blog.title_vi}
+                          </h4>
+                          <p className="text-xs text-[#64748B] line-clamp-2 leading-relaxed">
+                            {blog.excerpt_vi}
+                          </p>
+
+                          <div className="flex items-center gap-3 text-[11px] text-[#64748B] pt-2 border-t border-[#F1F5F9]">
+                            <span className="font-bold text-[#0F172A]">{blog.author_name}</span>
+                            <span>•</span>
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3 w-3 text-[#0063FD]" />
+                              {blog.reading_time_mins} phút đọc
+                            </span>
+                            <span>•</span>
+                            <span className="flex items-center gap-1">
+                              <Eye className="h-3 w-3 text-[#64748B]" />
+                              {blog.views_count || 0} lượt xem
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Card Actions */}
+                      <div className="border-t border-[#E2E8F0] bg-[#F8FAFC] p-3 flex items-center justify-between gap-2">
+                        <Link
+                          href={`/blog/${blog.slug}`}
+                          target="_blank"
+                          className="text-[11px] font-bold text-[#0063FD] hover:underline flex items-center gap-1"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" />
+                          Xem bài
+                        </Link>
+
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => handleTogglePublishBlog(blog)}
+                            className={`p-1.5 rounded text-xs font-bold transition-colors ${
+                              blog.is_published
+                                ? "text-[#64748B] hover:text-[#0F172A] hover:bg-[#E2E8F0]"
+                                : "text-[#16A34A] hover:bg-[#DCFCE7]"
+                            }`}
+                            title={blog.is_published ? "Tạm ẩn về bản nháp" : "Công khai bài viết"}
+                          >
+                            {blog.is_published ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              setEditingBlogId(blog.id);
+                              setEditBlogForm({
+                                title_vi: blog.title_vi,
+                                title_en: blog.title_en || "",
+                                slug: blog.slug,
+                                excerpt_vi: blog.excerpt_vi,
+                                excerpt_en: blog.excerpt_en || "",
+                                content_html_vi: blog.content_html_vi,
+                                content_html_en: blog.content_html_en || "",
+                                cover_image: blog.cover_image,
+                                author_name: blog.author_name,
+                                category: blog.category,
+                                tags: blog.tags || [],
+                                is_published: blog.is_published,
+                                reading_time_mins: blog.reading_time_mins || 5,
+                              });
+                              setIsEditBlogOpen(true);
+                            }}
+                            className="p-1.5 rounded text-[#0063FD] hover:bg-[#EFF6FF] transition-colors"
+                            title="Chỉnh sửa bài viết"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button>
+
+                          <button
+                            onClick={() => handleDeleteBlogPost(blog.id)}
+                            className="p-1.5 rounded text-rose-600 hover:bg-rose-50 transition-colors"
+                            title="Xóa bài viết"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -2320,6 +2681,276 @@ export default function AdminDashboardPage() {
           <div className="pt-2">
             <Button type="submit" variant="primary" size="md" className="w-full font-black uppercase text-xs">
               Lưu Thông Tin Nhà Cung Cấp
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* ========================================================================= */}
+      {/* ADD BLOG POST MODAL (Rich Text Editor)                                    */}
+      {/* ========================================================================= */}
+      <Modal
+        isOpen={isAddBlogOpen}
+        onClose={() => setIsAddBlogOpen(false)}
+        title="SOẠN BÀI VIẾT CÔNG NGHỆ MỚI (RICH TEXT)"
+        description="Đăng bài review linh kiện, hướng dẫn tự lắp ráp máy tính và tin tức phần cứng"
+        maxWidth="4xl"
+      >
+        <form onSubmit={handleCreateBlogPost} className="space-y-4 text-xs">
+          <div>
+            <label className="block font-bold text-[#475569] mb-1">Tiêu đề bài viết (Tiếng Việt) *</label>
+            <input
+              required
+              type="text"
+              placeholder="VD: Hướng Dẫn Chọn Nguồn PSU Chuẩn ATX 3.0 & Cáp 12VHPWR Cho RTX 40 Series"
+              value={blogForm.title_vi}
+              onChange={(e) => {
+                const title = e.target.value;
+                const autoSlug = title
+                  .toLowerCase()
+                  .normalize("NFD")
+                  .replace(/[\u0300-\u036f]/g, "")
+                  .replace(/[đĐ]/g, "d")
+                  .replace(/[^a-z0-9\s-]/g, "")
+                  .trim()
+                  .replace(/\s+/g, "-");
+                setBlogForm({ ...blogForm, title_vi: title, slug: blogForm.slug || autoSlug });
+              }}
+              className="w-full rounded-lg border border-[#CBD5E1] p-2.5 text-[#0F172A] focus:border-[#0063FD] focus:outline-none text-sm font-bold"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block font-bold text-[#475569] mb-1">Slug URL (Đường dẫn tĩnh) *</label>
+              <input
+                required
+                type="text"
+                placeholder="huong-dan-chon-nguon-psu"
+                value={blogForm.slug}
+                onChange={(e) => setBlogForm({ ...blogForm, slug: e.target.value.toLowerCase().trim() })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+              />
+            </div>
+            <div>
+              <label className="block font-bold text-[#475569] mb-1">Chuyên mục bài viết *</label>
+              <select
+                value={blogForm.category}
+                onChange={(e) => setBlogForm({ ...blogForm, category: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none bg-white font-bold"
+              >
+                <option value="Kiến Thức Phần Cứng">Kiến Thức Phần Cứng</option>
+                <option value="Đánh Giá & Review">Đánh Giá & Review</option>
+                <option value="Hướng Dẫn Build PC">Hướng Dẫn Build PC</option>
+                <option value="Tin Công Nghệ">Tin Công Nghệ</option>
+              </select>
+            </div>
+            <div>
+              <label className="block font-bold text-[#475569] mb-1">Tác giả biên tập</label>
+              <input
+                type="text"
+                value={blogForm.author_name}
+                onChange={(e) => setBlogForm({ ...blogForm, author_name: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+            <div className="sm:col-span-2">
+              <label className="block font-bold text-[#475569] mb-1">Ảnh đại diện bài viết URL (Cover Image) *</label>
+              <input
+                required
+                type="url"
+                value={blogForm.cover_image}
+                onChange={(e) => setBlogForm({ ...blogForm, cover_image: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+              />
+            </div>
+            <div>
+              <label className="block font-bold text-[#475569] mb-1">Thời gian đọc ước tính</label>
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="number"
+                  value={blogForm.reading_time_mins}
+                  onChange={(e) => setBlogForm({ ...blogForm, reading_time_mins: parseInt(e.target.value || "5", 10) })}
+                  className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono text-center"
+                />
+                <span className="text-xs text-[#64748B] shrink-0">phút</span>
+              </div>
+            </div>
+          </div>
+
+          {blogForm.cover_image && (
+            <div className="relative aspect-[21/9] w-full max-h-40 overflow-hidden rounded-xl border border-[#E2E8F0] bg-[#0F172A]">
+              <Image src={blogForm.cover_image} alt="Preview" fill sizes="600px" className="object-cover" />
+            </div>
+          )}
+
+          <div>
+            <label className="block font-bold text-[#475569] mb-1">Đoạn tóm tắt mở đầu (Excerpt) *</label>
+            <textarea
+              required
+              rows={2}
+              placeholder="Tóm tắt ngắn gọn nội dung bài viết hiển thị ở thẻ ngoài danh mục..."
+              value={blogForm.excerpt_vi}
+              onChange={(e) => setBlogForm({ ...blogForm, excerpt_vi: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none leading-relaxed"
+            />
+          </div>
+
+          {/* Rich Text Editor Content */}
+          <div>
+            <label className="block font-bold text-[#475569] mb-1.5">
+              Nội dung bài viết chi tiết (Trình Soạn Thảo Rich Text) *
+            </label>
+            <RichTextEditor
+              value={blogForm.content_html_vi}
+              onChange={(html) => setBlogForm({ ...blogForm, content_html_vi: html })}
+            />
+          </div>
+
+          <div className="flex items-center justify-between pt-3 border-t border-[#E2E8F0]">
+            <label className="flex items-center gap-2 cursor-pointer font-bold text-[#0F172A]">
+              <input
+                type="checkbox"
+                checked={blogForm.is_published}
+                onChange={(e) => setBlogForm({ ...blogForm, is_published: e.target.checked })}
+                className="rounded border-[#CBD5E1] text-[#0063FD] focus:ring-[#0063FD] h-4 w-4"
+              />
+              <span>Xuất bản công khai lên trang web ngay</span>
+            </label>
+
+            <Button type="submit" variant="primary" size="md" className="font-black uppercase text-xs shadow-md">
+              Xuất Bản Bài Viết
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* ========================================================================= */}
+      {/* EDIT BLOG POST MODAL                                                      */}
+      {/* ========================================================================= */}
+      <Modal
+        isOpen={isEditBlogOpen}
+        onClose={() => setIsEditBlogOpen(false)}
+        title="CHỈNH SỬA BÀI VIẾT CÔNG NGHỆ"
+        description="Cập nhật nội dung bài viết, hình ảnh minh họa và trạng thái xuất bản"
+        maxWidth="4xl"
+      >
+        <form onSubmit={handleUpdateBlogPost} className="space-y-4 text-xs">
+          <div>
+            <label className="block font-bold text-[#475569] mb-1">Tiêu đề bài viết (Tiếng Việt) *</label>
+            <input
+              required
+              type="text"
+              value={editBlogForm.title_vi}
+              onChange={(e) => setEditBlogForm({ ...editBlogForm, title_vi: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] p-2.5 text-[#0F172A] focus:border-[#0063FD] focus:outline-none text-sm font-bold"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block font-bold text-[#475569] mb-1">Slug URL (Đường dẫn tĩnh) *</label>
+              <input
+                required
+                type="text"
+                value={editBlogForm.slug}
+                onChange={(e) => setEditBlogForm({ ...editBlogForm, slug: e.target.value.toLowerCase().trim() })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+              />
+            </div>
+            <div>
+              <label className="block font-bold text-[#475569] mb-1">Chuyên mục bài viết *</label>
+              <select
+                value={editBlogForm.category}
+                onChange={(e) => setEditBlogForm({ ...editBlogForm, category: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none bg-white font-bold"
+              >
+                <option value="Kiến Thức Phần Cứng">Kiến Thức Phần Cứng</option>
+                <option value="Đánh Giá & Review">Đánh Giá & Review</option>
+                <option value="Hướng Dẫn Build PC">Hướng Dẫn Build PC</option>
+                <option value="Tin Công Nghệ">Tin Công Nghệ</option>
+              </select>
+            </div>
+            <div>
+              <label className="block font-bold text-[#475569] mb-1">Tác giả biên tập</label>
+              <input
+                type="text"
+                value={editBlogForm.author_name}
+                onChange={(e) => setEditBlogForm({ ...editBlogForm, author_name: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+            <div className="sm:col-span-2">
+              <label className="block font-bold text-[#475569] mb-1">Ảnh đại diện bài viết URL (Cover Image) *</label>
+              <input
+                required
+                type="url"
+                value={editBlogForm.cover_image}
+                onChange={(e) => setEditBlogForm({ ...editBlogForm, cover_image: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+              />
+            </div>
+            <div>
+              <label className="block font-bold text-[#475569] mb-1">Thời gian đọc ước tính</label>
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="number"
+                  value={editBlogForm.reading_time_mins}
+                  onChange={(e) => setEditBlogForm({ ...editBlogForm, reading_time_mins: parseInt(e.target.value || "5", 10) })}
+                  className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono text-center"
+                />
+                <span className="text-xs text-[#64748B] shrink-0">phút</span>
+              </div>
+            </div>
+          </div>
+
+          {editBlogForm.cover_image && (
+            <div className="relative aspect-[21/9] w-full max-h-40 overflow-hidden rounded-xl border border-[#E2E8F0] bg-[#0F172A]">
+              <Image src={editBlogForm.cover_image} alt="Preview" fill sizes="600px" className="object-cover" />
+            </div>
+          )}
+
+          <div>
+            <label className="block font-bold text-[#475569] mb-1">Đoạn tóm tắt mở đầu (Excerpt) *</label>
+            <textarea
+              required
+              rows={2}
+              value={editBlogForm.excerpt_vi}
+              onChange={(e) => setEditBlogForm({ ...editBlogForm, excerpt_vi: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none leading-relaxed"
+            />
+          </div>
+
+          {/* Rich Text Editor Content */}
+          <div>
+            <label className="block font-bold text-[#475569] mb-1.5">
+              Nội dung bài viết chi tiết (Trình Soạn Thảo Rich Text) *
+            </label>
+            <RichTextEditor
+              value={editBlogForm.content_html_vi}
+              onChange={(html) => setEditBlogForm({ ...editBlogForm, content_html_vi: html })}
+            />
+          </div>
+
+          <div className="flex items-center justify-between pt-3 border-t border-[#E2E8F0]">
+            <label className="flex items-center gap-2 cursor-pointer font-bold text-[#0F172A]">
+              <input
+                type="checkbox"
+                checked={editBlogForm.is_published}
+                onChange={(e) => setEditBlogForm({ ...editBlogForm, is_published: e.target.checked })}
+                className="rounded border-[#CBD5E1] text-[#0063FD] focus:ring-[#0063FD] h-4 w-4"
+              />
+              <span>Xuất bản công khai lên trang web</span>
+            </label>
+
+            <Button type="submit" variant="primary" size="md" className="font-black uppercase text-xs shadow-md">
+              Lưu Thay Đổi Bài Viết
             </Button>
           </div>
         </form>

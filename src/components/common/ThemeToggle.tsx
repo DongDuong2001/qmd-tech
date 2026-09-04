@@ -16,10 +16,10 @@ export function ThemeToggle() {
     setIsLight(nextIsLight);
     if (nextIsLight) {
       document.documentElement.classList.add("light");
-      localStorage.setItem("qmd_theme", "light");
+      document.cookie = "qmd_theme=light; path=/; max-age=31536000; SameSite=Lax";
     } else {
       document.documentElement.classList.remove("light");
-      localStorage.setItem("qmd_theme", "dark");
+      document.cookie = "qmd_theme=dark; path=/; max-age=31536000; SameSite=Lax";
     }
   };
 
@@ -27,7 +27,7 @@ export function ThemeToggle() {
     <button
       onClick={toggleTheme}
       className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#2A3040] bg-[#131722] text-[#F2F4F8] hover:bg-[#1B2030] hover:text-[#3B82F6] hover:border-[#3B82F6] transition-colors"
-      title={isLight ? "Chuyển sang Dark Mode" : "Switch to Light Mode"}
+      title={isLight ? "Chuyen sang Dark Mode" : "Switch to Light Mode"}
       aria-label="Toggle theme"
     >
       {isLight ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
