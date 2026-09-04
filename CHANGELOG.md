@@ -1,3 +1,28 @@
+# [1.4.0](https://github.com/DongDuong2001/qmd-tech/compare/v1.3.0...v1.4.0) (2026-09-04)
+
+
+### Features
+
+* **admin:** add blog management tab and rich text article publishing modals ([0769478](https://github.com/DongDuong2001/qmd-tech/commit/0769478f69c8bdfd0f2593dd4ef02f1194d0d311))
+* **admin:** build rich text editor component with toolbar and live preview ([8592f98](https://github.com/DongDuong2001/qmd-tech/commit/8592f9802c0aa46a6b303a58275a71000dc441b9))
+* **admin:** create secure admin login portal with rate limiting feedback ([3e186ff](https://github.com/DongDuong2001/qmd-tech/commit/3e186ffe66746049ada9d85aa444befc41d8d216))
+* **api:** create httponly cookie backed cart endpoints ([cb517e7](https://github.com/DongDuong2001/qmd-tech/commit/cb517e763da5716a17e9ee02907e9a28749ea0b3))
+* **auth:** implement admin login api with rate limiting and secure session cookies ([1c96ac8](https://github.com/DongDuong2001/qmd-tech/commit/1c96ac84e1e6d959c2b75a645f3bea7666a34774))
+* **blog:** build storefront blog listing page with category filters and spotlight hero ([bde201a](https://github.com/DongDuong2001/qmd-tech/commit/bde201add21c84df45174f4bea88a87e62f54bcd))
+* **blog:** create dynamic article reader page with prose typography and share buttons ([59534f1](https://github.com/DongDuong2001/qmd-tech/commit/59534f169eb0d74530e62f50a9f1d4c4176fcccf))
+* **blog:** implement BlogService for database crud and view count analytics ([7e7d8e2](https://github.com/DongDuong2001/qmd-tech/commit/7e7d8e2cc0ebc2cdbc8ff4469b3e1a4a2f8c64e7))
+* **cart:** update storefront cart page to use httponly cookie api ([f33a25f](https://github.com/DongDuong2001/qmd-tech/commit/f33a25febc31e73d8661b048fdd3414cdbdc2a90))
+* **checkout:** connect checkout flow to httponly cookie cart state ([b4c5857](https://github.com/DongDuong2001/qmd-tech/commit/b4c5857f74bf2187cd2ddc1dd5128a244e145129))
+* **db:** add blog_posts table migration and rls policies ([e22ca68](https://github.com/DongDuong2001/qmd-tech/commit/e22ca6882ef6b0348cdc8d8f7a06983286e7c56c))
+* **middleware:** add admin route protection and session token validation ([7e9cd4f](https://github.com/DongDuong2001/qmd-tech/commit/7e9cd4fa17524526b60f07b82984348c08f8b5bf))
+* **navigation:** integrate blog links into header top bar, mobile menu, and footer ([e3c0a80](https://github.com/DongDuong2001/qmd-tech/commit/e3c0a801515fb6d83b2d9234a32e4e05278879b0))
+* **security:** implement httponly cart cookie serialization and cookie helpers ([3dc8da1](https://github.com/DongDuong2001/qmd-tech/commit/3dc8da1b26d52f87097c56ba4339d34c27638bd4))
+* **seo:** add dynamic sitemap and robots generator with blog and product routes ([b94ddc6](https://github.com/DongDuong2001/qmd-tech/commit/b94ddc636e20b221b8e2a7ee41d9208f112f4a7e))
+* **seo:** configure opengraph twitter metadata and verification tags in root layout ([1b1f182](https://github.com/DongDuong2001/qmd-tech/commit/1b1f18271a14ccd011bbce0c05bb46fd62fad65c))
+* **types:** add BlogPost and CreateBlogPostInput domain interfaces ([8103d04](https://github.com/DongDuong2001/qmd-tech/commit/8103d04da2cb1d72cd33c661c5516363a9d9eecc))
+* **ui:** add global localized error boundary component ([ee9bb89](https://github.com/DongDuong2001/qmd-tech/commit/ee9bb897788aa9dd01eb4fccaaa21f0e204cc33a))
+* **ui:** implement vending machine pure css 404 animation page ([60bdd73](https://github.com/DongDuong2001/qmd-tech/commit/60bdd73dec6caf9ce45fa15501c9e0df4fdd27b8))
+
 # [1.3.0](https://github.com/DongDuong2001/qmd-tech/compare/v1.2.0...v1.3.0) (2026-09-03)
 
 
