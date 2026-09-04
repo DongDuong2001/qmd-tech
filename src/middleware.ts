@@ -1,18 +1,45 @@
 import createMiddleware from "next-intl/middleware";
 import { routing } from "./i18n/routing";
 import { NextRequest, NextResponse } from "next/server";
+import { ADMIN_COOKIE_NAME } from "./shared/security/cookies";
 
 const intlMiddleware = createMiddleware(routing);
 
 export default function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // 1. Admin Route Guard
+  const isAdminRoute =
+    pathname.includes("/admin") && !pathname.includes("/admin/login");
+
+  if (isAdminRoute) {
+    const adminToken = request.cookies.get(ADMIN_COOKIE_NAME)?.value;
+    if (!adminToken) {
+      // Determine target locale (default to 'vi')
+      const segments = pathname.split("/").filter(Boolean);
+      const locale = segments[0] === "en" ? "en" : "vi";
+      const loginUrl = new URL(`/${locale}/admin/login`, request.url);
+      loginUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  // 2. Next-Intl Localization Routing
   const response = intlMiddleware(request) || NextResponse.next();
 
-  // Attach Security Hardening Headers
+  // 3. Attach Comprehensive Security Hardening Headers
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   response.headers.set("X-XSS-Protection", "1; mode=block");
   response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+
+  if (process.env.NODE_ENV === "production") {
+    response.headers.set(
+      "Strict-Transport-Security",
+      "max-age=31536000; includeSubDomains; preload"
+    );
+  }
 
   return response;
 }
