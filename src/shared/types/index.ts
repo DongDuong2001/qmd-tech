@@ -76,6 +76,8 @@ export interface Product {
   is_active?: boolean;
   warranty_months?: number;
   category?: Category;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export type PerformanceTier = "budget" | "mid_range" | "high_end" | "enthusiast";
@@ -210,4 +212,41 @@ export interface Supplier {
   notes?: string;
   created_at?: string;
 }
+
+export interface BlogPost {
+  id: string;
+  slug: string;
+  title_vi: string;
+  title_en?: string;
+  excerpt_vi: string;
+  excerpt_en?: string;
+  content_html_vi: string;
+  content_html_en?: string;
+  cover_image: string;
+  author_name: string;
+  category: string;
+  tags: string[];
+  is_published: boolean;
+  reading_time_mins: number;
+  views_count: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface CreateBlogPostInput {
+  slug: string;
+  title_vi: string;
+  title_en?: string;
+  excerpt_vi: string;
+  excerpt_en?: string;
+  content_html_vi: string;
+  content_html_en?: string;
+  cover_image: string;
+  author_name: string;
+  category: string;
+  tags: string[];
+  is_published: boolean;
+  reading_time_mins: number;
+}
+
 
