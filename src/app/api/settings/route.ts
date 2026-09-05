@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { settingsService } from "@/modules/settings/service";
-import { verifyJwt } from "@/shared/security/jwt";
+import { verifyJWT } from "@/shared/security/jwt";
 
 export async function GET() {
   try {
@@ -23,8 +23,12 @@ export async function PUT(req: NextRequest) {
     if (adminToken && adminToken.length > 5) {
       isAuthorized = true;
     } else if (jwtToken) {
-      const payload = await verifyJwt(jwtToken);
-      if (payload && (payload.role === "admin" || payload.email === process.env.QMD_ADMIN_USER)) {
+      const jwtResult = await verifyJWT(jwtToken);
+      if (
+        jwtResult.valid &&
+        jwtResult.payload &&
+        (jwtResult.payload.role === "admin" || jwtResult.payload.email === process.env.QMD_ADMIN_USER)
+      ) {
         isAuthorized = true;
       }
     }
