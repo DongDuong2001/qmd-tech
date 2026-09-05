@@ -24,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
+import { CloudinaryImageUpload } from "@/components/common/CloudinaryImageUpload";
 import {
   LayoutDashboard,
   Package,
@@ -2205,12 +2206,12 @@ export default function AdminDashboardPage() {
           </div>
 
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Ảnh sản phẩm URL</label>
-            <input
-              type="url"
+            <CloudinaryImageUpload
               value={productForm.images[0] || ""}
-              onChange={(e) => setProductForm({ ...productForm, images: [e.target.value] })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              onChange={(url) => setProductForm({ ...productForm, images: url ? [url] : [] })}
+              folder="qmdtech/products"
+              label="Ảnh sản phẩm chính"
+              description="Tự động nén WebP và tải lên Cloudinary để tối ưu hóa hiệu năng và quota."
             />
           </div>
 
@@ -2321,28 +2322,13 @@ export default function AdminDashboardPage() {
           </div>
 
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Ảnh Banner URL (Khuyên dùng tỷ lệ 16:9 hoặc 21:9) *</label>
-            <input
-              required
-              type="url"
+            <CloudinaryImageUpload
               value={bannerForm.image_url}
-              onChange={(e) => setBannerForm({ ...bannerForm, image_url: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+              onChange={(url) => setBannerForm({ ...bannerForm, image_url: url })}
+              folder="qmdtech/banners"
+              label="Ảnh Banner Sự Kiện (Tỷ lệ 16:9 hoặc 21:9) *"
+              description="Tự động tối ưu định dạng và kích thước phân phối qua CDN."
             />
-            {bannerForm.image_url && (
-              <div className="mt-2 relative aspect-[21/9] w-full overflow-hidden rounded-lg border border-[#E2E8F0] bg-[#0F172A]">
-                <Image
-                  src={bannerForm.image_url}
-                  alt="Xem trước banner"
-                  fill
-                  sizes="400px"
-                  className="object-cover"
-                />
-                <div className="absolute top-2 left-2 rounded bg-[#0063FD] px-2 py-0.5 text-[9px] font-black text-white uppercase">
-                  {bannerForm.tag || "XEM TRƯỚC"}
-                </div>
-              </div>
-            )}
           </div>
 
           <div className="pt-2">
@@ -2430,28 +2416,13 @@ export default function AdminDashboardPage() {
           </div>
 
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Ảnh Banner URL (Khuyên dùng tỷ lệ 16:9 hoặc 21:9) *</label>
-            <input
-              required
-              type="url"
+            <CloudinaryImageUpload
               value={editBannerForm.image_url}
-              onChange={(e) => setEditBannerForm({ ...editBannerForm, image_url: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+              onChange={(url) => setEditBannerForm({ ...editBannerForm, image_url: url })}
+              folder="qmdtech/banners"
+              label="Ảnh Banner Sự Kiện (Tỷ lệ 16:9 hoặc 21:9) *"
+              description="Tự động tối ưu định dạng và kích thước phân phối qua CDN."
             />
-            {editBannerForm.image_url && (
-              <div className="mt-2 relative aspect-[21/9] w-full overflow-hidden rounded-lg border border-[#E2E8F0] bg-[#0F172A]">
-                <Image
-                  src={editBannerForm.image_url}
-                  alt="Xem trước banner chỉnh sửa"
-                  fill
-                  sizes="400px"
-                  className="object-cover"
-                />
-                <div className="absolute top-2 left-2 rounded bg-[#0063FD] px-2 py-0.5 text-[9px] font-black text-white uppercase">
-                  {editBannerForm.tag || "XEM TRƯỚC"}
-                </div>
-              </div>
-            )}
           </div>
 
           <div className="pt-2">
@@ -2580,12 +2551,12 @@ export default function AdminDashboardPage() {
           </div>
 
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Ảnh đại diện cấu hình URL</label>
-            <input
-              type="url"
+            <CloudinaryImageUpload
               value={dealForm.image_url}
-              onChange={(e) => setDealForm({ ...dealForm, image_url: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+              onChange={(url) => setDealForm({ ...dealForm, image_url: url })}
+              folder="qmdtech/deals"
+              label="Ảnh đại diện cấu hình PC"
+              description="Tự động nén WebP và lưu trữ trên Cloudinary."
             />
           </div>
 
@@ -2756,36 +2727,28 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
-            <div className="sm:col-span-2">
-              <label className="block font-bold text-[#475569] mb-1">Ảnh đại diện bài viết URL (Cover Image) *</label>
-              <input
-                required
-                type="url"
-                value={blogForm.cover_image}
-                onChange={(e) => setBlogForm({ ...blogForm, cover_image: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
-              />
-            </div>
-            <div>
-              <label className="block font-bold text-[#475569] mb-1">Thời gian đọc ước tính</label>
-              <div className="flex items-center gap-1.5">
-                <input
-                  type="number"
-                  value={blogForm.reading_time_mins}
-                  onChange={(e) => setBlogForm({ ...blogForm, reading_time_mins: parseInt(e.target.value || "5", 10) })}
-                  className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono text-center"
-                />
-                <span className="text-xs text-[#64748B] shrink-0">phút</span>
-              </div>
-            </div>
+          <div>
+            <CloudinaryImageUpload
+              value={blogForm.cover_image}
+              onChange={(url) => setBlogForm({ ...blogForm, cover_image: url })}
+              folder="qmdtech/blogs"
+              label="Ảnh đại diện bài viết (Cover Image) *"
+              description="Tự động nén WebP và tải lên Cloudinary để tiết kiệm hạn mức."
+            />
           </div>
 
-          {blogForm.cover_image && (
-            <div className="relative aspect-[21/9] w-full max-h-40 overflow-hidden rounded-xl border border-[#E2E8F0] bg-[#0F172A]">
-              <Image src={blogForm.cover_image} alt="Preview" fill sizes="600px" className="object-cover" />
+          <div className="w-48">
+            <label className="block font-bold text-[#475569] mb-1">Thời gian đọc ước tính</label>
+            <div className="flex items-center gap-1.5">
+              <input
+                type="number"
+                value={blogForm.reading_time_mins}
+                onChange={(e) => setBlogForm({ ...blogForm, reading_time_mins: parseInt(e.target.value || "5", 10) })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono text-center"
+              />
+              <span className="text-xs text-[#64748B] shrink-0">phút</span>
             </div>
-          )}
+          </div>
 
           <div>
             <label className="block font-bold text-[#475569] mb-1">Đoạn tóm tắt mở đầu (Excerpt) *</label>
@@ -2885,36 +2848,28 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
-            <div className="sm:col-span-2">
-              <label className="block font-bold text-[#475569] mb-1">Ảnh đại diện bài viết URL (Cover Image) *</label>
-              <input
-                required
-                type="url"
-                value={editBlogForm.cover_image}
-                onChange={(e) => setEditBlogForm({ ...editBlogForm, cover_image: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
-              />
-            </div>
-            <div>
-              <label className="block font-bold text-[#475569] mb-1">Thời gian đọc ước tính</label>
-              <div className="flex items-center gap-1.5">
-                <input
-                  type="number"
-                  value={editBlogForm.reading_time_mins}
-                  onChange={(e) => setEditBlogForm({ ...editBlogForm, reading_time_mins: parseInt(e.target.value || "5", 10) })}
-                  className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono text-center"
-                />
-                <span className="text-xs text-[#64748B] shrink-0">phút</span>
-              </div>
-            </div>
+          <div>
+            <CloudinaryImageUpload
+              value={editBlogForm.cover_image}
+              onChange={(url) => setEditBlogForm({ ...editBlogForm, cover_image: url })}
+              folder="qmdtech/blogs"
+              label="Ảnh đại diện bài viết (Cover Image) *"
+              description="Tự động nén WebP và tải lên Cloudinary để tiết kiệm hạn mức."
+            />
           </div>
 
-          {editBlogForm.cover_image && (
-            <div className="relative aspect-[21/9] w-full max-h-40 overflow-hidden rounded-xl border border-[#E2E8F0] bg-[#0F172A]">
-              <Image src={editBlogForm.cover_image} alt="Preview" fill sizes="600px" className="object-cover" />
+          <div className="w-48">
+            <label className="block font-bold text-[#475569] mb-1">Thời gian đọc ước tính</label>
+            <div className="flex items-center gap-1.5">
+              <input
+                type="number"
+                value={editBlogForm.reading_time_mins}
+                onChange={(e) => setEditBlogForm({ ...editBlogForm, reading_time_mins: parseInt(e.target.value || "5", 10) })}
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono text-center"
+              />
+              <span className="text-xs text-[#64748B] shrink-0">phút</span>
             </div>
-          )}
+          </div>
 
           <div>
             <label className="block font-bold text-[#475569] mb-1">Đoạn tóm tắt mở đầu (Excerpt) *</label>
