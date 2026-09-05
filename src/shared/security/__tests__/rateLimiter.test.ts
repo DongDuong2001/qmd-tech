@@ -73,6 +73,13 @@ describe("Security Suite", () => {
       expect(deserializeCartData(undefined)).toEqual([]);
       expect(deserializeCartData("invalid_base64_json!@#$")).toEqual([]);
     });
+
+    it("should resolve default admin credentials from environment or fallbacks", () => {
+      const defaultUser = process.env.QMD_ADMIN_USER || "admin@qmd.tech";
+      const defaultPass = process.env.QMD_ADMIN_PASSWORD || "qmd@135";
+      expect(defaultUser).toBe("admin@qmd.tech");
+      expect(defaultPass).toBe("qmd@135");
+    });
   });
 });
 
