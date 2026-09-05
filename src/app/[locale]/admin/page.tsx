@@ -671,12 +671,12 @@ export default function AdminDashboardPage() {
       {/* ========================================================================= */}
       {/* 1. DISTINCT ENTERPRISE BACKOFFICE SIDEBAR */}
       {/* ========================================================================= */}
-      <aside className="w-64 shrink-0 bg-[#0F172A] text-[#94A3B8] flex flex-col justify-between border-r border-[#1E293B] shadow-lg">
+      <aside className="w-64 shrink-0 bg-white text-[#475569] flex flex-col justify-between border-r border-[#E2E8F0] shadow-xs">
         <div>
           {/* Admin Header & Logo */}
-          <div className="p-5 border-b border-[#1E293B] flex items-center justify-between">
+          <div className="p-5 border-b border-[#E2E8F0] flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border-2 border-[#0063FD] shadow-sm bg-white">
+              <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border-2 border-[#0063FD] shadow-xs bg-white">
                 <Image
                   src="/qmdtech_logo.png"
                   alt="QMD-Tech Admin"
@@ -686,15 +686,15 @@ export default function AdminDashboardPage() {
                 />
               </div>
               <div className="flex flex-col leading-none">
-                <span className="text-sm font-black tracking-wider text-white">
+                <span className="text-sm font-black tracking-wider text-[#0F172A]">
                   QMD<span className="text-[#0063FD]">-TECH</span>
                 </span>
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#B45309] mt-0.5">
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#0063FD] mt-0.5">
                   ADMIN CONSOLE
                 </span>
               </div>
             </div>
-            <span className="rounded bg-[#1E293B] px-1.5 py-0.5 text-[9px] font-mono text-[#38BDF8] border border-[#334155]">
+            <span className="rounded bg-[#EFF6FF] px-1.5 py-0.5 text-[9px] font-mono font-bold text-[#0063FD] border border-[#BFDBFE]">
               v2.5
             </span>
           </div>
@@ -706,7 +706,7 @@ export default function AdminDashboardPage() {
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "overview"
                   ? "bg-[#0063FD] text-white shadow-xs font-black"
-                  : "hover:bg-[#1E293B] hover:text-white"
+                  : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
               }`}
             >
               <div className="flex items-center gap-2.5">
@@ -721,14 +721,18 @@ export default function AdminDashboardPage() {
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "products"
                   ? "bg-[#0063FD] text-white shadow-xs font-black"
-                  : "hover:bg-[#1E293B] hover:text-white"
+                  : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
               }`}
             >
               <div className="flex items-center gap-2.5">
                 <Package className="h-4 w-4" />
                 <span>Kho sản phẩm</span>
               </div>
-              <span className="rounded-full bg-[#1E293B] px-2 py-0.5 text-[10px] font-mono text-slate-300">
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-mono ${
+                activeTab === "products"
+                  ? "bg-white/20 text-white font-bold"
+                  : "bg-[#F1F5F9] text-[#475569] border border-[#CBD5E1]"
+              }`}>
                 {products.length}
               </span>
             </button>
@@ -738,14 +742,18 @@ export default function AdminDashboardPage() {
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "categories"
                   ? "bg-[#0063FD] text-white shadow-xs font-black"
-                  : "hover:bg-[#1E293B] hover:text-white"
+                  : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
               }`}
             >
               <div className="flex items-center gap-2.5">
                 <Layers className="h-4 w-4" />
                 <span>Danh mục linh kiện</span>
               </div>
-              <span className="rounded-full bg-[#1E293B] px-2 py-0.5 text-[10px] font-mono text-slate-300">
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-mono ${
+                activeTab === "categories"
+                  ? "bg-white/20 text-white font-bold"
+                  : "bg-[#F1F5F9] text-[#475569] border border-[#CBD5E1]"
+              }`}>
                 {categories.length}
               </span>
             </button>
@@ -756,14 +764,18 @@ export default function AdminDashboardPage() {
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "banners"
                   ? "bg-[#0063FD] text-white shadow-xs font-black"
-                  : "hover:bg-[#1E293B] hover:text-white"
+                  : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
               }`}
             >
               <div className="flex items-center gap-2.5">
                 <ImageIcon className="h-4 w-4" />
                 <span>Banner & Sự kiện</span>
               </div>
-              <span className="rounded-full bg-[#1E293B] px-2 py-0.5 text-[10px] font-mono text-slate-300">
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-mono ${
+                activeTab === "banners"
+                  ? "bg-white/20 text-white font-bold"
+                  : "bg-[#F1F5F9] text-[#475569] border border-[#CBD5E1]"
+              }`}>
                 {banners.length}
               </span>
             </button>
@@ -774,14 +786,18 @@ export default function AdminDashboardPage() {
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "deals"
                   ? "bg-[#0063FD] text-white shadow-xs font-black"
-                  : "hover:bg-[#1E293B] hover:text-white"
+                  : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
               }`}
             >
               <div className="flex items-center gap-2.5">
                 <Monitor className="h-4 w-4" />
                 <span>PC Ráp Sẵn (Deals)</span>
               </div>
-              <span className="rounded-full bg-[#0063FD] px-2 py-0.5 text-[10px] font-mono text-white font-black">
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-mono ${
+                activeTab === "deals"
+                  ? "bg-white/20 text-white font-bold"
+                  : "bg-[#EFF6FF] text-[#0063FD] font-black border border-[#BFDBFE]"
+              }`}>
                 {deals.length}
               </span>
             </button>
@@ -792,14 +808,18 @@ export default function AdminDashboardPage() {
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "suppliers"
                   ? "bg-[#0063FD] text-white shadow-xs font-black"
-                  : "hover:bg-[#1E293B] hover:text-white"
+                  : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
               }`}
             >
               <div className="flex items-center gap-2.5">
                 <Building className="h-4 w-4" />
                 <span>Nguồn hàng & NCC</span>
               </div>
-              <span className="rounded-full bg-[#1E293B] px-2 py-0.5 text-[10px] font-mono text-slate-300">
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-mono ${
+                activeTab === "suppliers"
+                  ? "bg-white/20 text-white font-bold"
+                  : "bg-[#F1F5F9] text-[#475569] border border-[#CBD5E1]"
+              }`}>
                 {suppliers.length}
               </span>
             </button>
@@ -810,14 +830,18 @@ export default function AdminDashboardPage() {
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "blogs"
                   ? "bg-[#0063FD] text-white shadow-xs font-black"
-                  : "hover:bg-[#1E293B] hover:text-white"
+                  : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
               }`}
             >
               <div className="flex items-center gap-2.5">
                 <FileText className="h-4 w-4" />
                 <span>Bài viết & Tin tức</span>
               </div>
-              <span className="rounded-full bg-[#0063FD] px-2 py-0.5 text-[10px] font-mono text-white font-black">
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-mono ${
+                activeTab === "blogs"
+                  ? "bg-white/20 text-white font-bold"
+                  : "bg-[#EFF6FF] text-[#0063FD] font-black border border-[#BFDBFE]"
+              }`}>
                 {blogs.length}
               </span>
             </button>
@@ -827,7 +851,7 @@ export default function AdminDashboardPage() {
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "orders"
                   ? "bg-[#0063FD] text-white shadow-xs font-black"
-                  : "hover:bg-[#1E293B] hover:text-white"
+                  : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
               }`}
             >
               <div className="flex items-center gap-2.5">
@@ -846,14 +870,18 @@ export default function AdminDashboardPage() {
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "reviews"
                   ? "bg-[#0063FD] text-white shadow-xs font-black"
-                  : "hover:bg-[#1E293B] hover:text-white"
+                  : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
               }`}
             >
               <div className="flex items-center gap-2.5">
                 <MessageSquareText className="h-4 w-4" />
                 <span>Đánh giá khách hàng</span>
               </div>
-              <span className="rounded-full bg-[#1E293B] px-2 py-0.5 text-[10px] font-mono text-slate-300">
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-mono ${
+                activeTab === "reviews"
+                  ? "bg-white/20 text-white font-bold"
+                  : "bg-[#F1F5F9] text-[#475569] border border-[#CBD5E1]"
+              }`}>
                 {reviews.length}
               </span>
             </button>
@@ -863,7 +891,7 @@ export default function AdminDashboardPage() {
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "security"
                   ? "bg-[#0063FD] text-white shadow-xs font-black"
-                  : "hover:bg-[#1E293B] hover:text-white"
+                  : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
               }`}
             >
               <div className="flex items-center gap-2.5">
@@ -876,14 +904,14 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Sidebar Footer User Profile */}
-        <div className="p-4 border-t border-[#1E293B] space-y-3">
+        <div className="p-4 border-t border-[#E2E8F0] bg-[#F8FAFC] space-y-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#334155] text-white font-bold text-xs">
-              <UserCheck className="h-4 w-4 text-[#38BDF8]" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#EFF6FF] border border-[#BFDBFE] text-[#0063FD] font-bold text-xs">
+              <UserCheck className="h-4 w-4 text-[#0063FD]" />
             </div>
             <div className="min-w-0">
-              <div className="text-xs font-bold text-white truncate">Admin Operator</div>
-              <div className="text-[10px] text-slate-400 font-mono truncate">admin@qmdtech.vn</div>
+              <div className="text-xs font-bold text-[#0F172A] truncate">Admin Operator</div>
+              <div className="text-[10px] text-[#64748B] font-mono truncate">admin@qmdtech.vn</div>
             </div>
           </div>
 
@@ -891,14 +919,14 @@ export default function AdminDashboardPage() {
             <Link
               href="/"
               target="_blank"
-              className="flex items-center justify-center gap-1 w-full rounded-lg border border-[#334155] bg-[#1E293B] py-2 text-[11px] font-bold text-slate-200 hover:bg-[#334155] transition-colors"
+              className="flex items-center justify-center gap-1 w-full rounded-lg border border-[#CBD5E1] bg-white py-2 text-[11px] font-bold text-[#334155] hover:bg-[#F1F5F9] hover:text-[#0F172A] transition-colors shadow-2xs"
             >
-              <ExternalLink className="h-3.5 w-3.5 text-[#38BDF8]" />
+              <ExternalLink className="h-3.5 w-3.5 text-[#0063FD]" />
               Web Shop
             </Link>
             <button
               onClick={handleAdminLogout}
-              className="flex items-center justify-center gap-1 w-full rounded-lg border border-[#475569] bg-[#1E293B] py-2 text-[11px] font-bold text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 transition-colors"
+              className="flex items-center justify-center gap-1 w-full rounded-lg border border-[#FECACA] bg-[#FEF2F2] py-2 text-[11px] font-bold text-[#DC2626] hover:bg-[#FEE2E2] hover:text-[#B91C1C] transition-colors"
               title="Đăng xuất khỏi hệ thống"
             >
               <LogOut className="h-3.5 w-3.5" />
@@ -1401,7 +1429,7 @@ export default function AdminDashboardPage() {
                     key={b.id}
                     className="rounded-xl border border-[#E2E8F0] bg-white overflow-hidden shadow-xs flex flex-col justify-between hover:border-[#0063FD] transition-all"
                   >
-                    <div className="relative h-44 w-full bg-[#0F172A]">
+                    <div className="relative h-44 w-full bg-[#F1F5F9]">
                       <Image
                         src={b.image_url}
                         alt={b.title_vi}
@@ -1729,7 +1757,7 @@ export default function AdminDashboardPage() {
                     >
                       <div>
                         {/* Cover Image */}
-                        <div className="relative aspect-[16/9] w-full bg-[#0F172A] overflow-hidden">
+                        <div className="relative aspect-[16/9] w-full bg-[#F1F5F9] overflow-hidden">
                           {blog.cover_image && (
                             <Image
                               src={blog.cover_image}
@@ -1860,7 +1888,7 @@ export default function AdminDashboardPage() {
                     onClick={() => setOrderStatusFilter(st)}
                     className={`px-3 py-1.5 rounded-lg transition-colors uppercase ${
                       orderStatusFilter === st
-                        ? "bg-[#0F172A] text-white"
+                        ? "bg-[#0063FD] text-white shadow-xs"
                         : "bg-white border border-[#E2E8F0] text-[#64748B] hover:text-[#0F172A]"
                     }`}
                   >
