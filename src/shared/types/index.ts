@@ -138,7 +138,7 @@ export interface Order {
   shipping_fee_vnd: number;
   discount_vnd: number;
   total_vnd: number;
-  payment_method: "vnpay" | "momo" | "zalopay" | "stripe" | "cod" | "bank_transfer";
+  payment_method: "sepay" | "vnpay" | "momo" | "zalopay" | "stripe" | "cod" | "bank_transfer";
   payment_status: "unpaid" | "paid" | "failed" | "refunded";
   payment_transaction_id?: string;
   shipping_provider?: "ghn" | "ghtk" | "express";
