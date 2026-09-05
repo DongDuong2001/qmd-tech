@@ -52,13 +52,13 @@ export function Modal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
         onClick={onClose}
       />
 
       <div
         className={cn(
-          "relative z-50 w-full rounded-2xl border border-[#CBD5E1] bg-white p-6 shadow-2xl transition-all max-h-[90vh] overflow-y-auto",
+          "relative z-50 w-full rounded-2xl border border-[#CBD5E1] bg-white p-6 shadow-2xl transition-all max-h-[90vh] overflow-y-auto text-[#0F172A]",
           maxWidthClass
         )}
       >
@@ -79,7 +79,7 @@ export function Modal({
           </button>
         </div>
 
-        <div className="mt-4">{children}</div>
+        <div className="mt-4 text-[#0F172A]">{children}</div>
       </div>
     </div>
   );
