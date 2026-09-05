@@ -210,7 +210,7 @@ export function CloudinaryImageUpload({
           ) : (
             /* Uploaded Preview State */
             <div className="relative rounded-xl border border-[#CBD5E1] bg-white p-2 flex items-center gap-3">
-              <div className="relative h-16 w-24 rounded-lg overflow-hidden border border-[#E2E8F0] bg-[#0F172A] shrink-0">
+              <div className="relative h-16 w-24 rounded-lg overflow-hidden border border-[#E2E8F0] bg-[#F1F5F9] shrink-0">
                 <Image
                   src={value}
                   alt="Preview"
@@ -272,7 +272,7 @@ export function CloudinaryImageUpload({
           </div>
 
           {value && (
-            <div className="relative h-20 w-32 rounded-lg overflow-hidden border border-[#E2E8F0] bg-[#0F172A]">
+            <div className="relative h-20 w-32 rounded-lg overflow-hidden border border-[#E2E8F0] bg-[#F1F5F9]">
               <Image
                 src={value}
                 alt="Preview"
