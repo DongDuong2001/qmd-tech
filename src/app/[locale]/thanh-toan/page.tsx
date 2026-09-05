@@ -7,7 +7,15 @@ import { i18nService } from "@/modules/i18n/service";
 import { orderService } from "@/modules/orders/service";
 import { CartItem } from "@/shared/types";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, ShieldCheck, CreditCard, Banknote, Smartphone } from "lucide-react";
+import { SePayVietQRModal } from "@/components/checkout/SePayVietQRModal";
+import {
+  CheckCircle2,
+  ShieldCheck,
+  CreditCard,
+  Banknote,
+  Smartphone,
+  QrCode,
+} from "lucide-react";
 
 export default function CheckoutPage() {
   const t = useTranslations();
@@ -23,7 +31,7 @@ export default function CheckoutPage() {
     notes: "",
   });
 
-  const [paymentMethod, setPaymentMethod] = useState<"vnpay" | "momo" | "cod" | "bank_transfer">("vnpay");
+  const [paymentMethod, setPaymentMethod] = useState<"sepay" | "cod" | "vnpay" | "momo">("sepay");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createdOrderCode, setCreatedOrderCode] = useState<string | null>(null);
   const [items, setItems] = useState<CartItem[]>([]);
@@ -87,6 +95,22 @@ export default function CheckoutPage() {
     }
   };
 
+  // SePay VietQR Screen if SePay chosen
+  if (createdOrderCode && paymentMethod === "sepay") {
+    return (
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+        <SePayVietQRModal
+          orderCode={createdOrderCode}
+          totalVnd={totalVnd}
+          bankName={process.env.NEXT_PUBLIC_SEPAY_BANK_NAME || "MBBank"}
+          accountNumber={process.env.NEXT_PUBLIC_SEPAY_ACCOUNT_NUMBER || "0988889999"}
+          accountName={process.env.NEXT_PUBLIC_SEPAY_ACCOUNT_NAME || "QMD TECH CORPORATION"}
+        />
+      </div>
+    );
+  }
+
+  // Standard COD / Other confirmation screen
   if (createdOrderCode) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 text-center space-y-6">
@@ -130,7 +154,7 @@ export default function CheckoutPage() {
           {t("checkout.title")}
         </h1>
         <p className="mt-1 text-xs text-[#64748B]">
-          Vui lòng điền thông tin người nhận và lựa chọn cổng thanh toán
+          Vui lòng điền thông tin người nhận và lựa chọn phương thức thanh toán
         </p>
       </div>
 
@@ -240,66 +264,49 @@ export default function CheckoutPage() {
           {/* Payment Methods Selection */}
           <div className="rounded-xl border border-[#E2E8F0] bg-[#FFFFFF] p-6 space-y-4 shadow-xs">
             <h3 className="text-sm font-bold uppercase tracking-wider text-[#0F172A] border-b border-[#E2E8F0] pb-3">
-              {t("checkout.paymentMethod")}
+              Phương Thức Thanh Toán
             </h3>
 
             <div className="space-y-3">
+              {/* Option 1: SePay VietQR (Recommended) */}
               <label
-                className={`flex items-center justify-between rounded-lg border p-4 cursor-pointer transition-all ${
-                  paymentMethod === "vnpay"
-                    ? "border-[#2563EB] bg-[#EFF6FF]"
-                    : "border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#2563EB]/50"
+                className={`flex items-start justify-between rounded-xl border-2 p-4 cursor-pointer transition-all ${
+                  paymentMethod === "sepay"
+                    ? "border-[#0063FD] bg-[#EFF6FF]"
+                    : "border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#0063FD]/50"
                 }`}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-start gap-3">
                   <input
                     type="radio"
                     name="paymentMethod"
-                    checked={paymentMethod === "vnpay"}
-                    onChange={() => setPaymentMethod("vnpay")}
-                    className="text-[#2563EB]"
+                    checked={paymentMethod === "sepay"}
+                    onChange={() => setPaymentMethod("sepay")}
+                    className="mt-1 text-[#0063FD]"
                   />
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="h-4 w-4 text-[#2563EB]" />
-                    <span className="text-xs font-semibold text-[#0F172A]">
-                      {t("checkout.vnpay")}
-                    </span>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <QrCode className="h-4 w-4 text-[#0063FD]" />
+                      <span className="text-xs font-black text-[#0F172A]">
+                        Chuyển Khoản Ngân Hàng Qua SePay VietQR
+                      </span>
+                      <span className="rounded bg-[#0063FD] px-1.5 py-0.5 text-[9px] font-black text-white uppercase tracking-wider">
+                        KHUYÊN DÙNG
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-[#64748B] leading-relaxed">
+                      Quét mã QR tự động điền số tiền và nội dung qua MBBank, Vietcombank, Techcombank, MoMo... Khớp lệnh tự động 24/7 trong 30 giây.
+                    </p>
                   </div>
                 </div>
-                <span className="rounded bg-[#FFFFFF] px-2 py-0.5 text-[10px] font-bold text-[#0F172A] border border-[#E2E8F0]">
-                  VNPAY-QR
+                <span className="shrink-0 rounded bg-[#FFFFFF] px-2 py-0.5 text-[10px] font-bold text-[#0063FD] border border-[#BFDBFE]">
+                  VietQR 24/7
                 </span>
               </label>
 
+              {/* Option 2: COD */}
               <label
-                className={`flex items-center justify-between rounded-lg border p-4 cursor-pointer transition-all ${
-                  paymentMethod === "momo"
-                    ? "border-[#DB2777] bg-[#FDF2F8]"
-                    : "border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#DB2777]/50"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    checked={paymentMethod === "momo"}
-                    onChange={() => setPaymentMethod("momo")}
-                    className="text-[#DB2777]"
-                  />
-                  <div className="flex items-center gap-2">
-                    <Smartphone className="h-4 w-4 text-[#DB2777]" />
-                    <span className="text-xs font-semibold text-[#0F172A]">
-                      {t("checkout.momo")}
-                    </span>
-                  </div>
-                </div>
-                <span className="rounded bg-[#FFFFFF] px-2 py-0.5 text-[10px] font-bold text-[#DB2777] border border-[#FBCFE8]">
-                  MoMo Wallet
-                </span>
-              </label>
-
-              <label
-                className={`flex items-center justify-between rounded-lg border p-4 cursor-pointer transition-all ${
+                className={`flex items-center justify-between rounded-xl border p-4 cursor-pointer transition-all ${
                   paymentMethod === "cod"
                     ? "border-[#16A34A] bg-[#F0FDF4]"
                     : "border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#16A34A]/50"
@@ -316,11 +323,67 @@ export default function CheckoutPage() {
                   <div className="flex items-center gap-2">
                     <Banknote className="h-4 w-4 text-[#16A34A]" />
                     <span className="text-xs font-semibold text-[#0F172A]">
-                      {t("checkout.cod")}
+                      Thanh toán khi nhận hàng (COD)
                     </span>
                   </div>
                 </div>
                 <span className="text-[10px] text-[#64748B]">Kiểm tra trước khi trả</span>
+              </label>
+
+              {/* Option 3: VNPAY */}
+              <label
+                className={`flex items-center justify-between rounded-xl border p-4 cursor-pointer transition-all ${
+                  paymentMethod === "vnpay"
+                    ? "border-[#2563EB] bg-[#EFF6FF]"
+                    : "border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#2563EB]/50"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    checked={paymentMethod === "vnpay"}
+                    onChange={() => setPaymentMethod("vnpay")}
+                    className="text-[#2563EB]"
+                  />
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-[#2563EB]" />
+                    <span className="text-xs font-semibold text-[#0F172A]">
+                      Cổng VNPAY / Thẻ Quốc Tế (Visa / Master)
+                    </span>
+                  </div>
+                </div>
+                <span className="rounded bg-[#FFFFFF] px-2 py-0.5 text-[10px] font-bold text-[#0F172A] border border-[#E2E8F0]">
+                  VNPAY-QR
+                </span>
+              </label>
+
+              {/* Option 4: MoMo */}
+              <label
+                className={`flex items-center justify-between rounded-xl border p-4 cursor-pointer transition-all ${
+                  paymentMethod === "momo"
+                    ? "border-[#DB2777] bg-[#FDF2F8]"
+                    : "border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#DB2777]/50"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    checked={paymentMethod === "momo"}
+                    onChange={() => setPaymentMethod("momo")}
+                    className="text-[#DB2777]"
+                  />
+                  <div className="flex items-center gap-2">
+                    <Smartphone className="h-4 w-4 text-[#DB2777]" />
+                    <span className="text-xs font-semibold text-[#0F172A]">
+                      Ví Điện Tử MoMo
+                    </span>
+                  </div>
+                </div>
+                <span className="rounded bg-[#FFFFFF] px-2 py-0.5 text-[10px] font-bold text-[#DB2777] border border-[#FBCFE8]">
+                  MoMo Wallet
+                </span>
               </label>
             </div>
           </div>
@@ -381,14 +444,14 @@ export default function CheckoutPage() {
               disabled={isSubmitting || items.length === 0}
               variant="primary"
               size="lg"
-              className="w-full font-bold shadow-xs"
+              className="w-full font-bold shadow-xs py-3"
             >
-              {isSubmitting ? "Đang xử lý..." : t("checkout.placeOrder")}
+              {isSubmitting ? "Đang xử lý đơn hàng..." : paymentMethod === "sepay" ? "Tiến Hành Quét Mã VietQR" : t("checkout.placeOrder")}
             </Button>
 
             <div className="flex items-center justify-center gap-1.5 text-[11px] text-[#64748B] pt-1">
               <ShieldCheck className="h-4 w-4 text-[#16A34A]" />
-              <span>Giao dịch được bảo mật an toàn 100%</span>
+              <span>Giao dịch và tài khoản được bảo mật an toàn 100%</span>
             </div>
           </div>
         </div>
