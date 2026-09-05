@@ -2,19 +2,22 @@ import createMiddleware from "next-intl/middleware";
 import { routing } from "./i18n/routing";
 import { NextRequest, NextResponse } from "next/server";
 import { ADMIN_COOKIE_NAME } from "./shared/security/cookies";
+import { verifyAdminToken } from "./shared/security/jwt";
 
 const intlMiddleware = createMiddleware(routing);
 
-export default function middleware(request: NextRequest) {
+export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 1. Admin Route Guard
+  // 1. Admin Route Guard with Cryptographic JWT Verification
   const isAdminRoute =
     pathname.includes("/admin") && !pathname.includes("/admin/login");
 
   if (isAdminRoute) {
     const adminToken = request.cookies.get(ADMIN_COOKIE_NAME)?.value;
-    if (!adminToken) {
+    const verification = adminToken ? await verifyAdminToken(adminToken) : { valid: false };
+
+    if (!verification.valid) {
       // Determine target locale (default to 'vi')
       const segments = pathname.split("/").filter(Boolean);
       const locale = segments[0] === "en" ? "en" : "vi";
