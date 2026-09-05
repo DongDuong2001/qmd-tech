@@ -83,3 +83,58 @@ h1, h2, h3, h4, h5, h6 {
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* ========================================================================= */
+/* Interactive Animated Button Wipe Transition                               */
+/* ========================================================================= */
+.btn-wipe {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-wipe::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0%;
+  height: 100%;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
+}
+
+.btn-wipe:hover:not(:disabled)::after {
+  right: auto;
+  left: 0;
+  width: 100%;
+}
+
+.btn-wipe-primary::after {
+  background-color: #0F172A;
+}
+
+.btn-wipe-accent::after {
+  background-color: #0063FD;
+}
+
+.btn-wipe-gold::after {
+  background-color: #0369A1;
+}
+
+.btn-wipe-secondary::after {
+  background-color: #EFF6FF;
+}
+
+.btn-wipe-outline::after {
+  background-color: #0063FD;
+}
+
+.btn-wipe-danger::after {
+  background-color: #991B1B;
+}
+
+.btn-wipe-ghost::after {
+  background-color: #F1F5F9;
+}
+
