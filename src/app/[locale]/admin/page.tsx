@@ -20,6 +20,8 @@ import {
   Supplier,
   BlogPost,
   CreateBlogPostInput,
+  SiteSettings,
+  ShowroomLocation,
 } from "@/shared/types";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
@@ -62,11 +64,15 @@ import {
   X,
   BookOpen,
   FileText,
+  Sliders,
+  Globe,
+  Store,
+  Check,
 } from "lucide-react";
 
 export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState<
-    "overview" | "products" | "categories" | "banners" | "deals" | "suppliers" | "blogs" | "orders" | "reviews" | "security"
+    "overview" | "products" | "categories" | "banners" | "deals" | "suppliers" | "blogs" | "orders" | "reviews" | "settings" | "security"
   >("overview");
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -77,6 +83,39 @@ export default function AdminDashboardPage() {
   const [deals, setDeals] = useState<PrebuiltDeal[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
+
+  // Site Settings State
+  const [siteSettings, setSiteSettings] = useState<SiteSettings>({
+    store_name: "QMD-Tech",
+    slogan: "Gaming PC & Linh Kiện Máy Tính Chuyên Nghiệp",
+    hotline: "1900.8888",
+    hotline_support: "0988.888.888",
+    support_email: "contact@qmdtech.vn",
+    business_model: "online",
+    business_model_text: "Bán hàng & Lắp ráp PC Online Toàn Quốc",
+    headquarters_address: "Số 18 Phố Cầu Giấy, Quận Cầu Giấy, Hà Nội",
+    has_showrooms: false,
+    showrooms: [],
+    bo_cong_thuong_registered: false,
+    bo_cong_thuong_badge_url: "",
+    bo_cong_thuong_link: "",
+    bo_cong_thuong_license_no: "Đang làm thủ tục thông báo website thương mại điện tử với Bộ Công Thương",
+    working_hours: "8:30 - 21:00 (Tất cả các ngày trong tuần)",
+    facebook_url: "https://facebook.com/qmdtech",
+    zalo_url: "https://zalo.me/0988888888",
+    youtube_url: "https://youtube.com/@qmdtech",
+    free_shipping_threshold_vnd: 5000000,
+  });
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [newShowroom, setNewShowroom] = useState<ShowroomLocation>({
+    id: "",
+    city: "Hà Nội",
+    name: "Showroom Hà Nội",
+    address: "Số 18 Phố Cầu Giấy, Q. Cầu Giấy, Hà Nội",
+    phone: "1900.8888",
+    hours: "8:30 - 21:00",
+    is_active: true,
+  });
 
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -247,6 +286,17 @@ export default function AdminDashboardPage() {
       setSuppliers(s);
       setBlogs(bl);
 
+      // Fetch dynamic site settings
+      try {
+        const setRes = await fetch("/api/settings");
+        const setJson = await setRes.json();
+        if (setJson.success && setJson.settings) {
+          setSiteSettings(setJson.settings);
+        }
+      } catch {
+        // Fallback to initial state
+      }
+
       if (c.length > 0 && !productForm.category_id) {
         setProductForm((prev) => ({ ...prev, category_id: c[0].id }));
       }
@@ -257,6 +307,60 @@ export default function AdminDashboardPage() {
       setLoading(false);
       setIsRefreshing(false);
     }
+  };
+
+  const handleSaveSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingSettings(true);
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(siteSettings),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Lỗi lưu cấu hình");
+      }
+      showNotification("success", "Đã lưu và áp dụng cấu hình website thành công!");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Lỗi lưu cấu hình";
+      showNotification("error", msg);
+    } finally {
+      setIsSavingSettings(false);
+    }
+  };
+
+  const handleAddShowroom = () => {
+    if (!newShowroom.name || !newShowroom.address) {
+      showNotification("error", "Vui lòng nhập đầy đủ tên và địa chỉ showroom");
+      return;
+    }
+    const item: ShowroomLocation = {
+      ...newShowroom,
+      id: "sr_" + Date.now(),
+    };
+    setSiteSettings((prev) => ({
+      ...prev,
+      showrooms: [...(prev.showrooms || []), item],
+    }));
+    setNewShowroom({
+      id: "",
+      city: "Hà Nội",
+      name: "",
+      address: "",
+      phone: "1900.8888",
+      hours: "8:30 - 21:00",
+      is_active: true,
+    });
+    showNotification("success", "Đã thêm showroom vào danh sách cấu hình!");
+  };
+
+  const handleRemoveShowroom = (id: string) => {
+    setSiteSettings((prev) => ({
+      ...prev,
+      showrooms: (prev.showrooms || []).filter((s) => s.id !== id),
+    }));
   };
 
   useEffect(() => {
@@ -884,6 +988,21 @@ export default function AdminDashboardPage() {
               }`}>
                 {reviews.length}
               </span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("settings")}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
+                activeTab === "settings"
+                  ? "bg-[#0063FD] text-white shadow-xs font-black"
+                  : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <Sliders className="h-4 w-4" />
+                <span>Cấu hình Website</span>
+              </div>
+              <span className="flex h-2 w-2 rounded-full bg-[#0063FD]" />
             </button>
 
             <button
@@ -2018,6 +2137,385 @@ export default function AdminDashboardPage() {
                 </div>
               )}
             </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* TAB 10: SITE & BUSINESS SETTINGS                                          */}
+          {/* ========================================================================= */}
+          {activeTab === "settings" && (
+            <form onSubmit={handleSaveSettings} className="space-y-6">
+              {/* Header with Save Button */}
+              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E2E8F0] pb-4">
+                <div>
+                  <h2 className="text-base sm:text-lg font-black uppercase text-[#0F172A] tracking-wide">
+                    Cấu Hình Thông Tin Website & Doanh Nghiệp
+                  </h2>
+                  <p className="mt-0.5 text-xs text-[#64748B]">
+                    Tùy chỉnh thông tin liên hệ, hotline, mô hình kinh doanh online/showroom và pháp lý Bộ Công Thương.
+                  </p>
+                </div>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="md"
+                  disabled={isSavingSettings}
+                  className="font-bold text-xs uppercase shadow-xs px-6"
+                >
+                  {isSavingSettings ? (
+                    <RefreshCw className="h-4 w-4 animate-spin text-white" />
+                  ) : (
+                    <CheckCircle2 className="h-4 w-4 text-white" />
+                  )}
+                  <span>Lưu Cấu Hình Doanh Nghiệp</span>
+                </Button>
+              </div>
+
+              {/* Grid 1: Brand & Contact Info */}
+              <div className="rounded-xl border border-[#CBD5E1] bg-white p-6 shadow-xs space-y-4">
+                <div className="flex items-center gap-2 text-[#0063FD] font-black uppercase text-xs border-b border-[#E2E8F0] pb-3">
+                  <Globe className="h-4 w-4" />
+                  <span>1. Thông tin Thương hiệu & Liên hệ Khách hàng</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">Tên Thương hiệu / Cửa hàng *</label>
+                    <input
+                      required
+                      type="text"
+                      value={siteSettings.store_name}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, store_name: e.target.value })}
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">Khẩu hiệu / Slogan *</label>
+                    <input
+                      required
+                      type="text"
+                      value={siteSettings.slogan}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, slogan: e.target.value })}
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">Hotline Bán Hàng 24/7 *</label>
+                    <input
+                      required
+                      type="text"
+                      value={siteSettings.hotline}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, hotline: e.target.value })}
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] font-mono focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">Hotline Kỹ Thuật / Zalo</label>
+                    <input
+                      type="text"
+                      value={siteSettings.hotline_support}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, hotline_support: e.target.value })}
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] font-mono focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">Email Tiếp Nhận *</label>
+                    <input
+                      required
+                      type="email"
+                      value={siteSettings.support_email}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, support_email: e.target.value })}
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">Thời gian làm việc hỗ trợ</label>
+                    <input
+                      type="text"
+                      value={siteSettings.working_hours}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, working_hours: e.target.value })}
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">Hạn mức Miễn phí vận chuyển (VND)</label>
+                    <input
+                      type="number"
+                      value={siteSettings.free_shipping_threshold_vnd}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, free_shipping_threshold_vnd: parseInt(e.target.value || "0", 10) })}
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] font-mono focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Grid 2: Business Model & Showroom Settings */}
+              <div className="rounded-xl border border-[#CBD5E1] bg-white p-6 shadow-xs space-y-4">
+                <div className="flex items-center gap-2 text-[#0063FD] font-black uppercase text-xs border-b border-[#E2E8F0] pb-3">
+                  <Store className="h-4 w-4" />
+                  <span>2. Mô Hình Kinh Doanh & Quản Lý Showroom</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">Mô Hình Vận Hành *</label>
+                    <select
+                      value={siteSettings.business_model}
+                      onChange={(e) => {
+                        const val = e.target.value as "online" | "showroom" | "hybrid";
+                        setSiteSettings({
+                          ...siteSettings,
+                          business_model: val,
+                          has_showrooms: val !== "online",
+                        });
+                      }}
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] font-bold focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                    >
+                      <option value="online">Bán Hàng & Ráp PC Online Toàn Quốc (Chưa có Showroom)</option>
+                      <option value="showroom">Hệ Thống Showroom Trực Tiếp</option>
+                      <option value="hybrid">Mô Hình Hybrid (Online & Showroom Trực Tiếp)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">Dòng chữ hiển thị trên thanh tiện ích Header *</label>
+                    <input
+                      required
+                      type="text"
+                      value={siteSettings.business_model_text}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, business_model_text: e.target.value })}
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#1E293B] mb-1">Địa Chỉ Trụ Sở Chính & Kho Hàng Trung Tâm *</label>
+                  <input
+                    required
+                    type="text"
+                    value={siteSettings.headquarters_address}
+                    onChange={(e) => setSiteSettings({ ...siteSettings, headquarters_address: e.target.value })}
+                    className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                  />
+                </div>
+
+                {/* Showroom Toggle & Manager */}
+                <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-xs font-bold text-[#0F172A] block">
+                        Bật hiển thị danh sách Showroom trên Website
+                      </span>
+                      <span className="text-[11px] text-[#64748B]">
+                        (Bật tùy chọn này sau khi bạn thuê mặt bằng và khai trương showroom vật lý)
+                      </span>
+                    </div>
+                    <label className="relative inline-flex cursor-pointer items-center">
+                      <input
+                        type="checkbox"
+                        checked={siteSettings.has_showrooms}
+                        onChange={(e) => setSiteSettings({ ...siteSettings, has_showrooms: e.target.checked })}
+                        className="peer sr-only"
+                      />
+                      <div className="peer h-6 w-11 rounded-full bg-[#CBD5E1] after:absolute after:top-0.5 after:left-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:bg-[#0063FD] peer-checked:after:translate-x-full" />
+                    </label>
+                  </div>
+
+                  {siteSettings.has_showrooms && (
+                    <div className="space-y-3 pt-3 border-t border-[#E2E8F0]">
+                      <span className="text-xs font-bold text-[#0F172A] block">
+                        Danh sách Showroom Đang Hoạt Động ({siteSettings.showrooms?.length || 0})
+                      </span>
+
+                      {siteSettings.showrooms && siteSettings.showrooms.length > 0 && (
+                        <div className="space-y-2">
+                          {siteSettings.showrooms.map((sr) => (
+                            <div
+                              key={sr.id}
+                              className="flex items-center justify-between rounded-lg border border-[#CBD5E1] bg-white p-3 text-xs"
+                            >
+                              <div>
+                                <div className="font-bold text-[#0F172A]">{sr.name} ({sr.city})</div>
+                                <div className="text-[11px] text-[#64748B]">{sr.address} • Hotline: {sr.phone}</div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveShowroom(sr.id)}
+                                className="text-rose-500 hover:text-rose-700 font-bold text-xs p-1"
+                              >
+                                Xóa
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Add Showroom Sub-form */}
+                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 pt-2">
+                        <input
+                          type="text"
+                          placeholder="Thành phố (VD: Hà Nội)"
+                          value={newShowroom.city}
+                          onChange={(e) => setNewShowroom({ ...newShowroom, city: e.target.value })}
+                          className="rounded border border-[#CBD5E1] bg-white p-2 text-xs text-[#0F172A]"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Tên Showroom (VD: Showroom Cầu Giấy)"
+                          value={newShowroom.name}
+                          onChange={(e) => setNewShowroom({ ...newShowroom, name: e.target.value })}
+                          className="rounded border border-[#CBD5E1] bg-white p-2 text-xs text-[#0F172A]"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Địa chỉ chi tiết..."
+                          value={newShowroom.address}
+                          onChange={(e) => setNewShowroom({ ...newShowroom, address: e.target.value })}
+                          className="rounded border border-[#CBD5E1] bg-white p-2 text-xs text-[#0F172A]"
+                        />
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          onClick={handleAddShowroom}
+                          className="text-xs font-bold"
+                        >
+                          + Thêm Showroom
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Grid 3: Bo Cong Thuong Legal Registration */}
+              <div className="rounded-xl border border-[#CBD5E1] bg-white p-6 shadow-xs space-y-4">
+                <div className="flex items-center gap-2 text-[#0063FD] font-black uppercase text-xs border-b border-[#E2E8F0] pb-3">
+                  <ShieldCheck className="h-4 w-4" />
+                  <span>3. Pháp Lý Website & Đăng Ký Bộ Công Thương</span>
+                </div>
+
+                <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-xs font-bold text-[#0F172A] block">
+                        Trạng thái Đã Đăng Ký / Thông Báo với Bộ Công Thương
+                      </span>
+                      <span className="text-[11px] text-[#64748B]">
+                        (Bật tùy chọn này sau khi website được Bộ Công Thương phê duyệt và cấp logo xác thực)
+                      </span>
+                    </div>
+                    <label className="relative inline-flex cursor-pointer items-center">
+                      <input
+                        type="checkbox"
+                        checked={siteSettings.bo_cong_thuong_registered}
+                        onChange={(e) => setSiteSettings({ ...siteSettings, bo_cong_thuong_registered: e.target.checked })}
+                        className="peer sr-only"
+                      />
+                      <div className="peer h-6 w-11 rounded-full bg-[#CBD5E1] after:absolute after:top-0.5 after:left-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:bg-[#16A34A] peer-checked:after:translate-x-full" />
+                    </label>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    <div>
+                      <label className="block text-xs font-bold text-[#1E293B] mb-1">
+                        Thông điệp pháp lý / Số thông báo ĐKKD
+                      </label>
+                      <input
+                        type="text"
+                        value={siteSettings.bo_cong_thuong_license_no || ""}
+                        onChange={(e) => setSiteSettings({ ...siteSettings, bo_cong_thuong_license_no: e.target.value })}
+                        className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-[#1E293B] mb-1">
+                        Đường link xác thực của Bộ Công Thương (Khi đã đăng ký)
+                      </label>
+                      <input
+                        type="url"
+                        placeholder="http://online.gov.vn/Home/WebDetails/..."
+                        value={siteSettings.bo_cong_thuong_link || ""}
+                        onChange={(e) => setSiteSettings({ ...siteSettings, bo_cong_thuong_link: e.target.value })}
+                        className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] font-mono focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Grid 4: Social Links */}
+              <div className="rounded-xl border border-[#CBD5E1] bg-white p-6 shadow-xs space-y-4">
+                <div className="flex items-center gap-2 text-[#0063FD] font-black uppercase text-xs border-b border-[#E2E8F0] pb-3">
+                  <Activity className="h-4 w-4" />
+                  <span>4. Mạng Xã Hội & Kênh Truyền Thông Trực Tuyến</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">Facebook Fanpage URL</label>
+                    <input
+                      type="url"
+                      value={siteSettings.facebook_url || ""}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, facebook_url: e.target.value })}
+                      placeholder="https://facebook.com/..."
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">Zalo OA / Chat URL</label>
+                    <input
+                      type="url"
+                      value={siteSettings.zalo_url || ""}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, zalo_url: e.target.value })}
+                      placeholder="https://zalo.me/..."
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">YouTube Channel URL</label>
+                    <input
+                      type="url"
+                      value={siteSettings.youtube_url || ""}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, youtube_url: e.target.value })}
+                      placeholder="https://youtube.com/@..."
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Sticky Action Bar */}
+              <div className="flex items-center justify-end gap-3 border-t border-[#E2E8F0] pt-4">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="md"
+                  disabled={isSavingSettings}
+                  className="font-bold text-xs uppercase shadow-md px-8 py-3"
+                >
+                  {isSavingSettings ? (
+                    <RefreshCw className="h-4 w-4 animate-spin text-white" />
+                  ) : (
+                    <CheckCircle2 className="h-4 w-4 text-white" />
+                  )}
+                  <span>Lưu Toàn Bộ Cấu Hình Website</span>
+                </Button>
+              </div>
+            </form>
           )}
 
           {/* ========================================================================= */}
