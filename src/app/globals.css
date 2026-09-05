@@ -19,6 +19,11 @@
     --danger: #dc2626;
     --price: #0063fd;
   }
+
+  input, select, textarea {
+    background-color: #ffffff;
+    color: #0f172a;
+  }
 }
 
 @theme {
