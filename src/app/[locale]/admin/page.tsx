@@ -2077,48 +2077,48 @@ export default function AdminDashboardPage() {
         <form onSubmit={handleCreateProduct} className="space-y-4 text-xs">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Tên tiếng Việt *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Tên tiếng Việt *</label>
               <input
                 required
                 type="text"
                 placeholder="VD: Card màn hình ASUS ROG Strix RTX 4070 Ti Super 16GB"
                 value={productForm.name_vi}
                 onChange={(e) => setProductForm({ ...productForm, name_vi: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
               />
             </div>
 
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Tên tiếng Anh</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Tên tiếng Anh</label>
               <input
                 type="text"
                 placeholder="VD: ASUS ROG Strix GeForce RTX 4070 Ti Super 16GB"
                 value={productForm.name_en}
                 onChange={(e) => setProductForm({ ...productForm, name_en: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Mã SKU *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Mã SKU *</label>
               <input
                 required
                 type="text"
                 placeholder="VD: GPU-ASUS-4070TIS"
                 value={productForm.sku}
                 onChange={(e) => setProductForm({ ...productForm, sku: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs font-mono"
               />
             </div>
 
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Thương hiệu *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Thương hiệu *</label>
               <select
                 value={productForm.brand}
                 onChange={(e) => setProductForm({ ...productForm, brand: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs font-bold"
               >
                 <option value="ASUS">ASUS</option>
                 <option value="MSI">MSI</option>
@@ -2134,11 +2134,11 @@ export default function AdminDashboardPage() {
             </div>
 
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Danh mục *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Danh mục *</label>
               <select
                 value={productForm.category_id}
                 onChange={(e) => setProductForm({ ...productForm, category_id: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs font-bold"
               >
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -2151,34 +2151,34 @@ export default function AdminDashboardPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Giá bán (VND) *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Giá bán (VND) *</label>
               <input
                 required
                 type="number"
                 value={productForm.price_vnd}
                 onChange={(e) => setProductForm({ ...productForm, price_vnd: parseInt(e.target.value || "0", 10) })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs font-bold"
               />
             </div>
 
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Giá niêm yết cũ (VND)</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Giá niêm yết cũ (VND)</label>
               <input
                 type="number"
                 value={productForm.original_price_vnd}
                 onChange={(e) => setProductForm({ ...productForm, original_price_vnd: parseInt(e.target.value || "0", 10) })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
               />
             </div>
 
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Số lượng tồn kho *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Số lượng tồn kho *</label>
               <input
                 required
                 type="number"
                 value={productForm.stock}
                 onChange={(e) => setProductForm({ ...productForm, stock: parseInt(e.target.value || "0", 10) })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs font-bold"
               />
             </div>
           </div>
@@ -2191,43 +2191,43 @@ export default function AdminDashboardPage() {
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               <div>
-                <label className="block text-[10px] text-[#64748B]">Socket (VD: LGA1700, AM5)</label>
+                <label className="block text-[10px] font-bold text-[#475569]">Socket (VD: LGA1700, AM5)</label>
                 <input
                   type="text"
                   placeholder="LGA1700"
                   value={socketInput}
                   onChange={(e) => setSocketInput(e.target.value)}
-                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A]"
+                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
                 />
               </div>
               <div>
-                <label className="block text-[10px] text-[#64748B]">RAM Type (VD: DDR5, DDR4)</label>
+                <label className="block text-[10px] font-bold text-[#475569]">RAM Type (VD: DDR5, DDR4)</label>
                 <input
                   type="text"
                   placeholder="DDR5"
                   value={ramTypeInput}
                   onChange={(e) => setRamTypeInput(e.target.value)}
-                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A]"
+                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
                 />
               </div>
               <div>
-                <label className="block text-[10px] text-[#64748B]">Công suất TDP (W)</label>
+                <label className="block text-[10px] font-bold text-[#475569]">Công suất TDP (W)</label>
                 <input
                   type="number"
                   placeholder="250"
                   value={tdpInput}
                   onChange={(e) => setTdpInput(e.target.value)}
-                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A]"
+                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs font-mono"
                 />
               </div>
               <div>
-                <label className="block text-[10px] text-[#64748B]">VRAM (GB)</label>
+                <label className="block text-[10px] font-bold text-[#475569]">VRAM (GB)</label>
                 <input
                   type="number"
                   placeholder="16"
                   value={vramInput}
                   onChange={(e) => setVramInput(e.target.value)}
-                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A]"
+                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs font-mono"
                 />
               </div>
             </div>
@@ -2263,26 +2263,26 @@ export default function AdminDashboardPage() {
       >
         <form onSubmit={handleCreateCategory} className="space-y-3 text-xs">
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Tên danh mục (Tiếng Việt) *</label>
+            <label className="block font-bold text-[#1E293B] mb-1">Tên danh mục (Tiếng Việt) *</label>
             <input
               required
               type="text"
               placeholder="VD: Card Màn Hình (VGA)"
               value={categoryForm.name_vi}
               onChange={(e) => setCategoryForm({ ...categoryForm, name_vi: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
             />
           </div>
 
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Slug URL (VD: gpu, cpu, ram) *</label>
+            <label className="block font-bold text-[#1E293B] mb-1">Slug URL (VD: gpu, cpu, ram) *</label>
             <input
               required
               type="text"
               placeholder="VD: gpu"
               value={categoryForm.slug}
               onChange={(e) => setCategoryForm({ ...categoryForm, slug: e.target.value.toLowerCase().trim() })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
             />
           </div>
 
@@ -2306,45 +2306,45 @@ export default function AdminDashboardPage() {
       >
         <form onSubmit={handleCreateBanner} className="space-y-3 text-xs">
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Tiêu đề Poster (Tiếng Việt) *</label>
+            <label className="block font-bold text-[#1E293B] mb-1">Tiêu đề Poster (Tiếng Việt) *</label>
             <input
               required
               type="text"
               placeholder="VD: Mở Bán GeForce RTX 40 Super Series"
               value={bannerForm.title_vi}
               onChange={(e) => setBannerForm({ ...bannerForm, title_vi: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
             />
           </div>
 
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Mô tả phụ / Thông điệp ngắn</label>
+            <label className="block font-bold text-[#1E293B] mb-1">Mô tả phụ / Thông điệp ngắn</label>
             <input
               type="text"
               placeholder="VD: Tặng kèm gói quà tặng gaming cao cấp khi đặt mua"
               value={bannerForm.subtitle_vi}
               onChange={(e) => setBannerForm({ ...bannerForm, subtitle_vi: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Nhãn Tag (VD: SỰ KIỆN MỚI, FLASH SALE)</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Nhãn Tag (VD: SỰ KIỆN MỚI, FLASH SALE)</label>
               <input
                 type="text"
                 value={bannerForm.tag}
                 onChange={(e) => setBannerForm({ ...bannerForm, tag: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
               />
             </div>
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Đường dẫn liên kết (Target URL)</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Đường dẫn liên kết (Target URL)</label>
               <input
                 type="text"
                 value={bannerForm.target_url}
                 onChange={(e) => setBannerForm({ ...bannerForm, target_url: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
               />
             </div>
           </div>
@@ -2379,55 +2379,55 @@ export default function AdminDashboardPage() {
       >
         <form onSubmit={handleUpdateBanner} className="space-y-3 text-xs">
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Tiêu đề Poster (Tiếng Việt) *</label>
+            <label className="block font-bold text-[#1E293B] mb-1">Tiêu đề Poster (Tiếng Việt) *</label>
             <input
               required
               type="text"
               value={editBannerForm.title_vi}
               onChange={(e) => setEditBannerForm({ ...editBannerForm, title_vi: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
             />
           </div>
 
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Mô tả phụ / Thông điệp ngắn</label>
+            <label className="block font-bold text-[#1E293B] mb-1">Mô tả phụ / Thông điệp ngắn</label>
             <input
               type="text"
               value={editBannerForm.subtitle_vi}
               onChange={(e) => setEditBannerForm({ ...editBannerForm, subtitle_vi: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Nhãn Tag (VD: SỰ KIỆN MỚI, FLASH SALE)</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Nhãn Tag (VD: SỰ KIỆN MỚI, FLASH SALE)</label>
               <input
                 type="text"
                 value={editBannerForm.tag}
                 onChange={(e) => setEditBannerForm({ ...editBannerForm, tag: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
               />
             </div>
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Đường dẫn liên kết (Target URL)</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Đường dẫn liên kết (Target URL)</label>
               <input
                 type="text"
                 value={editBannerForm.target_url}
                 onChange={(e) => setEditBannerForm({ ...editBannerForm, target_url: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3 items-center">
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Thứ tự hiển thị (Display Order)</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Thứ tự hiển thị (Display Order)</label>
               <input
                 type="number"
                 value={editBannerForm.display_order}
                 onChange={(e) => setEditBannerForm({ ...editBannerForm, display_order: parseInt(e.target.value || "1", 10) })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
               />
             </div>
             <div className="pt-4">
@@ -2474,106 +2474,106 @@ export default function AdminDashboardPage() {
         <form onSubmit={handleCreateDeal} className="space-y-3 text-xs">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Tên cấu hình PC *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Tên cấu hình PC *</label>
               <input
                 required
                 type="text"
                 placeholder="VD: PC QMD-G01 Core i5-13400F | RTX 4060"
                 value={dealForm.name_vi}
                 onChange={(e) => setDealForm({ ...dealForm, name_vi: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
               />
             </div>
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Mã cấu hình (Code SKU) *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Mã cấu hình (Code SKU) *</label>
               <input
                 required
                 type="text"
                 placeholder="VD: PC-QMD-G01"
                 value={dealForm.code}
                 onChange={(e) => setDealForm({ ...dealForm, code: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Giá bán (VND) *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Giá bán (VND) *</label>
               <input
                 required
                 type="number"
                 value={dealForm.price_vnd}
                 onChange={(e) => setDealForm({ ...dealForm, price_vnd: parseInt(e.target.value || "0", 10) })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs font-bold"
               />
             </div>
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Giá niêm yết cũ (VND)</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Giá niêm yết cũ (VND)</label>
               <input
                 type="number"
                 value={dealForm.original_price_vnd ?? 0}
                 onChange={(e) => setDealForm({ ...dealForm, original_price_vnd: parseInt(e.target.value || "0", 10) })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
               />
             </div>
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Nhãn Tag (Badge)</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Nhãn Tag (Badge)</label>
               <input
                 type="text"
                 value={dealForm.badge}
                 onChange={(e) => setDealForm({ ...dealForm, badge: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Vi xử lý CPU *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Vi xử lý CPU *</label>
               <input
                 required
                 type="text"
                 placeholder="VD: Intel Core i5-13400F"
                 value={dealForm.cpu}
                 onChange={(e) => setDealForm({ ...dealForm, cpu: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
               />
             </div>
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Card màn hình VGA *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Card màn hình VGA *</label>
               <input
                 required
                 type="text"
                 placeholder="VD: ASUS Dual RTX 4060 8GB"
                 value={dealForm.vga}
                 onChange={(e) => setDealForm({ ...dealForm, vga: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Bộ nhớ RAM *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Bộ nhớ RAM *</label>
               <input
                 required
                 type="text"
                 placeholder="VD: 16GB (2x8GB) DDR4 3200MHz"
                 value={dealForm.ram}
                 onChange={(e) => setDealForm({ ...dealForm, ram: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
               />
             </div>
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Ổ cứng SSD *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Ổ cứng SSD *</label>
               <input
                 required
                 type="text"
                 placeholder="VD: 500GB NVMe M.2 Gen4"
                 value={dealForm.ssd}
                 onChange={(e) => setDealForm({ ...dealForm, ssd: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
               />
             </div>
           </div>
@@ -2609,71 +2609,71 @@ export default function AdminDashboardPage() {
         <form onSubmit={handleCreateSupplier} className="space-y-3 text-xs">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Tên công ty / Nhà phân phối *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Tên công ty / Nhà phân phối *</label>
               <input
                 required
                 type="text"
                 placeholder="VD: Synnex FPT Distribution"
                 value={supplierForm.name}
                 onChange={(e) => setSupplierForm({ ...supplierForm, name: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
               />
             </div>
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Mã nhà cung cấp (Code) *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Mã nhà cung cấp (Code) *</label>
               <input
                 required
                 type="text"
                 placeholder="VD: SUP-FPT"
                 value={supplierForm.code}
                 onChange={(e) => setSupplierForm({ ...supplierForm, code: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Người liên hệ phụ trách</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Người liên hệ phụ trách</label>
               <input
                 type="text"
                 placeholder="VD: Nguyễn Hoàng Long"
                 value={supplierForm.contact_person}
                 onChange={(e) => setSupplierForm({ ...supplierForm, contact_person: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
               />
             </div>
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Số điện thoại hotline</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Số điện thoại hotline</label>
               <input
                 type="text"
                 placeholder="VD: 024.7300.7300"
                 value={supplierForm.phone}
                 onChange={(e) => setSupplierForm({ ...supplierForm, phone: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
               />
             </div>
           </div>
 
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Thương hiệu phân phối (cách nhau bằng dấu phẩy)</label>
+            <label className="block font-bold text-[#1E293B] mb-1">Thương hiệu phân phối (cách nhau bằng dấu phẩy)</label>
             <input
               type="text"
               placeholder="VD: ASUS, Intel, Kingston, Western Digital"
               value={brandInputString}
               onChange={(e) => setBrandInputString(e.target.value)}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
             />
           </div>
 
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Địa chỉ kho / Trụ sở chính</label>
+            <label className="block font-bold text-[#1E293B] mb-1">Địa chỉ kho / Trụ sở chính</label>
             <input
               type="text"
               placeholder="VD: Tòa nhà FPT, Phố Duy Tân, Cầu Giấy, Hà Nội"
               value={supplierForm.address}
               onChange={(e) => setSupplierForm({ ...supplierForm, address: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
             />
           </div>
 
@@ -2697,7 +2697,7 @@ export default function AdminDashboardPage() {
       >
         <form onSubmit={handleCreateBlogPost} className="space-y-4 text-xs">
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Tiêu đề bài viết (Tiếng Việt) *</label>
+            <label className="block font-bold text-[#1E293B] mb-1">Tiêu đề bài viết (Tiếng Việt) *</label>
             <input
               required
               type="text"
@@ -2715,28 +2715,28 @@ export default function AdminDashboardPage() {
                   .replace(/\s+/g, "-");
                 setBlogForm({ ...blogForm, title_vi: title, slug: blogForm.slug || autoSlug });
               }}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2.5 text-[#0F172A] focus:border-[#0063FD] focus:outline-none text-sm font-bold"
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none text-sm font-bold shadow-2xs"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Slug URL (Đường dẫn tĩnh) *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Slug URL (Đường dẫn tĩnh) *</label>
               <input
                 required
                 type="text"
                 placeholder="huong-dan-chon-nguon-psu"
                 value={blogForm.slug}
                 onChange={(e) => setBlogForm({ ...blogForm, slug: e.target.value.toLowerCase().trim() })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
               />
             </div>
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Chuyên mục bài viết *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Chuyên mục bài viết *</label>
               <select
                 value={blogForm.category}
                 onChange={(e) => setBlogForm({ ...blogForm, category: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none bg-white font-bold"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-bold shadow-2xs"
               >
                 <option value="Kiến Thức Phần Cứng">Kiến Thức Phần Cứng</option>
                 <option value="Đánh Giá & Review">Đánh Giá & Review</option>
@@ -2745,12 +2745,12 @@ export default function AdminDashboardPage() {
               </select>
             </div>
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Tác giả biên tập</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Tác giả biên tập</label>
               <input
                 type="text"
                 value={blogForm.author_name}
                 onChange={(e) => setBlogForm({ ...blogForm, author_name: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
               />
             </div>
           </div>
@@ -2766,33 +2766,33 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className="w-48">
-            <label className="block font-bold text-[#475569] mb-1">Thời gian đọc ước tính</label>
+            <label className="block font-bold text-[#1E293B] mb-1">Thời gian đọc ước tính</label>
             <div className="flex items-center gap-1.5">
               <input
                 type="number"
                 value={blogForm.reading_time_mins}
                 onChange={(e) => setBlogForm({ ...blogForm, reading_time_mins: parseInt(e.target.value || "5", 10) })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono text-center"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono text-center shadow-2xs"
               />
-              <span className="text-xs text-[#64748B] shrink-0">phút</span>
+              <span className="text-xs text-[#64748B] shrink-0 font-bold">phút</span>
             </div>
           </div>
 
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Đoạn tóm tắt mở đầu (Excerpt) *</label>
+            <label className="block font-bold text-[#1E293B] mb-1">Đoạn tóm tắt mở đầu (Excerpt) *</label>
             <textarea
               required
               rows={2}
               placeholder="Tóm tắt ngắn gọn nội dung bài viết hiển thị ở thẻ ngoài danh mục..."
               value={blogForm.excerpt_vi}
               onChange={(e) => setBlogForm({ ...blogForm, excerpt_vi: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none leading-relaxed"
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none leading-relaxed shadow-2xs"
             />
           </div>
 
           {/* Rich Text Editor Content */}
           <div>
-            <label className="block font-bold text-[#475569] mb-1.5">
+            <label className="block font-bold text-[#1E293B] mb-1.5">
               Nội dung bài viết chi tiết (Trình Soạn Thảo Rich Text) *
             </label>
             <RichTextEditor
@@ -2831,33 +2831,33 @@ export default function AdminDashboardPage() {
       >
         <form onSubmit={handleUpdateBlogPost} className="space-y-4 text-xs">
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Tiêu đề bài viết (Tiếng Việt) *</label>
+            <label className="block font-bold text-[#1E293B] mb-1">Tiêu đề bài viết (Tiếng Việt) *</label>
             <input
               required
               type="text"
               value={editBlogForm.title_vi}
               onChange={(e) => setEditBlogForm({ ...editBlogForm, title_vi: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2.5 text-[#0F172A] focus:border-[#0063FD] focus:outline-none text-sm font-bold"
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none text-sm font-bold shadow-2xs"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Slug URL (Đường dẫn tĩnh) *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Slug URL (Đường dẫn tĩnh) *</label>
               <input
                 required
                 type="text"
                 value={editBlogForm.slug}
                 onChange={(e) => setEditBlogForm({ ...editBlogForm, slug: e.target.value.toLowerCase().trim() })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
               />
             </div>
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Chuyên mục bài viết *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Chuyên mục bài viết *</label>
               <select
                 value={editBlogForm.category}
                 onChange={(e) => setEditBlogForm({ ...editBlogForm, category: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none bg-white font-bold"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-bold shadow-2xs"
               >
                 <option value="Kiến Thức Phần Cứng">Kiến Thức Phần Cứng</option>
                 <option value="Đánh Giá & Review">Đánh Giá & Review</option>
@@ -2866,12 +2866,12 @@ export default function AdminDashboardPage() {
               </select>
             </div>
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Tác giả biên tập</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Tác giả biên tập</label>
               <input
                 type="text"
                 value={editBlogForm.author_name}
                 onChange={(e) => setEditBlogForm({ ...editBlogForm, author_name: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
               />
             </div>
           </div>
@@ -2887,32 +2887,32 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className="w-48">
-            <label className="block font-bold text-[#475569] mb-1">Thời gian đọc ước tính</label>
+            <label className="block font-bold text-[#1E293B] mb-1">Thời gian đọc ước tính</label>
             <div className="flex items-center gap-1.5">
               <input
                 type="number"
                 value={editBlogForm.reading_time_mins}
                 onChange={(e) => setEditBlogForm({ ...editBlogForm, reading_time_mins: parseInt(e.target.value || "5", 10) })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono text-center"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono text-center shadow-2xs"
               />
-              <span className="text-xs text-[#64748B] shrink-0">phút</span>
+              <span className="text-xs text-[#64748B] shrink-0 font-bold">phút</span>
             </div>
           </div>
 
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Đoạn tóm tắt mở đầu (Excerpt) *</label>
+            <label className="block font-bold text-[#1E293B] mb-1">Đoạn tóm tắt mở đầu (Excerpt) *</label>
             <textarea
               required
               rows={2}
               value={editBlogForm.excerpt_vi}
               onChange={(e) => setEditBlogForm({ ...editBlogForm, excerpt_vi: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none leading-relaxed"
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none leading-relaxed shadow-2xs"
             />
           </div>
 
           {/* Rich Text Editor Content */}
           <div>
-            <label className="block font-bold text-[#475569] mb-1.5">
+            <label className="block font-bold text-[#1E293B] mb-1.5">
               Nội dung bài viết chi tiết (Trình Soạn Thảo Rich Text) *
             </label>
             <RichTextEditor
