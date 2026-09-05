@@ -1,4 +1,11 @@
-export type PaymentProvider = "vnpay" | "momo" | "zalopay" | "stripe" | "cod" | "bank_transfer";
+export type PaymentProvider =
+  | "sepay"
+  | "vnpay"
+  | "momo"
+  | "zalopay"
+  | "stripe"
+  | "cod"
+  | "bank_transfer";
 
 export interface CreatePaymentUrlInput {
   orderId: string;
@@ -22,4 +29,18 @@ export interface PaymentWebhookPayload {
   amount: number;
   status: "success" | "failed";
   rawQuery?: Record<string, string>;
+}
+
+export interface SePayWebhookPayload {
+  id: number;
+  gateway: string;
+  transactionDate: string;
+  accountNumber: string;
+  code: string | null;
+  content: string;
+  transferType: "in" | "out";
+  transferAmount: number;
+  accumulated: number;
+  referenceCode: string;
+  description: string;
 }
