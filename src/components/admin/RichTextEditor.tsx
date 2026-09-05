@@ -18,7 +18,10 @@ import {
   Edit3,
   Code2,
   RotateCcw,
+  X,
+  Check,
 } from "lucide-react";
+import { CloudinaryImageUpload } from "@/components/common/CloudinaryImageUpload";
 
 interface RichTextEditorProps {
   value: string;
@@ -32,6 +35,10 @@ export function RichTextEditor({
   placeholder = "Nhập nội dung bài viết công nghệ...",
 }: RichTextEditorProps) {
   const [activeMode, setActiveMode] = useState<"visual" | "html" | "preview">("visual");
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [pendingImageUrl, setPendingImageUrl] = useState("");
+  const [pendingImageCaption, setPendingImageCaption] = useState("");
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Helper to insert markdown/HTML tags around selection in textarea
@@ -62,25 +69,36 @@ export function RichTextEditor({
     const url = prompt("Nhập đường dẫn liên kết (URL):", "https://");
     if (!url) return;
     const text = prompt("Nhập văn bản hiển thị cho liên kết:", "Xem chi tiết");
-    insertTag(`<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-[#0063FD] font-bold underline">`, `</a>`, text || "liên kết");
+    insertTag(
+      `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-[#0063FD] font-bold underline">`,
+      `</a>`,
+      text || "liên kết"
+    );
   };
 
-  const handleInsertImage = () => {
-    const url = prompt("Nhập đường dẫn hình ảnh (Image URL):", "https://images.unsplash.com/");
-    if (!url) return;
-    const caption = prompt("Nhập chú thích ảnh (Caption / Alt text):", "Hình ảnh minh họa");
-    const imgHtml = `\n<figure class="my-4 text-center">\n  <img src="${url}" alt="${caption || "Ảnh bài viết"}" class="rounded-xl mx-auto max-h-96 object-cover border border-[#E2E8F0] shadow-sm" />\n  <figcaption class="text-xs text-[#64748B] mt-1.5">${caption || ""}</figcaption>\n</figure>\n`;
-    const textarea = textareaRef.current;
-    if (!textarea) return;
+  const handleConfirmInsertImage = () => {
+    if (!pendingImageUrl) return;
 
-    const start = textarea.selectionStart;
-    const newValue =
-      textarea.value.substring(0, start) + imgHtml + textarea.value.substring(start);
-    onChange(newValue);
+    const caption = pendingImageCaption.trim() || "Hình ảnh minh họa";
+    const imgHtml = `\n<figure class="my-5 text-center">\n  <img src="${pendingImageUrl}" alt="${caption}" class="rounded-2xl mx-auto max-h-[500px] object-cover border border-[#E2E8F0] shadow-xs" />\n  <figcaption class="text-xs text-[#64748B] mt-2 font-medium">${caption}</figcaption>\n</figure>\n\n`;
+
+    const textarea = textareaRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const newValue =
+        textarea.value.substring(0, start) + imgHtml + textarea.value.substring(start);
+      onChange(newValue);
+    } else {
+      onChange(value + imgHtml);
+    }
+
+    setPendingImageUrl("");
+    setPendingImageCaption("");
+    setIsImageModalOpen(false);
   };
 
   return (
-    <div className="rounded-xl border border-[#CBD5E1] bg-white overflow-hidden shadow-xs">
+    <div className="rounded-xl border border-[#CBD5E1] bg-white overflow-hidden shadow-xs relative">
       {/* Top Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-1.5 border-b border-[#CBD5E1] bg-[#F8FAFC] p-2">
         {/* Formatting Buttons */}
@@ -208,11 +226,12 @@ export function RichTextEditor({
           </button>
           <button
             type="button"
-            onClick={handleInsertImage}
-            className="p-1.5 rounded hover:bg-[#E2E8F0] text-[#16A34A]"
-            title="Chèn hình ảnh minh họa"
+            onClick={() => setIsImageModalOpen(true)}
+            className="p-1.5 rounded bg-[#EFF6FF] border border-[#BFDBFE] text-[#0063FD] hover:bg-[#DBEAFE] font-bold text-xs flex items-center gap-1"
+            title="Tải lên ảnh Cloudinary hoặc chèn URL"
           >
             <ImageIcon className="h-4 w-4" />
+            <span>Chèn Ảnh</span>
           </button>
         </div>
 
@@ -267,7 +286,9 @@ export function RichTextEditor({
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
             className={`w-full rounded-lg border border-transparent p-2.5 text-xs focus:border-[#0063FD] focus:outline-none leading-relaxed ${
-              activeMode === "html" ? "font-mono bg-[#0F172A] text-slate-100" : "bg-white text-[#0F172A]"
+              activeMode === "html"
+                ? "font-mono bg-[#0F172A] text-slate-100"
+                : "bg-white text-[#0F172A]"
             }`}
           />
         ) : (
@@ -302,6 +323,69 @@ export function RichTextEditor({
           Xóa trắng
         </button>
       </div>
+
+      {/* Image Insertion Dialog Modal */}
+      {isImageModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="w-full max-w-lg rounded-2xl border border-[#CBD5E1] bg-white p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
+              <div className="flex items-center gap-2">
+                <ImageIcon className="h-4 w-4 text-[#0063FD]" />
+                <h3 className="text-sm font-black text-[#0F172A] uppercase">
+                  Chèn Ảnh Vào Bài Viết
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsImageModalOpen(false)}
+                className="rounded-lg p-1 text-[#64748B] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <CloudinaryImageUpload
+              value={pendingImageUrl}
+              onChange={setPendingImageUrl}
+              folder="qmdtech/blogs"
+              label="Tải ảnh lên Cloudinary hoặc dán liên kết URL"
+              description="Ảnh tải lên sẽ tự động nén WebP để tiết kiệm hạn mức lưu trữ Cloudinary."
+            />
+
+            <div>
+              <label className="block text-xs font-bold text-[#475569] mb-1">
+                Chú thích ảnh (Caption / Alt Text)
+              </label>
+              <input
+                type="text"
+                value={pendingImageCaption}
+                onChange={(e) => setPendingImageCaption(e.target.value)}
+                placeholder="VD: Bo mạch chủ ASUS ROG Strix B650-A Gaming WiFi"
+                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 border-t border-[#E2E8F0] pt-3">
+              <button
+                type="button"
+                onClick={() => setIsImageModalOpen(false)}
+                className="rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3.5 py-2 text-xs font-bold text-[#475569] hover:bg-[#E2E8F0]"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                disabled={!pendingImageUrl}
+                onClick={handleConfirmInsertImage}
+                className="rounded-lg bg-[#0063FD] px-4 py-2 text-xs font-bold text-white hover:bg-[#0052D4] disabled:opacity-50 flex items-center gap-1.5 shadow-xs"
+              >
+                <Check className="h-3.5 w-3.5" />
+                Chèn Ảnh
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
