@@ -47,10 +47,10 @@ export function Header() {
       <div className="border-b border-[#F1F5F9] bg-[#F8FAFC] py-1 text-xs text-[#64748B]">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-3 sm:px-6">
           <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
-            <span className="flex items-center gap-1 truncate text-[11px] sm:text-xs">
+            <span className="flex items-center gap-1.5 truncate text-[11px] sm:text-xs text-[#334155]">
               <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 shrink-0 rounded-full bg-[#16A34A] animate-pulse" />
               <span className="truncate">
-                3 Showroom: <strong>Hà Nội</strong> • <strong>TP.HCM</strong> • <strong>Đà Nẵng</strong>
+                <strong className="text-[#0F172A]">Bán Hàng & Ráp PC Online Toàn Quốc</strong> • Giao tận nơi 63 tỉnh thành
               </span>
             </span>
             <span className="hidden md:inline-block text-[#CBD5E1]">|</span>
