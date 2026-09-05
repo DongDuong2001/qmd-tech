@@ -13,7 +13,7 @@ export default function AdminLoginPage() {
   const searchParams = useSearchParams();
   const redirectPath = searchParams.get("redirect") || `/${locale}/admin`;
 
-  const [username, setUsername] = useState("admin");
+  const [username, setUsername] = useState("admin@qmd.tech");
   const [passcode, setPasscode] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -112,7 +112,7 @@ export default function AdminLoginPage() {
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="admin"
+                  placeholder="admin@qmd.tech"
                   className="w-full rounded-lg border border-[#475569] bg-[#0F172A] py-2.5 pl-9 pr-3 text-white placeholder-[#64748B] focus:border-[#0063FD] focus:outline-none"
                 />
                 <User className="absolute left-3 top-3 h-4 w-4 text-[#64748B]" />
