@@ -51,11 +51,11 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0F172A] flex items-center justify-center p-4 selection:bg-[#0063FD] selection:text-white">
+    <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4 selection:bg-[#0063FD] selection:text-white">
       <div className="w-full max-w-md space-y-6">
         {/* Brand Header */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center h-16 w-16 rounded-full border-2 border-[#0063FD] bg-white shadow-lg overflow-hidden relative mb-2">
+          <div className="inline-flex items-center justify-center h-16 w-16 rounded-full border-2 border-[#0063FD] bg-white shadow-md overflow-hidden relative mb-2">
             <Image
               src="/qmdtech_logo.png"
               alt="QMD-Tech Logo"
@@ -66,23 +66,23 @@ export default function AdminLoginPage() {
             />
           </div>
           <div className="flex items-center justify-center gap-1.5">
-            <span className="text-2xl font-black tracking-wider text-white">
+            <span className="text-2xl font-black tracking-wider text-[#0F172A]">
               QMD<span className="text-[#0063FD]">-TECH</span>
             </span>
             <span className="rounded bg-[#0063FD] px-2 py-0.5 text-[10px] font-black text-white uppercase tracking-wider">
               ADMIN
             </span>
           </div>
-          <p className="text-xs text-[#94A3B8]">
+          <p className="text-xs text-[#64748B]">
             Hệ thống Quản trị & Điều hành Dữ liệu Phần cứng QMD-Tech
           </p>
         </div>
 
         {/* Login Box */}
-        <div className="rounded-2xl border border-[#334155] bg-[#1E293B] p-6 sm:p-8 shadow-2xl space-y-6">
-          <div className="flex items-center gap-2 border-b border-[#334155] pb-4">
+        <div className="rounded-2xl border border-[#E2E8F0] bg-white p-6 sm:p-8 shadow-xl space-y-6">
+          <div className="flex items-center gap-2 border-b border-[#E2E8F0] pb-4">
             <ShieldCheck className="h-5 w-5 text-[#0063FD]" />
-            <h2 className="text-sm font-black uppercase tracking-wider text-white">
+            <h2 className="text-sm font-black uppercase tracking-wider text-[#0F172A]">
               Xác Thực Quyền Quản Trị Viên
             </h2>
           </div>
@@ -103,7 +103,7 @@ export default function AdminLoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
             <div>
-              <label className="block text-[11px] font-bold uppercase text-[#94A3B8] mb-1.5">
+              <label className="block text-[11px] font-bold uppercase text-[#475569] mb-1.5">
                 Tài khoản Quản trị
               </label>
               <div className="relative">
@@ -113,14 +113,14 @@ export default function AdminLoginPage() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="admin@qmd.tech"
-                  className="w-full rounded-lg border border-[#475569] bg-[#0F172A] py-2.5 pl-9 pr-3 text-white placeholder-[#64748B] focus:border-[#0063FD] focus:outline-none"
+                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2.5 pl-9 pr-3 text-[#0F172A] placeholder-[#94A3B8] focus:bg-white focus:border-[#0063FD] focus:outline-none"
                 />
                 <User className="absolute left-3 top-3 h-4 w-4 text-[#64748B]" />
               </div>
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold uppercase text-[#94A3B8] mb-1.5">
+              <label className="block text-[11px] font-bold uppercase text-[#475569] mb-1.5">
                 Mật mã bảo mật (Admin Passcode)
               </label>
               <div className="relative">
@@ -130,7 +130,7 @@ export default function AdminLoginPage() {
                   value={passcode}
                   onChange={(e) => setPasscode(e.target.value)}
                   placeholder="Nhập mật mã quản trị..."
-                  className="w-full rounded-lg border border-[#475569] bg-[#0F172A] py-2.5 pl-9 pr-3 text-white placeholder-[#64748B] focus:border-[#0063FD] focus:outline-none font-mono"
+                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2.5 pl-9 pr-3 text-[#0F172A] placeholder-[#94A3B8] focus:bg-white focus:border-[#0063FD] focus:outline-none font-mono"
                 />
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-[#64748B]" />
               </div>
@@ -150,7 +150,7 @@ export default function AdminLoginPage() {
             </div>
           </form>
 
-          <div className="text-center text-[10px] text-[#64748B] pt-2 border-t border-[#334155]">
+          <div className="text-center text-[10px] text-[#64748B] pt-2 border-t border-[#E2E8F0]">
             Phiên đăng nhập được mã hóa và bảo vệ bằng HTTPOnly Cookie an toàn.
           </div>
         </div>
