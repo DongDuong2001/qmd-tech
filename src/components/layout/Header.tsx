@@ -124,16 +124,10 @@ export function Header() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Tìm tên linh kiện, CPU, Card RTX 4070 Ti, Mainboard, RAM..."
-                className="w-full rounded-xl border border-[#CBD5E1] bg-[#F8FAFC] py-2.5 pl-10 pr-24 text-xs sm:text-sm text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0063FD] transition-all shadow-2xs"
+                placeholder="Tìm kiếm linh kiện, CPU, RTX 4070 Ti, Mainboard, RAM..."
+                className="w-full rounded-xl border border-[#CBD5E1] bg-[#F8FAFC] py-2.5 pl-10 pr-4 text-xs sm:text-sm text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0063FD] transition-all shadow-2xs"
               />
               <Search className="absolute left-3.5 top-3 h-4 w-4 text-[#64748B]" />
-              <button
-                type="submit"
-                className="btn-wipe btn-wipe-primary absolute right-1.5 top-1.5 bottom-1.5 rounded-lg bg-[#0063FD] px-4 text-xs font-bold text-white hover:bg-[#0052D4] transition-colors flex items-center justify-center cursor-pointer shadow-xs"
-              >
-                <span className="relative z-10">Tìm kiếm</span>
-              </button>
             </form>
           </div>
 
