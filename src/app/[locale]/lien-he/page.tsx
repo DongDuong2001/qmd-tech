@@ -3,62 +3,55 @@ import { MapPin, Phone, Mail, Clock, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const metadata = {
-  title: "Liên Hệ & Hệ Thống Showroom | QMD-Tech",
+  title: "Liên Hệ & Hỗ Trợ Kỹ Thuật Online | QMD-Tech",
 };
 
 export default function ContactPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 space-y-10">
-      <div className="border-b border-[#E4E7EC] pb-6">
-        <div className="flex items-center gap-2 text-xs font-bold text-[#2563EB] uppercase tracking-wider mb-2">
+      <div className="border-b border-[#E2E8F0] pb-6">
+        <div className="flex items-center gap-2 text-xs font-bold text-[#0063FD] uppercase tracking-wider mb-2">
           <MapPin className="h-4 w-4" />
-          Hệ Thống Trải Nghiệm Phần Cứng
+          Kênh Tư Vấn & Hỗ Trợ Trực Tuyến
         </div>
         <h1 className="text-2xl sm:text-3xl font-black text-[#0F172A]">
-          Liên Hệ & Showroom QMD-Tech
+          Liên Hệ QMD-Tech
         </h1>
         <p className="mt-1 text-xs text-[#64748B]">
-          Ghé thăm showroom trực tiếp để trải nghiệm dàn máy Custom PC và nhận tư vấn cấu hình
+          Đội ngũ kỹ sư phần cứng QMD-Tech sẵn sàng hỗ trợ tư vấn cấu hình, tiếp nhận yêu cầu bảo hành và giải đáp kỹ thuật 24/7
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left: Contact info & Showrooms */}
+        {/* Left: Contact info & Online Dispatch */}
         <div className="lg:col-span-6 space-y-6">
-          <div className="rounded-xl border border-[#E4E7EC] bg-[#FFFFFF] p-6 space-y-4 shadow-xs">
-            <h3 className="text-base font-bold text-[#0F172A]">Showroom Hà Nội</h3>
-            <div className="space-y-2 text-xs text-[#64748B]">
+          <div className="rounded-xl border border-[#CBD5E1] bg-[#FFFFFF] p-6 space-y-4 shadow-xs">
+            <h3 className="text-base font-bold text-[#0F172A]">Trung Tâm Tư Vấn & Điều Phối Online</h3>
+            <div className="space-y-3 text-xs text-[#64748B]">
               <p className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-[#2563EB] shrink-0" />
-                Số 18, Phố Cầu Giấy, Quận Cầu Giấy, Hà Nội
+                <MapPin className="h-4 w-4 text-[#0063FD] shrink-0" />
+                <span>Trụ sở chính: Số 18 Phố Cầu Giấy, Quận Cầu Giấy, Hà Nội</span>
               </p>
               <p className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-[#16A34A] shrink-0" />
-                Hotline: 024.8888.9999 (8:30 - 21:00)
+                <span>Hotline bán hàng: <strong className="text-[#0F172A]">1900.8888</strong> • Hỗ trợ: <strong className="text-[#0F172A]">0988.888.888</strong></span>
               </p>
               <p className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-[#B45309] shrink-0" />
-                Mở cửa: 8:30 - 21:00 (Tất cả các ngày trong tuần)
+                <Mail className="h-4 w-4 text-[#0063FD] shrink-0" />
+                <span>Email tiếp nhận: <strong className="text-[#0F172A]">contact@qmdtech.vn</strong></span>
+              </p>
+              <p className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-[#0284C7] shrink-0" />
+                <span>Thời gian làm việc: 8:30 - 21:00 (Tất cả các ngày trong tuần)</span>
               </p>
             </div>
           </div>
 
-          <div className="rounded-xl border border-[#E4E7EC] bg-[#FFFFFF] p-6 space-y-4 shadow-xs">
-            <h3 className="text-base font-bold text-[#0F172A]">Showroom TP. Hồ Chí Minh</h3>
-            <div className="space-y-2 text-xs text-[#64748B]">
-              <p className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-[#2563EB] shrink-0" />
-                Số 250, Đường Cách Mạng Tháng 8, Quận 3, TP. Hồ Chí Minh
-              </p>
-              <p className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-[#16A34A] shrink-0" />
-                Hotline: 028.8888.7777 (8:30 - 21:00)
-              </p>
-              <p className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-[#7C3AED] shrink-0" />
-                Email hỗ trợ: support@qmdtech.vn
-              </p>
-            </div>
+          <div className="rounded-xl border border-[#CBD5E1] bg-[#F8FAFC] p-6 space-y-3 shadow-xs">
+            <h3 className="text-base font-bold text-[#0F172A]">Chính Sách Bán Hàng & Giao Nhận Toàn Quốc</h3>
+            <p className="text-xs text-[#64748B] leading-relaxed">
+              QMD-Tech áp dụng mô hình phân phối linh kiện và máy tính ráp sẵn trực tuyến. Mọi đơn hàng đều được đóng gói chống sốc 3 lớp, bảo hiểm 100% giá trị hàng hóa và giao tận tay khách hàng trên 63 tỉnh thành qua đối tác vận chuyển hỏa tốc.
+            </p>
           </div>
         </div>
 
