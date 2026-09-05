@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Link } from "@/i18n/routing";
+import { Link, useRouter } from "@/i18n/routing";
 import { LanguageSwitcher } from "@/components/common/LanguageSwitcher";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +15,6 @@ import {
   User,
   Menu,
   X,
-  TrendingUp,
   Truck,
   Award,
   Tag,
@@ -24,22 +23,21 @@ import {
 
 export function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/danh-muc?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
 
   // Auto-hide storefront Header on admin dashboard to maintain enterprise backoffice separation
   if (pathname && pathname.includes("/admin")) {
     return null;
   }
-
-  const hotKeywords = [
-    "RTX 4070 Ti Super",
-    "Ryzen 7 7800X3D",
-    "Intel Core i7-14700K",
-    "B760 Mainboard",
-    "RAM 32GB DDR5",
-    "SSD 1TB Gen4",
-  ];
 
   return (
     <header className="sticky top-0 z-50 w-full max-w-full overflow-x-clip border-b border-[#E2E8F0] bg-[#FFFFFF] shadow-xs">
@@ -119,37 +117,24 @@ export function Header() {
             </div>
           </Link>
 
-          {/* Search Bar with Quick Hot Keywords (Desktop) */}
-          <div className="hidden lg:flex flex-1 max-w-2xl flex-col gap-1 mx-4">
-            <div className="relative w-full">
+          {/* Search Bar (Desktop) */}
+          <div className="hidden lg:flex flex-1 max-w-xl mx-4">
+            <form onSubmit={handleSearch} className="relative w-full">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Tìm tên CPU, Card RTX 4070 Ti, Mainboard B650, RAM DDR5..."
-                className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2 pl-10 pr-24 text-sm text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0063FD] transition-all"
+                placeholder="Tìm tên linh kiện, CPU, Card RTX 4070 Ti, Mainboard, RAM..."
+                className="w-full rounded-xl border border-[#CBD5E1] bg-[#F8FAFC] py-2.5 pl-10 pr-24 text-xs sm:text-sm text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0063FD] transition-all shadow-2xs"
               />
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-[#64748B]" />
-              <button className="absolute right-1 top-1 bottom-1 rounded-md bg-[#0063FD] px-4 text-xs font-bold text-white hover:bg-[#0052D4] transition-colors">
-                Tìm kiếm
+              <Search className="absolute left-3.5 top-3 h-4 w-4 text-[#64748B]" />
+              <button
+                type="submit"
+                className="btn-wipe btn-wipe-primary absolute right-1.5 top-1.5 bottom-1.5 rounded-lg bg-[#0063FD] px-4 text-xs font-bold text-white hover:bg-[#0052D4] transition-colors flex items-center justify-center cursor-pointer shadow-xs"
+              >
+                <span className="relative z-10">Tìm kiếm</span>
               </button>
-            </div>
-            <div className="flex items-center gap-2 overflow-hidden text-[11px] text-[#64748B]">
-              <span className="text-[#0063FD] font-bold flex items-center gap-0.5 shrink-0">
-                <TrendingUp className="h-3 w-3" /> Xu hướng:
-              </span>
-              <div className="flex gap-2 overflow-x-auto no-scrollbar whitespace-nowrap">
-                {hotKeywords.map((kw) => (
-                  <Link
-                    key={kw}
-                    href={`/danh-muc?q=${encodeURIComponent(kw)}`}
-                    className="hover:text-[#0063FD] transition-colors font-medium text-[#475569]"
-                  >
-                    {kw}
-                  </Link>
-                ))}
-              </div>
-            </div>
+            </form>
           </div>
 
           {/* Right Action Icons & CTAs */}
@@ -178,21 +163,15 @@ export function Header() {
             </Link>
 
             {/* Cart Button with Count Badge */}
-            <Link href="/gio-hang">
-              <div className="group relative flex h-9 sm:h-10 items-center gap-2 rounded-xl border border-[#CBD5E1] bg-[#FFFFFF] px-2.5 sm:px-3 text-[#0F172A] hover:border-[#0063FD] hover:bg-[#EFF6FF] transition-all shadow-xs">
-                <div className="relative flex items-center justify-center">
-                  <ShoppingCart className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-[#0F172A] group-hover:text-[#0063FD] transition-colors" />
-                  <span className="absolute -top-2 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#0063FD] px-1 text-[9px] font-mono font-black text-white shadow-xs">
-                    2
-                  </span>
-                </div>
-                <span className="hidden xl:inline font-mono text-xs font-bold text-[#0063FD]">
-                  14.280.000₫
-                </span>
-              </div>
+            <Link
+              href="/gio-hang"
+              className="relative flex items-center gap-1.5 rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-xs font-bold text-[#0F172A] hover:border-[#0063FD] hover:text-[#0063FD] transition-colors shadow-2xs"
+            >
+              <ShoppingCart className="h-4 w-4 text-[#0063FD]" />
+              <span className="hidden md:inline font-bold">Giỏ hàng</span>
             </Link>
 
-            {/* Mobile Menu Toggle */}
+            {/* Mobile Hamburger Toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="lg:hidden rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] p-2 text-[#475569] hover:text-[#0F172A]"
@@ -205,16 +184,16 @@ export function Header() {
 
         {/* Mobile Inline Search Bar */}
         <div className="mt-2.5 lg:hidden">
-          <div className="relative w-full">
+          <form onSubmit={handleSearch} className="relative w-full">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Tìm CPU, RTX 4070 Ti, B650, RAM DDR5..."
-              className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-1.5 pl-8 pr-3 text-xs text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none"
+              placeholder="Tìm CPU, RTX 4070 Ti, B650, RAM..."
+              className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2 pl-9 pr-3 text-xs text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
             />
-            <Search className="absolute left-2.5 top-2 h-3.5 w-3.5 text-[#64748B]" />
-          </div>
+            <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-[#64748B]" />
+          </form>
         </div>
       </div>
 
