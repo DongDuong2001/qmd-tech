@@ -249,4 +249,36 @@ export interface CreateBlogPostInput {
   reading_time_mins: number;
 }
 
+export interface ShowroomLocation {
+  id: string;
+  city: string;
+  name: string;
+  address: string;
+  phone: string;
+  hours: string;
+  is_active: boolean;
+}
 
+export interface SiteSettings {
+  id?: string;
+  store_name: string;
+  slogan: string;
+  hotline: string;
+  hotline_support: string;
+  support_email: string;
+  business_model: "online" | "showroom" | "hybrid";
+  business_model_text: string;
+  headquarters_address: string;
+  has_showrooms: boolean;
+  showrooms: ShowroomLocation[];
+  bo_cong_thuong_registered: boolean;
+  bo_cong_thuong_badge_url?: string;
+  bo_cong_thuong_link?: string;
+  bo_cong_thuong_license_no?: string;
+  working_hours: string;
+  facebook_url?: string;
+  zalo_url?: string;
+  youtube_url?: string;
+  free_shipping_threshold_vnd: number;
+  updated_at?: string;
+}
