@@ -6,6 +6,7 @@ import {
   getAdminCookieOptions,
   getClearCookieOptions,
 } from "@/shared/security/cookies";
+import { createAdminToken } from "@/shared/security/jwt";
 
 export async function POST(req: NextRequest) {
   try {
@@ -48,14 +49,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Set HttpOnly Admin Token
-    const adminToken = Buffer.from(
-      JSON.stringify({
-        role: "admin",
-        user: validUsername,
-        issuedAt: Date.now(),
-      })
-    ).toString("base64url");
+    // Generate Cryptographically Signed Admin JWT Token
+    const adminToken = await createAdminToken(validUsername);
 
     const cookieStore = await cookies();
     cookieStore.set(ADMIN_COOKIE_NAME, adminToken, getAdminCookieOptions());
