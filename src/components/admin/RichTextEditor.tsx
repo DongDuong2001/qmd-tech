@@ -203,7 +203,7 @@ export function RichTextEditor({
             type="button"
             onClick={() =>
               insertTag(
-                '<pre class="rounded-xl bg-[#0F172A] p-4 text-[#38BDF8] font-mono text-xs overflow-x-auto my-3"><code>',
+                '<pre class="rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] p-4 text-[#0F172A] font-mono text-xs overflow-x-auto my-3"><code>',
                 "</code></pre>",
                 "// Cấu hình mã code hoặc thông số Benchmark..."
               )
@@ -287,7 +287,7 @@ export function RichTextEditor({
             placeholder={placeholder}
             className={`w-full rounded-lg border border-transparent p-2.5 text-xs focus:border-[#0063FD] focus:outline-none leading-relaxed ${
               activeMode === "html"
-                ? "font-mono bg-[#0F172A] text-slate-100"
+                ? "font-mono bg-[#F8FAFC] text-[#0F172A] border border-[#CBD5E1]"
                 : "bg-white text-[#0F172A]"
             }`}
           />
@@ -326,7 +326,7 @@ export function RichTextEditor({
 
       {/* Image Insertion Dialog Modal */}
       {isImageModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
           <div className="w-full max-w-lg rounded-2xl border border-[#CBD5E1] bg-white p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
               <div className="flex items-center gap-2">
