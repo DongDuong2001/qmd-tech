@@ -1,6 +1,7 @@
 import { CreatePaymentUrlInput, PaymentUrlResponse } from "../types";
 
 export interface SePayConfig {
+  merchantId?: string;
   apiKey: string;
   bankName: string;
   accountNumber: string;
@@ -22,11 +23,46 @@ export class SePayAdapter {
 
   constructor() {
     this.config = {
-      apiKey: process.env.SEPAY_API_KEY || "",
+      merchantId: process.env.SEPAY_MERCHANT_ID || "",
+      apiKey: process.env.SEPAY_API_KEY || process.env.SEPAY_SECRET_KEY || "",
       bankName: process.env.SEPAY_BANK_NAME || "MBBank",
       accountNumber: process.env.SEPAY_ACCOUNT_NUMBER || "0988889999",
       accountName: process.env.SEPAY_ACCOUNT_NAME || "QMD TECH CORPORATION",
     };
+  }
+
+  /**
+   * Normalizes bank name / code for VietQR compatibility
+   */
+  private normalizeBankName(bank: string): string {
+    const clean = bank.trim().toLowerCase().replace(/\s+/g, "");
+    const map: Record<string, string> = {
+      viettinbank: "VietinBank",
+      viettin: "VietinBank",
+      vietinbank: "VietinBank",
+      vietin: "VietinBank",
+      icb: "VietinBank",
+      vietcombank: "Vietcombank",
+      vietcom: "Vietcombank",
+      vcb: "Vietcombank",
+      mbbank: "MBBank",
+      mb: "MBBank",
+      techcombank: "Techcombank",
+      tcb: "Techcombank",
+      acb: "ACB",
+      bidv: "BIDV",
+      vpbank: "VPBank",
+      vpb: "VPBank",
+      tpbank: "TPBank",
+      tpb: "TPBank",
+      sacombank: "Sacombank",
+      stb: "Sacombank",
+      hdbank: "HDBank",
+      hdb: "HDBank",
+      shb: "SHB",
+      vib: "VIB",
+    };
+    return map[clean] || bank.trim();
   }
 
   /**
@@ -35,11 +71,12 @@ export class SePayAdapter {
   createPaymentUrl(input: CreatePaymentUrlInput): PaymentUrlResponse {
     const { orderCode, amountVnd } = input;
     const { accountNumber, bankName } = this.config;
+    const normalizedBank = this.normalizeBankName(bankName);
 
     // Standard SePay VietQR URL format
     const qrUrl = `https://qr.sepay.vn/img?acc=${encodeURIComponent(
-      accountNumber
-    )}&bank=${encodeURIComponent(bankName)}&amount=${amountVnd}&des=${encodeURIComponent(
+      accountNumber.trim()
+    )}&bank=${encodeURIComponent(normalizedBank)}&amount=${amountVnd}&des=${encodeURIComponent(
       orderCode
     )}&template=compact`;
 
@@ -54,17 +91,18 @@ export class SePayAdapter {
    */
   getPaymentDetails(orderCode: string, amountVnd: number): SePayPaymentDetails {
     const { accountNumber, bankName, accountName } = this.config;
+    const normalizedBank = this.normalizeBankName(bankName);
     const qrUrl = `https://qr.sepay.vn/img?acc=${encodeURIComponent(
-      accountNumber
-    )}&bank=${encodeURIComponent(bankName)}&amount=${amountVnd}&des=${encodeURIComponent(
+      accountNumber.trim()
+    )}&bank=${encodeURIComponent(normalizedBank)}&amount=${amountVnd}&des=${encodeURIComponent(
       orderCode
     )}&template=compact`;
 
     return {
       qrUrl,
-      bankName,
-      accountNumber,
-      accountName,
+      bankName: normalizedBank,
+      accountNumber: accountNumber.trim(),
+      accountName: accountName.trim(),
       amountVnd,
       orderCode,
       description: orderCode,
