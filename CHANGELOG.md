@@ -1,3 +1,10 @@
+## [1.5.3](https://github.com/DongDuong2001/qmd-tech/compare/v1.5.2...v1.5.3) (2026-09-06)
+
+
+### Bug Fixes
+
+* **upload:** implement server-side signed cloudinary upload route to prevent 400 preset error ([c5c7256](https://github.com/DongDuong2001/qmd-tech/commit/c5c725611b63b02bb6096f2281ba7470828343ae))
+
 ## [1.5.2](https://github.com/DongDuong2001/qmd-tech/compare/v1.5.1...v1.5.2) (2026-09-06)
 
 
