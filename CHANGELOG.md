@@ -1,3 +1,44 @@
+# [1.5.0](https://github.com/DongDuong2001/qmd-tech/compare/v1.4.0...v1.5.0) (2026-09-06)
+
+
+### Bug Fixes
+
+* **api:** correct verifyJWT response parsing in settings route ([6ef39c8](https://github.com/DongDuong2001/qmd-tech/commit/6ef39c8917c8f42cfee5d1329708ef557311e4cd))
+
+
+### Features
+
+* **admin:** add comprehensive site settings and enterprise configuration dashboard tab ([ddd07ac](https://github.com/DongDuong2001/qmd-tech/commit/ddd07ac7fdef53b62b825f28fbed4cc87ffb82fe))
+* **admin:** add secure portal streaming loading screen ([e40a2d1](https://github.com/DongDuong2001/qmd-tech/commit/e40a2d139dc2eeffb961e98a95ea8a071597adbd))
+* **admin:** integrate cloudinary image upload in blog, banner, product, and deal modals ([8352c92](https://github.com/DongDuong2001/qmd-tech/commit/8352c92d98c66a55c11e1aea75f7736d11464783))
+* **admin:** integrate cloudinary image uploader dialog in rich text editor ([0385004](https://github.com/DongDuong2001/qmd-tech/commit/03850048be9df1a2b0f5f85abb1795f229a30950))
+* **admin:** update login input placeholder and initial form state ([5258b26](https://github.com/DongDuong2001/qmd-tech/commit/5258b261b72ecf402b88ce6bc32acd0c85496d10))
+* **api:** add settings endpoints for dynamic site configuration ([ab18a33](https://github.com/DongDuong2001/qmd-tech/commit/ab18a332528e26a21e1b4d5cd267d2146a5fc998))
+* **api:** create real-time payment status polling route ([041f252](https://github.com/DongDuong2001/qmd-tech/commit/041f252f494b943df9b68df9ae13326dbb87b378))
+* **api:** create sepay ipn webhook receiver endpoint ([7f811a7](https://github.com/DongDuong2001/qmd-tech/commit/7f811a77820a6e44262dc184bdd08706865fb0f8))
+* **app:** add root locale streaming suspense loading state ([69018df](https://github.com/DongDuong2001/qmd-tech/commit/69018df01bdf6672e16aad4244b1bc5cf9cd3fe9))
+* **auth:** issue cryptographically signed jwt for admin authentication sessions ([76f14ca](https://github.com/DongDuong2001/qmd-tech/commit/76f14ca144f9be8088f88ccd0d3e37b5743c384e))
+* **auth:** support configurable admin authentication credentials via environment variables ([ed44866](https://github.com/DongDuong2001/qmd-tech/commit/ed44866b6b8b1e749e7f34ad5f557a8c1c142e3e))
+* **checkout:** create interactive sepay vietqr modal with live polling and copy helpers ([2a462a8](https://github.com/DongDuong2001/qmd-tech/commit/2a462a81f912eca19fdfb0f3fdfb42d59c367026))
+* **checkout:** embed sepay vietqr modal and configure sepay as default payment method ([8530be3](https://github.com/DongDuong2001/qmd-tech/commit/8530be35bc862d8e1421e263e193f9e3a153d4e6))
+* **home:** replace mock product counts and meters with dynamic database data ([66f4735](https://github.com/DongDuong2001/qmd-tech/commit/66f4735324ab02b743255aabba5b8243b5c06226))
+* **layout:** integrate PagePreloader into root locale layout ([7bd4701](https://github.com/DongDuong2001/qmd-tech/commit/7bd47017a075de5896abe2fe66ca8100c27e6c3b))
+* **media:** implement cloudinary optimization utilities and quota preservation helpers ([715d866](https://github.com/DongDuong2001/qmd-tech/commit/715d86647c046904acfe69315c7a43b4c9153dec))
+* **middleware:** verify admin jwt token signature and expiration on edge runtime ([ccd3da6](https://github.com/DongDuong2001/qmd-tech/commit/ccd3da6515d48ae5cd8a9e37de57d1b8903b1e56))
+* **orders:** include sepay in order creation payment method types ([47ad720](https://github.com/DongDuong2001/qmd-tech/commit/47ad720f738b121159cf513f6ff459c2ceb443b6))
+* **payment:** add bank name normalizer and update env template ([93ba609](https://github.com/DongDuong2001/qmd-tech/commit/93ba609cc1e7194ad3879504d71f7f1ecd3bdd73))
+* **payments:** define sepay webhook payload and provider schema ([0e08830](https://github.com/DongDuong2001/qmd-tech/commit/0e088309995b762740cf75ec4daecb4badc0b84e))
+* **payments:** implement sepay vietqr gateway adapter ([d5c0d40](https://github.com/DongDuong2001/qmd-tech/commit/d5c0d40ef0d5ceafe2eab8f1ef89ac92ad18a140))
+* **payments:** integrate sepay payment generation and webhook reconciliation ([22e4bae](https://github.com/DongDuong2001/qmd-tech/commit/22e4bae975fda26c31330b286af0a2f486bdbd02))
+* **security:** implement web crypto based hmac sha256 jwt signing and verification ([80de003](https://github.com/DongDuong2001/qmd-tech/commit/80de003ac5291d38056854b5b2b03a6fb0b008b5))
+* **settings:** create SettingsService with dynamic online model and Bo Cong Thuong defaults ([50e1e36](https://github.com/DongDuong2001/qmd-tech/commit/50e1e365dc466316b02f5e212bb6036237e82552))
+* **types:** add sepay payment provider to domain types ([eeea9b2](https://github.com/DongDuong2001/qmd-tech/commit/eeea9b2a4a1f8edc1f446c775a86f70f3836577f))
+* **types:** add SiteSettings and ShowroomLocation interfaces for dynamic configuration ([5ecddc1](https://github.com/DongDuong2001/qmd-tech/commit/5ecddc1b5049bdf5bd1b17eb7e6746d2ca1ddcd2))
+* **ui:** add PagePreloader for smooth page load transition and dissolve effect ([962b86c](https://github.com/DongDuong2001/qmd-tech/commit/962b86ca87b1932883bba23b633ba325bbe46559))
+* **ui:** create cloudinary image upload component with client compression and dropzone ([dd288c5](https://github.com/DongDuong2001/qmd-tech/commit/dd288c53df93acb943b6615d7b32fe2952cccc56))
+* **ui:** implement animated wipe hover effect across all button variants ([225a3f8](https://github.com/DongDuong2001/qmd-tech/commit/225a3f865dbd16b303ea8f4ca73e93e52a9ac2a6))
+* **ui:** implement reusable TechLoader component with balanced animation timing ([4eb30ac](https://github.com/DongDuong2001/qmd-tech/commit/4eb30acef1436dc92984e51668fb650b85025bd7))
+
 # [1.4.0](https://github.com/DongDuong2001/qmd-tech/compare/v1.3.0...v1.4.0) (2026-09-04)
 
 
