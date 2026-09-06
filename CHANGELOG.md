@@ -1,3 +1,10 @@
+## [1.5.2](https://github.com/DongDuong2001/qmd-tech/compare/v1.5.1...v1.5.2) (2026-09-06)
+
+
+### Bug Fixes
+
+* **admin:** move DEFAULT_HARDWARE_CATEGORIES outside class definition ([594c45e](https://github.com/DongDuong2001/qmd-tech/commit/594c45ec9fd9d96323047b109a5c810398a460fb))
+
 ## [1.5.1](https://github.com/DongDuong2001/qmd-tech/compare/v1.5.0...v1.5.1) (2026-09-06)
 
 
