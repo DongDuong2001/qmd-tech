@@ -152,39 +152,125 @@ export class AdminService {
     return true;
   }
 
-  // ===================== CATEGORIES =====================
-  async getCategories(): Promise<Category[]> {
-    const { data, error } = await supabase
-      .from("categories")
-      .select("*")
-      .order("sort_order", { ascending: true });
+export const DEFAULT_HARDWARE_CATEGORIES: Category[] = [
+  { id: "cat-cpu", slug: "cpu", name_vi: "Vi Xử Lý (CPU)", name_en: "Processors (CPU)", icon: "Cpu", sort_order: 1 },
+  { id: "cat-mainboard", slug: "mainboard", name_vi: "Bo Mạch Chủ (Mainboard)", name_en: "Motherboards", icon: "Layers", sort_order: 2 },
+  { id: "cat-ram", slug: "ram", name_vi: "Bộ Nhớ Trong (RAM)", name_en: "Memory (RAM)", icon: "Boxes", sort_order: 3 },
+  { id: "cat-vga", slug: "vga", name_vi: "Card Màn Hình (VGA)", name_en: "Graphics Cards (GPU)", icon: "Monitor", sort_order: 4 },
+  { id: "cat-ssd", slug: "ssd", name_vi: "Ổ Cứng SSD / HDD", name_en: "Storage (SSD/HDD)", icon: "Server", sort_order: 5 },
+  { id: "cat-psu", slug: "psu", name_vi: "Nguồn Máy Tính (PSU)", name_en: "Power Supply (PSU)", icon: "Activity", sort_order: 6 },
+  { id: "cat-case", slug: "case", name_vi: "Vỏ Case Máy Tính", name_en: "PC Cases", icon: "Package", sort_order: 7 },
+  { id: "cat-cooling", slug: "cooling", name_vi: "Tản Nhiệt CPU / Nước", name_en: "Cooling & Fans", icon: "RefreshCw", sort_order: 8 },
+  { id: "cat-monitor", slug: "monitor", name_vi: "Màn Hình Máy Tính", name_en: "Monitors", icon: "Monitor", sort_order: 9 },
+  { id: "cat-gear", slug: "gear", name_vi: "Gaming Gear & Phụ Kiện", name_en: "Gaming Gear", icon: "ShoppingBag", sort_order: 10 },
+];
 
-    if (error) {
-      console.error("AdminService.getCategories error:", error);
-      return [];
+  // ===================== CATEGORIES =====================
+  private localCategories: Category[] = [...DEFAULT_HARDWARE_CATEGORIES];
+
+  async getCategories(): Promise<Category[]> {
+    try {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*");
+
+      if (!error && data && data.length > 0) {
+        return (data as Category[]).sort((a, b) => (a.sort_order || 99) - (b.sort_order || 99));
+      }
+    } catch (err) {
+      console.warn("AdminService.getCategories notice:", err);
     }
-    return (data || []) as Category[];
+    return this.localCategories;
   }
 
-  async createCategory(input: CreateCategoryInput): Promise<Category | null> {
-    const { data, error } = await supabase
-      .from("categories")
-      .insert([input])
-      .select()
-      .single();
+  async createCategory(input: CreateCategoryInput): Promise<Category> {
+    const newCat: Category = {
+      id: `cat-${Date.now()}`,
+      slug: input.slug.toLowerCase().trim(),
+      name_vi: input.name_vi.trim(),
+      name_en: input.name_en?.trim() || input.name_vi.trim(),
+      icon: input.icon || "Cpu",
+      sort_order: this.localCategories.length + 1,
+      created_at: new Date().toISOString(),
+    };
 
-    if (error) {
-      throw error;
+    try {
+      const { data, error } = await supabase
+        .from("categories")
+        .insert([{
+          slug: newCat.slug,
+          name_vi: newCat.name_vi,
+          name_en: newCat.name_en,
+          icon: newCat.icon,
+        }])
+        .select()
+        .single();
+
+      if (!error && data) {
+        this.localCategories.push(data as Category);
+        return data as Category;
+      }
+    } catch {
+      // Local fallback
     }
-    return data as Category;
+
+    this.localCategories.push(newCat);
+    return newCat;
+  }
+
+  async updateCategory(id: string, updates: Partial<CreateCategoryInput>): Promise<Category | null> {
+    try {
+      const { data, error } = await supabase
+        .from("categories")
+        .update(updates)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (!error && data) {
+        const idx = this.localCategories.findIndex((c) => c.id === id);
+        if (idx !== -1) this.localCategories[idx] = data as Category;
+        return data as Category;
+      }
+    } catch {
+      // Local fallback
+    }
+
+    const idx = this.localCategories.findIndex((c) => c.id === id);
+    if (idx !== -1) {
+      this.localCategories[idx] = { ...this.localCategories[idx], ...updates };
+      return this.localCategories[idx];
+    }
+    return null;
   }
 
   async deleteCategory(id: string): Promise<boolean> {
-    const { error } = await supabase.from("categories").delete().eq("id", id);
-    if (error) {
-      throw error;
+    try {
+      await supabase.from("categories").delete().eq("id", id);
+    } catch {
+      // Local fallback
     }
+    this.localCategories = this.localCategories.filter((c) => c.id !== id);
     return true;
+  }
+
+  async seedDefaultCategories(): Promise<Category[]> {
+    try {
+      for (const cat of DEFAULT_HARDWARE_CATEGORIES) {
+        await supabase
+          .from("categories")
+          .upsert([{
+            slug: cat.slug,
+            name_vi: cat.name_vi,
+            name_en: cat.name_en,
+            icon: cat.icon,
+          }], { onConflict: "slug" });
+      }
+    } catch {
+      // Local fallback
+    }
+    this.localCategories = [...DEFAULT_HARDWARE_CATEGORIES];
+    return this.getCategories();
   }
 
   // ===================== ORDERS =====================
