@@ -1,3 +1,10 @@
+## [1.5.4](https://github.com/DongDuong2001/qmd-tech/compare/v1.5.3...v1.5.4) (2026-09-06)
+
+
+### Bug Fixes
+
+* **admin:** connect products and categories admin service to secure server endpoints to bypass RLS and enable persistent CRUD ([8f24a9d](https://github.com/DongDuong2001/qmd-tech/commit/8f24a9d257766313edd40d6a3f649c601c000edc))
+
 ## [1.5.3](https://github.com/DongDuong2001/qmd-tech/compare/v1.5.2...v1.5.3) (2026-09-06)
 
 
