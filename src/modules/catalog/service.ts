@@ -14,23 +14,22 @@ export interface ProductFilter {
   limit?: number;
 }
 
+import { DEFAULT_HARDWARE_CATEGORIES } from "@/modules/admin/service";
+
 export class CatalogService {
   async getCategories(): Promise<Category[]> {
     try {
       const { data, error } = await supabase
         .from("categories")
-        .select("*")
-        .order("name_vi", { ascending: true });
+        .select("*");
 
-      if (error || !data) {
-        console.warn("CatalogService.getCategories db notice:", error?.message);
-        return [];
+      if (!error && data && data.length > 0) {
+        return data as Category[];
       }
-      return data as Category[];
     } catch (err) {
       console.warn("CatalogService.getCategories exception:", err);
-      return [];
     }
+    return DEFAULT_HARDWARE_CATEGORIES;
   }
 
   async getCategoryBySlug(slug: string): Promise<Category | null> {
@@ -41,14 +40,13 @@ export class CatalogService {
         .eq("slug", slug)
         .maybeSingle();
 
-      if (error || !data) {
-        return null;
+      if (!error && data) {
+        return data as Category;
       }
-      return data as Category;
     } catch (err) {
       console.warn("CatalogService.getCategoryBySlug exception:", err);
-      return null;
     }
+    return DEFAULT_HARDWARE_CATEGORIES.find((c) => c.slug === slug) || null;
   }
 
   async getProducts(filter: ProductFilter = {}): Promise<{ products: Product[]; total: number }> {
