@@ -81,6 +81,19 @@ export interface CreateSupplierInput {
   notes?: string;
 }
 
+export const DEFAULT_HARDWARE_CATEGORIES: Category[] = [
+  { id: "cat-cpu", slug: "cpu", name_vi: "Vi Xử Lý (CPU)", name_en: "Processors (CPU)", icon: "Cpu", sort_order: 1 },
+  { id: "cat-mainboard", slug: "mainboard", name_vi: "Bo Mạch Chủ (Mainboard)", name_en: "Motherboards", icon: "Layers", sort_order: 2 },
+  { id: "cat-ram", slug: "ram", name_vi: "Bộ Nhớ Trong (RAM)", name_en: "Memory (RAM)", icon: "Boxes", sort_order: 3 },
+  { id: "cat-vga", slug: "vga", name_vi: "Card Màn Hình (VGA)", name_en: "Graphics Cards (GPU)", icon: "Monitor", sort_order: 4 },
+  { id: "cat-ssd", slug: "ssd", name_vi: "Ổ Cứng SSD / HDD", name_en: "Storage (SSD/HDD)", icon: "Server", sort_order: 5 },
+  { id: "cat-psu", slug: "psu", name_vi: "Nguồn Máy Tính (PSU)", name_en: "Power Supply (PSU)", icon: "Activity", sort_order: 6 },
+  { id: "cat-case", slug: "case", name_vi: "Vỏ Case Máy Tính", name_en: "PC Cases", icon: "Package", sort_order: 7 },
+  { id: "cat-cooling", slug: "cooling", name_vi: "Tản Nhiệt CPU / Nước", name_en: "Cooling & Fans", icon: "RefreshCw", sort_order: 8 },
+  { id: "cat-monitor", slug: "monitor", name_vi: "Màn Hình Máy Tính", name_en: "Monitors", icon: "Monitor", sort_order: 9 },
+  { id: "cat-gear", slug: "gear", name_vi: "Gaming Gear & Phụ Kiện", name_en: "Gaming Gear", icon: "ShoppingBag", sort_order: 10 },
+];
+
 export class AdminService {
   private localBanners: EventBanner[] = [];
   private localDeals: PrebuiltDeal[] = [];
@@ -151,19 +164,6 @@ export class AdminService {
     }
     return true;
   }
-
-export const DEFAULT_HARDWARE_CATEGORIES: Category[] = [
-  { id: "cat-cpu", slug: "cpu", name_vi: "Vi Xử Lý (CPU)", name_en: "Processors (CPU)", icon: "Cpu", sort_order: 1 },
-  { id: "cat-mainboard", slug: "mainboard", name_vi: "Bo Mạch Chủ (Mainboard)", name_en: "Motherboards", icon: "Layers", sort_order: 2 },
-  { id: "cat-ram", slug: "ram", name_vi: "Bộ Nhớ Trong (RAM)", name_en: "Memory (RAM)", icon: "Boxes", sort_order: 3 },
-  { id: "cat-vga", slug: "vga", name_vi: "Card Màn Hình (VGA)", name_en: "Graphics Cards (GPU)", icon: "Monitor", sort_order: 4 },
-  { id: "cat-ssd", slug: "ssd", name_vi: "Ổ Cứng SSD / HDD", name_en: "Storage (SSD/HDD)", icon: "Server", sort_order: 5 },
-  { id: "cat-psu", slug: "psu", name_vi: "Nguồn Máy Tính (PSU)", name_en: "Power Supply (PSU)", icon: "Activity", sort_order: 6 },
-  { id: "cat-case", slug: "case", name_vi: "Vỏ Case Máy Tính", name_en: "PC Cases", icon: "Package", sort_order: 7 },
-  { id: "cat-cooling", slug: "cooling", name_vi: "Tản Nhiệt CPU / Nước", name_en: "Cooling & Fans", icon: "RefreshCw", sort_order: 8 },
-  { id: "cat-monitor", slug: "monitor", name_vi: "Màn Hình Máy Tính", name_en: "Monitors", icon: "Monitor", sort_order: 9 },
-  { id: "cat-gear", slug: "gear", name_vi: "Gaming Gear & Phụ Kiện", name_en: "Gaming Gear", icon: "ShoppingBag", sort_order: 10 },
-];
 
   // ===================== CATEGORIES =====================
   private localCategories: Category[] = [...DEFAULT_HARDWARE_CATEGORIES];
