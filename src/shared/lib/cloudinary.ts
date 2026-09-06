@@ -198,19 +198,49 @@ export interface CloudinaryUploadResponse {
 }
 
 /**
- * Direct unsigned upload to Cloudinary with quota protection and error handling
+ * Robust upload to Cloudinary via server-side signed API (/api/upload)
+ * with direct client fallback and quota preservation
  */
 export async function uploadToCloudinary(
   fileOrBlob: File | Blob,
   folder = "qmdtech/uploads",
   fileName?: string
 ): Promise<CloudinaryUploadResponse> {
+  // 1. Try server-side signed upload via /api/upload (avoids preset issues)
+  try {
+    const apiFormData = new FormData();
+    apiFormData.append("file", fileOrBlob, fileName || "upload.webp");
+    apiFormData.append("folder", folder);
+
+    const apiRes = await fetch("/api/upload", {
+      method: "POST",
+      body: apiFormData,
+    });
+
+    const apiData = await apiRes.json();
+    if (apiRes.ok && apiData.success && (apiData.secure_url || apiData.url)) {
+      const optimizedUrl = getOptimizedCloudinaryUrl(apiData.secure_url || apiData.url);
+      return {
+        url: optimizedUrl,
+        secure_url: optimizedUrl,
+        public_id: apiData.public_id || `img_${Date.now()}`,
+        format: apiData.format || "webp",
+        bytes: apiData.bytes || 0,
+        width: apiData.width || 0,
+        height: apiData.height || 0,
+      };
+    }
+  } catch {
+    // Fallback to direct client-side upload if /api/upload is unavailable
+  }
+
+  // 2. Direct client-side unsigned upload fallback
   const cloudName = CLOUDINARY_CONFIG.cloudName;
   const uploadPreset = CLOUDINARY_CONFIG.uploadPreset;
 
   if (!cloudName) {
     throw new Error(
-      "Chưa cấu hình NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME trong tệp .env.local"
+      "Chưa cấu hình NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME trong biến môi trường."
     );
   }
 
@@ -231,7 +261,7 @@ export async function uploadToCloudinary(
   if (!response.ok || data.error) {
     const errorMsg =
       data.error?.message ||
-      "Lỗi khi tải ảnh lên Cloudinary. Vui lòng kiểm tra upload_preset và dung lượng.";
+      "Lỗi khi tải ảnh lên Cloudinary. Vui lòng kiểm tra upload_preset và cấu hình.";
     throw new Error(errorMsg);
   }
 
