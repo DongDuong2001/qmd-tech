@@ -101,6 +101,20 @@ export class AdminService {
 
   // ===================== PRODUCTS =====================
   async getProducts(): Promise<Product[]> {
+    if (typeof window !== "undefined") {
+      try {
+        const res = await fetch("/api/admin/products");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.products)) {
+            return json.products as Product[];
+          }
+        }
+      } catch (err) {
+        console.warn("AdminService.getProducts fetch notice:", err);
+      }
+    }
+
     const { data, error } = await supabase
       .from("products")
       .select("*")
@@ -114,6 +128,28 @@ export class AdminService {
   }
 
   async createProduct(input: CreateProductInput): Promise<Product | null> {
+    if (typeof window !== "undefined") {
+      try {
+        const res = await fetch("/api/admin/products", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(input),
+        });
+        const json = await res.json();
+        if (json.success && json.product) {
+          return json.product as Product;
+        }
+        if (!json.success && json.error) {
+          throw new Error(json.error);
+        }
+      } catch (fetchErr: unknown) {
+        if (fetchErr instanceof Error && fetchErr.message && !fetchErr.message.includes("fetch")) {
+          throw fetchErr;
+        }
+        console.warn("AdminService.createProduct API fallback:", fetchErr);
+      }
+    }
+
     const { data, error } = await supabase
       .from("products")
       .insert([
@@ -144,6 +180,22 @@ export class AdminService {
   }
 
   async updateProduct(id: string, updates: Partial<CreateProductInput>): Promise<Product | null> {
+    if (typeof window !== "undefined") {
+      try {
+        const res = await fetch("/api/admin/products", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, ...updates }),
+        });
+        const json = await res.json();
+        if (json.success && json.product) {
+          return json.product as Product;
+        }
+      } catch (fetchErr) {
+        console.warn("AdminService.updateProduct API notice:", fetchErr);
+      }
+    }
+
     const { data, error } = await supabase
       .from("products")
       .update(updates)
@@ -158,6 +210,20 @@ export class AdminService {
   }
 
   async deleteProduct(id: string): Promise<boolean> {
+    if (typeof window !== "undefined") {
+      try {
+        const res = await fetch(`/api/admin/products?id=${encodeURIComponent(id)}`, {
+          method: "DELETE",
+        });
+        const json = await res.json();
+        if (json.success) {
+          return true;
+        }
+      } catch (fetchErr) {
+        console.warn("AdminService.deleteProduct API notice:", fetchErr);
+      }
+    }
+
     const { error } = await supabase.from("products").delete().eq("id", id);
     if (error) {
       throw error;
@@ -169,6 +235,21 @@ export class AdminService {
   private localCategories: Category[] = [...DEFAULT_HARDWARE_CATEGORIES];
 
   async getCategories(): Promise<Category[]> {
+    if (typeof window !== "undefined") {
+      try {
+        const res = await fetch("/api/admin/categories");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.categories) && json.categories.length > 0) {
+            this.localCategories = json.categories as Category[];
+            return (json.categories as Category[]).sort((a, b) => (a.sort_order || 99) - (b.sort_order || 99));
+          }
+        }
+      } catch (err) {
+        console.warn("AdminService.getCategories fetch notice:", err);
+      }
+    }
+
     try {
       const { data, error } = await supabase
         .from("categories")
@@ -184,6 +265,23 @@ export class AdminService {
   }
 
   async createCategory(input: CreateCategoryInput): Promise<Category> {
+    if (typeof window !== "undefined") {
+      try {
+        const res = await fetch("/api/admin/categories", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(input),
+        });
+        const json = await res.json();
+        if (json.success && json.category) {
+          this.localCategories.push(json.category as Category);
+          return json.category as Category;
+        }
+      } catch (fetchErr) {
+        console.warn("AdminService.createCategory API notice:", fetchErr);
+      }
+    }
+
     const newCat: Category = {
       id: `cat-${Date.now()}`,
       slug: input.slug.toLowerCase().trim(),
@@ -219,6 +317,24 @@ export class AdminService {
   }
 
   async updateCategory(id: string, updates: Partial<CreateCategoryInput>): Promise<Category | null> {
+    if (typeof window !== "undefined") {
+      try {
+        const res = await fetch("/api/admin/categories", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, ...updates }),
+        });
+        const json = await res.json();
+        if (json.success && json.category) {
+          const idx = this.localCategories.findIndex((c) => c.id === id);
+          if (idx !== -1) this.localCategories[idx] = json.category as Category;
+          return json.category as Category;
+        }
+      } catch (fetchErr) {
+        console.warn("AdminService.updateCategory API notice:", fetchErr);
+      }
+    }
+
     try {
       const { data, error } = await supabase
         .from("categories")
@@ -245,6 +361,21 @@ export class AdminService {
   }
 
   async deleteCategory(id: string): Promise<boolean> {
+    if (typeof window !== "undefined") {
+      try {
+        const res = await fetch(`/api/admin/categories?id=${encodeURIComponent(id)}`, {
+          method: "DELETE",
+        });
+        const json = await res.json();
+        if (json.success) {
+          this.localCategories = this.localCategories.filter((c) => c.id !== id);
+          return true;
+        }
+      } catch (fetchErr) {
+        console.warn("AdminService.deleteCategory API notice:", fetchErr);
+      }
+    }
+
     try {
       await supabase.from("categories").delete().eq("id", id);
     } catch {
@@ -255,6 +386,23 @@ export class AdminService {
   }
 
   async seedDefaultCategories(): Promise<Category[]> {
+    if (typeof window !== "undefined") {
+      try {
+        const res = await fetch("/api/admin/categories", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "seed" }),
+        });
+        const json = await res.json();
+        if (json.success && Array.isArray(json.categories)) {
+          this.localCategories = json.categories as Category[];
+          return this.localCategories;
+        }
+      } catch (fetchErr) {
+        console.warn("AdminService.seedDefaultCategories API notice:", fetchErr);
+      }
+    }
+
     try {
       for (const cat of DEFAULT_HARDWARE_CATEGORIES) {
         await supabase
