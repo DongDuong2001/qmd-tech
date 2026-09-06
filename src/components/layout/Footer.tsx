@@ -91,23 +91,23 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Col 2: Showroom Locations */}
+          {/* Col 2: Business & Operations Info */}
           <div>
             <h4 className="text-xs font-black uppercase tracking-wider text-[#0F172A] mb-4 flex items-center gap-1">
-              <MapPin className="h-3.5 w-3.5 text-[#0063FD]" /> Hệ Thống Showroom
+              <MapPin className="h-3.5 w-3.5 text-[#0063FD]" /> Trụ Sở & Điều Phối Online
             </h4>
             <div className="space-y-3 text-xs">
               <div>
-                <strong className="text-[#0F172A]">Showroom Hà Nội:</strong>
+                <strong className="text-[#0F172A]">Mô hình kinh doanh:</strong>
+                <p className="text-[#64748B]">Bán hàng & Ráp PC Online giao tận nơi 63 tỉnh thành</p>
+              </div>
+              <div>
+                <strong className="text-[#0F172A]">Trụ sở chính & Kho hàng:</strong>
                 <p className="text-[#64748B]">Số 18 Phố Cầu Giấy, Q. Cầu Giấy, Hà Nội</p>
               </div>
               <div>
-                <strong className="text-[#0F172A]">Showroom TP.HCM:</strong>
-                <p className="text-[#64748B]">Số 280 Nguyễn Thị Minh Khai, Q.3, TP.HCM</p>
-              </div>
-              <div>
-                <strong className="text-[#0F172A]">Trung Tâm Bảo Hành:</strong>
-                <p className="text-[#64748B]">Số 45 Lê Thanh Nghị, Hai Bà Trưng, Hà Nội</p>
+                <strong className="text-[#0F172A]">Thời gian hỗ trợ:</strong>
+                <p className="text-[#64748B]">8:30 - 21:00 (Hàng ngày, tư vấn 24/7)</p>
               </div>
             </div>
           </div>
@@ -153,21 +153,22 @@ export function Footer() {
             </h4>
             <div className="grid grid-cols-2 gap-2 text-xs font-mono">
               <span className="flex items-center justify-center rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] py-2 font-bold text-[#0F172A]">
-                VNPAY-QR
+                SEPAY VIETQR
               </span>
               <span className="flex items-center justify-center rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] py-2 font-bold text-[#DB2777]">
                 MOMO
               </span>
               <span className="flex items-center justify-center rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] py-2 font-bold text-[#2563EB]">
-                VISA / MASTER
+                CHUYỂN KHOẢN
               </span>
               <span className="flex items-center justify-center rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] py-2 font-bold text-[#16A34A]">
                 COD TẬN NƠI
               </span>
             </div>
 
-            <div className="mt-4 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] p-3 text-[11px] text-[#64748B]">
-              Giấy phép ĐKKD số 010888888 do Sở KH&ĐT TP. Hà Nội cấp.
+            <div className="mt-4 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] p-3 text-[11px] text-[#64748B] space-y-1">
+              <p className="font-bold text-[#0F172A]">Thông tin quản lý website:</p>
+              <p>Đang chuẩn bị hồ sơ thông báo website TMĐT bán hàng với Bộ Công Thương theo quy định.</p>
             </div>
           </div>
         </div>

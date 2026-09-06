@@ -20,10 +20,13 @@ import {
   Supplier,
   BlogPost,
   CreateBlogPostInput,
+  SiteSettings,
+  ShowroomLocation,
 } from "@/shared/types";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
+import { CloudinaryImageUpload } from "@/components/common/CloudinaryImageUpload";
 import {
   LayoutDashboard,
   Package,
@@ -61,11 +64,15 @@ import {
   X,
   BookOpen,
   FileText,
+  Sliders,
+  Globe,
+  Store,
+  Check,
 } from "lucide-react";
 
 export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState<
-    "overview" | "products" | "categories" | "banners" | "deals" | "suppliers" | "blogs" | "orders" | "reviews" | "security"
+    "overview" | "products" | "categories" | "banners" | "deals" | "suppliers" | "blogs" | "orders" | "reviews" | "settings" | "security"
   >("overview");
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -76,6 +83,39 @@ export default function AdminDashboardPage() {
   const [deals, setDeals] = useState<PrebuiltDeal[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
+
+  // Site Settings State
+  const [siteSettings, setSiteSettings] = useState<SiteSettings>({
+    store_name: "QMD-Tech",
+    slogan: "Gaming PC & Linh Kiện Máy Tính Chuyên Nghiệp",
+    hotline: "1900.8888",
+    hotline_support: "0988.888.888",
+    support_email: "contact@qmdtech.vn",
+    business_model: "online",
+    business_model_text: "Bán hàng & Lắp ráp PC Online Toàn Quốc",
+    headquarters_address: "Số 18 Phố Cầu Giấy, Quận Cầu Giấy, Hà Nội",
+    has_showrooms: false,
+    showrooms: [],
+    bo_cong_thuong_registered: false,
+    bo_cong_thuong_badge_url: "",
+    bo_cong_thuong_link: "",
+    bo_cong_thuong_license_no: "Đang làm thủ tục thông báo website thương mại điện tử với Bộ Công Thương",
+    working_hours: "8:30 - 21:00 (Tất cả các ngày trong tuần)",
+    facebook_url: "https://facebook.com/qmdtech",
+    zalo_url: "https://zalo.me/0988888888",
+    youtube_url: "https://youtube.com/@qmdtech",
+    free_shipping_threshold_vnd: 5000000,
+  });
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [newShowroom, setNewShowroom] = useState<ShowroomLocation>({
+    id: "",
+    city: "Hà Nội",
+    name: "Showroom Hà Nội",
+    address: "Số 18 Phố Cầu Giấy, Q. Cầu Giấy, Hà Nội",
+    phone: "1900.8888",
+    hours: "8:30 - 21:00",
+    is_active: true,
+  });
 
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -246,6 +286,17 @@ export default function AdminDashboardPage() {
       setSuppliers(s);
       setBlogs(bl);
 
+      // Fetch dynamic site settings
+      try {
+        const setRes = await fetch("/api/settings");
+        const setJson = await setRes.json();
+        if (setJson.success && setJson.settings) {
+          setSiteSettings(setJson.settings);
+        }
+      } catch {
+        // Fallback to initial state
+      }
+
       if (c.length > 0 && !productForm.category_id) {
         setProductForm((prev) => ({ ...prev, category_id: c[0].id }));
       }
@@ -256,6 +307,60 @@ export default function AdminDashboardPage() {
       setLoading(false);
       setIsRefreshing(false);
     }
+  };
+
+  const handleSaveSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingSettings(true);
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(siteSettings),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Lỗi lưu cấu hình");
+      }
+      showNotification("success", "Đã lưu và áp dụng cấu hình website thành công!");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Lỗi lưu cấu hình";
+      showNotification("error", msg);
+    } finally {
+      setIsSavingSettings(false);
+    }
+  };
+
+  const handleAddShowroom = () => {
+    if (!newShowroom.name || !newShowroom.address) {
+      showNotification("error", "Vui lòng nhập đầy đủ tên và địa chỉ showroom");
+      return;
+    }
+    const item: ShowroomLocation = {
+      ...newShowroom,
+      id: "sr_" + Date.now(),
+    };
+    setSiteSettings((prev) => ({
+      ...prev,
+      showrooms: [...(prev.showrooms || []), item],
+    }));
+    setNewShowroom({
+      id: "",
+      city: "Hà Nội",
+      name: "",
+      address: "",
+      phone: "1900.8888",
+      hours: "8:30 - 21:00",
+      is_active: true,
+    });
+    showNotification("success", "Đã thêm showroom vào danh sách cấu hình!");
+  };
+
+  const handleRemoveShowroom = (id: string) => {
+    setSiteSettings((prev) => ({
+      ...prev,
+      showrooms: (prev.showrooms || []).filter((s) => s.id !== id),
+    }));
   };
 
   useEffect(() => {
@@ -670,12 +775,12 @@ export default function AdminDashboardPage() {
       {/* ========================================================================= */}
       {/* 1. DISTINCT ENTERPRISE BACKOFFICE SIDEBAR */}
       {/* ========================================================================= */}
-      <aside className="w-64 shrink-0 bg-[#0F172A] text-[#94A3B8] flex flex-col justify-between border-r border-[#1E293B] shadow-lg">
+      <aside className="w-64 shrink-0 bg-white text-[#475569] flex flex-col justify-between border-r border-[#E2E8F0] shadow-xs">
         <div>
           {/* Admin Header & Logo */}
-          <div className="p-5 border-b border-[#1E293B] flex items-center justify-between">
+          <div className="p-5 border-b border-[#E2E8F0] flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border-2 border-[#0063FD] shadow-sm bg-white">
+              <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border-2 border-[#0063FD] shadow-xs bg-white">
                 <Image
                   src="/qmdtech_logo.png"
                   alt="QMD-Tech Admin"
@@ -685,15 +790,15 @@ export default function AdminDashboardPage() {
                 />
               </div>
               <div className="flex flex-col leading-none">
-                <span className="text-sm font-black tracking-wider text-white">
+                <span className="text-sm font-black tracking-wider text-[#0F172A]">
                   QMD<span className="text-[#0063FD]">-TECH</span>
                 </span>
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#B45309] mt-0.5">
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#0063FD] mt-0.5">
                   ADMIN CONSOLE
                 </span>
               </div>
             </div>
-            <span className="rounded bg-[#1E293B] px-1.5 py-0.5 text-[9px] font-mono text-[#38BDF8] border border-[#334155]">
+            <span className="rounded bg-[#EFF6FF] px-1.5 py-0.5 text-[9px] font-mono font-bold text-[#0063FD] border border-[#BFDBFE]">
               v2.5
             </span>
           </div>
@@ -705,7 +810,7 @@ export default function AdminDashboardPage() {
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "overview"
                   ? "bg-[#0063FD] text-white shadow-xs font-black"
-                  : "hover:bg-[#1E293B] hover:text-white"
+                  : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
               }`}
             >
               <div className="flex items-center gap-2.5">
@@ -720,14 +825,18 @@ export default function AdminDashboardPage() {
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "products"
                   ? "bg-[#0063FD] text-white shadow-xs font-black"
-                  : "hover:bg-[#1E293B] hover:text-white"
+                  : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
               }`}
             >
               <div className="flex items-center gap-2.5">
                 <Package className="h-4 w-4" />
                 <span>Kho sản phẩm</span>
               </div>
-              <span className="rounded-full bg-[#1E293B] px-2 py-0.5 text-[10px] font-mono text-slate-300">
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-mono ${
+                activeTab === "products"
+                  ? "bg-white/20 text-white font-bold"
+                  : "bg-[#F1F5F9] text-[#475569] border border-[#CBD5E1]"
+              }`}>
                 {products.length}
               </span>
             </button>
@@ -737,14 +846,18 @@ export default function AdminDashboardPage() {
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "categories"
                   ? "bg-[#0063FD] text-white shadow-xs font-black"
-                  : "hover:bg-[#1E293B] hover:text-white"
+                  : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
               }`}
             >
               <div className="flex items-center gap-2.5">
                 <Layers className="h-4 w-4" />
                 <span>Danh mục linh kiện</span>
               </div>
-              <span className="rounded-full bg-[#1E293B] px-2 py-0.5 text-[10px] font-mono text-slate-300">
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-mono ${
+                activeTab === "categories"
+                  ? "bg-white/20 text-white font-bold"
+                  : "bg-[#F1F5F9] text-[#475569] border border-[#CBD5E1]"
+              }`}>
                 {categories.length}
               </span>
             </button>
@@ -755,14 +868,18 @@ export default function AdminDashboardPage() {
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "banners"
                   ? "bg-[#0063FD] text-white shadow-xs font-black"
-                  : "hover:bg-[#1E293B] hover:text-white"
+                  : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
               }`}
             >
               <div className="flex items-center gap-2.5">
                 <ImageIcon className="h-4 w-4" />
                 <span>Banner & Sự kiện</span>
               </div>
-              <span className="rounded-full bg-[#1E293B] px-2 py-0.5 text-[10px] font-mono text-slate-300">
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-mono ${
+                activeTab === "banners"
+                  ? "bg-white/20 text-white font-bold"
+                  : "bg-[#F1F5F9] text-[#475569] border border-[#CBD5E1]"
+              }`}>
                 {banners.length}
               </span>
             </button>
@@ -773,14 +890,18 @@ export default function AdminDashboardPage() {
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "deals"
                   ? "bg-[#0063FD] text-white shadow-xs font-black"
-                  : "hover:bg-[#1E293B] hover:text-white"
+                  : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
               }`}
             >
               <div className="flex items-center gap-2.5">
                 <Monitor className="h-4 w-4" />
                 <span>PC Ráp Sẵn (Deals)</span>
               </div>
-              <span className="rounded-full bg-[#0063FD] px-2 py-0.5 text-[10px] font-mono text-white font-black">
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-mono ${
+                activeTab === "deals"
+                  ? "bg-white/20 text-white font-bold"
+                  : "bg-[#EFF6FF] text-[#0063FD] font-black border border-[#BFDBFE]"
+              }`}>
                 {deals.length}
               </span>
             </button>
@@ -791,14 +912,18 @@ export default function AdminDashboardPage() {
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "suppliers"
                   ? "bg-[#0063FD] text-white shadow-xs font-black"
-                  : "hover:bg-[#1E293B] hover:text-white"
+                  : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
               }`}
             >
               <div className="flex items-center gap-2.5">
                 <Building className="h-4 w-4" />
                 <span>Nguồn hàng & NCC</span>
               </div>
-              <span className="rounded-full bg-[#1E293B] px-2 py-0.5 text-[10px] font-mono text-slate-300">
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-mono ${
+                activeTab === "suppliers"
+                  ? "bg-white/20 text-white font-bold"
+                  : "bg-[#F1F5F9] text-[#475569] border border-[#CBD5E1]"
+              }`}>
                 {suppliers.length}
               </span>
             </button>
@@ -809,14 +934,18 @@ export default function AdminDashboardPage() {
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "blogs"
                   ? "bg-[#0063FD] text-white shadow-xs font-black"
-                  : "hover:bg-[#1E293B] hover:text-white"
+                  : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
               }`}
             >
               <div className="flex items-center gap-2.5">
                 <FileText className="h-4 w-4" />
                 <span>Bài viết & Tin tức</span>
               </div>
-              <span className="rounded-full bg-[#0063FD] px-2 py-0.5 text-[10px] font-mono text-white font-black">
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-mono ${
+                activeTab === "blogs"
+                  ? "bg-white/20 text-white font-bold"
+                  : "bg-[#EFF6FF] text-[#0063FD] font-black border border-[#BFDBFE]"
+              }`}>
                 {blogs.length}
               </span>
             </button>
@@ -826,7 +955,7 @@ export default function AdminDashboardPage() {
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "orders"
                   ? "bg-[#0063FD] text-white shadow-xs font-black"
-                  : "hover:bg-[#1E293B] hover:text-white"
+                  : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
               }`}
             >
               <div className="flex items-center gap-2.5">
@@ -845,16 +974,35 @@ export default function AdminDashboardPage() {
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "reviews"
                   ? "bg-[#0063FD] text-white shadow-xs font-black"
-                  : "hover:bg-[#1E293B] hover:text-white"
+                  : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
               }`}
             >
               <div className="flex items-center gap-2.5">
                 <MessageSquareText className="h-4 w-4" />
                 <span>Đánh giá khách hàng</span>
               </div>
-              <span className="rounded-full bg-[#1E293B] px-2 py-0.5 text-[10px] font-mono text-slate-300">
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-mono ${
+                activeTab === "reviews"
+                  ? "bg-white/20 text-white font-bold"
+                  : "bg-[#F1F5F9] text-[#475569] border border-[#CBD5E1]"
+              }`}>
                 {reviews.length}
               </span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("settings")}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
+                activeTab === "settings"
+                  ? "bg-[#0063FD] text-white shadow-xs font-black"
+                  : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <Sliders className="h-4 w-4" />
+                <span>Cấu hình Website</span>
+              </div>
+              <span className="flex h-2 w-2 rounded-full bg-[#0063FD]" />
             </button>
 
             <button
@@ -862,7 +1010,7 @@ export default function AdminDashboardPage() {
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
                 activeTab === "security"
                   ? "bg-[#0063FD] text-white shadow-xs font-black"
-                  : "hover:bg-[#1E293B] hover:text-white"
+                  : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
               }`}
             >
               <div className="flex items-center gap-2.5">
@@ -875,14 +1023,14 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Sidebar Footer User Profile */}
-        <div className="p-4 border-t border-[#1E293B] space-y-3">
+        <div className="p-4 border-t border-[#E2E8F0] bg-[#F8FAFC] space-y-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#334155] text-white font-bold text-xs">
-              <UserCheck className="h-4 w-4 text-[#38BDF8]" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#EFF6FF] border border-[#BFDBFE] text-[#0063FD] font-bold text-xs">
+              <UserCheck className="h-4 w-4 text-[#0063FD]" />
             </div>
             <div className="min-w-0">
-              <div className="text-xs font-bold text-white truncate">Admin Operator</div>
-              <div className="text-[10px] text-slate-400 font-mono truncate">admin@qmdtech.vn</div>
+              <div className="text-xs font-bold text-[#0F172A] truncate">Admin Operator</div>
+              <div className="text-[10px] text-[#64748B] font-mono truncate">admin@qmdtech.vn</div>
             </div>
           </div>
 
@@ -890,14 +1038,14 @@ export default function AdminDashboardPage() {
             <Link
               href="/"
               target="_blank"
-              className="flex items-center justify-center gap-1 w-full rounded-lg border border-[#334155] bg-[#1E293B] py-2 text-[11px] font-bold text-slate-200 hover:bg-[#334155] transition-colors"
+              className="flex items-center justify-center gap-1 w-full rounded-lg border border-[#CBD5E1] bg-white py-2 text-[11px] font-bold text-[#334155] hover:bg-[#F1F5F9] hover:text-[#0F172A] transition-colors shadow-2xs"
             >
-              <ExternalLink className="h-3.5 w-3.5 text-[#38BDF8]" />
+              <ExternalLink className="h-3.5 w-3.5 text-[#0063FD]" />
               Web Shop
             </Link>
             <button
               onClick={handleAdminLogout}
-              className="flex items-center justify-center gap-1 w-full rounded-lg border border-[#475569] bg-[#1E293B] py-2 text-[11px] font-bold text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 transition-colors"
+              className="flex items-center justify-center gap-1 w-full rounded-lg border border-[#FECACA] bg-[#FEF2F2] py-2 text-[11px] font-bold text-[#DC2626] hover:bg-[#FEE2E2] hover:text-[#B91C1C] transition-colors"
               title="Đăng xuất khỏi hệ thống"
             >
               <LogOut className="h-3.5 w-3.5" />
@@ -1400,7 +1548,7 @@ export default function AdminDashboardPage() {
                     key={b.id}
                     className="rounded-xl border border-[#E2E8F0] bg-white overflow-hidden shadow-xs flex flex-col justify-between hover:border-[#0063FD] transition-all"
                   >
-                    <div className="relative h-44 w-full bg-[#0F172A]">
+                    <div className="relative h-44 w-full bg-[#F1F5F9]">
                       <Image
                         src={b.image_url}
                         alt={b.title_vi}
@@ -1728,7 +1876,7 @@ export default function AdminDashboardPage() {
                     >
                       <div>
                         {/* Cover Image */}
-                        <div className="relative aspect-[16/9] w-full bg-[#0F172A] overflow-hidden">
+                        <div className="relative aspect-[16/9] w-full bg-[#F1F5F9] overflow-hidden">
                           {blog.cover_image && (
                             <Image
                               src={blog.cover_image}
@@ -1859,7 +2007,7 @@ export default function AdminDashboardPage() {
                     onClick={() => setOrderStatusFilter(st)}
                     className={`px-3 py-1.5 rounded-lg transition-colors uppercase ${
                       orderStatusFilter === st
-                        ? "bg-[#0F172A] text-white"
+                        ? "bg-[#0063FD] text-white shadow-xs"
                         : "bg-white border border-[#E2E8F0] text-[#64748B] hover:text-[#0F172A]"
                     }`}
                   >
@@ -1992,6 +2140,385 @@ export default function AdminDashboardPage() {
           )}
 
           {/* ========================================================================= */}
+          {/* TAB 10: SITE & BUSINESS SETTINGS                                          */}
+          {/* ========================================================================= */}
+          {activeTab === "settings" && (
+            <form onSubmit={handleSaveSettings} className="space-y-6">
+              {/* Header with Save Button */}
+              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E2E8F0] pb-4">
+                <div>
+                  <h2 className="text-base sm:text-lg font-black uppercase text-[#0F172A] tracking-wide">
+                    Cấu Hình Thông Tin Website & Doanh Nghiệp
+                  </h2>
+                  <p className="mt-0.5 text-xs text-[#64748B]">
+                    Tùy chỉnh thông tin liên hệ, hotline, mô hình kinh doanh online/showroom và pháp lý Bộ Công Thương.
+                  </p>
+                </div>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="md"
+                  disabled={isSavingSettings}
+                  className="font-bold text-xs uppercase shadow-xs px-6"
+                >
+                  {isSavingSettings ? (
+                    <RefreshCw className="h-4 w-4 animate-spin text-white" />
+                  ) : (
+                    <CheckCircle2 className="h-4 w-4 text-white" />
+                  )}
+                  <span>Lưu Cấu Hình Doanh Nghiệp</span>
+                </Button>
+              </div>
+
+              {/* Grid 1: Brand & Contact Info */}
+              <div className="rounded-xl border border-[#CBD5E1] bg-white p-6 shadow-xs space-y-4">
+                <div className="flex items-center gap-2 text-[#0063FD] font-black uppercase text-xs border-b border-[#E2E8F0] pb-3">
+                  <Globe className="h-4 w-4" />
+                  <span>1. Thông tin Thương hiệu & Liên hệ Khách hàng</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">Tên Thương hiệu / Cửa hàng *</label>
+                    <input
+                      required
+                      type="text"
+                      value={siteSettings.store_name}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, store_name: e.target.value })}
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">Khẩu hiệu / Slogan *</label>
+                    <input
+                      required
+                      type="text"
+                      value={siteSettings.slogan}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, slogan: e.target.value })}
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">Hotline Bán Hàng 24/7 *</label>
+                    <input
+                      required
+                      type="text"
+                      value={siteSettings.hotline}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, hotline: e.target.value })}
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] font-mono focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">Hotline Kỹ Thuật / Zalo</label>
+                    <input
+                      type="text"
+                      value={siteSettings.hotline_support}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, hotline_support: e.target.value })}
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] font-mono focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">Email Tiếp Nhận *</label>
+                    <input
+                      required
+                      type="email"
+                      value={siteSettings.support_email}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, support_email: e.target.value })}
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">Thời gian làm việc hỗ trợ</label>
+                    <input
+                      type="text"
+                      value={siteSettings.working_hours}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, working_hours: e.target.value })}
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">Hạn mức Miễn phí vận chuyển (VND)</label>
+                    <input
+                      type="number"
+                      value={siteSettings.free_shipping_threshold_vnd}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, free_shipping_threshold_vnd: parseInt(e.target.value || "0", 10) })}
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] font-mono focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Grid 2: Business Model & Showroom Settings */}
+              <div className="rounded-xl border border-[#CBD5E1] bg-white p-6 shadow-xs space-y-4">
+                <div className="flex items-center gap-2 text-[#0063FD] font-black uppercase text-xs border-b border-[#E2E8F0] pb-3">
+                  <Store className="h-4 w-4" />
+                  <span>2. Mô Hình Kinh Doanh & Quản Lý Showroom</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">Mô Hình Vận Hành *</label>
+                    <select
+                      value={siteSettings.business_model}
+                      onChange={(e) => {
+                        const val = e.target.value as "online" | "showroom" | "hybrid";
+                        setSiteSettings({
+                          ...siteSettings,
+                          business_model: val,
+                          has_showrooms: val !== "online",
+                        });
+                      }}
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] font-bold focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                    >
+                      <option value="online">Bán Hàng & Ráp PC Online Toàn Quốc (Chưa có Showroom)</option>
+                      <option value="showroom">Hệ Thống Showroom Trực Tiếp</option>
+                      <option value="hybrid">Mô Hình Hybrid (Online & Showroom Trực Tiếp)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">Dòng chữ hiển thị trên thanh tiện ích Header *</label>
+                    <input
+                      required
+                      type="text"
+                      value={siteSettings.business_model_text}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, business_model_text: e.target.value })}
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#1E293B] mb-1">Địa Chỉ Trụ Sở Chính & Kho Hàng Trung Tâm *</label>
+                  <input
+                    required
+                    type="text"
+                    value={siteSettings.headquarters_address}
+                    onChange={(e) => setSiteSettings({ ...siteSettings, headquarters_address: e.target.value })}
+                    className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                  />
+                </div>
+
+                {/* Showroom Toggle & Manager */}
+                <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-xs font-bold text-[#0F172A] block">
+                        Bật hiển thị danh sách Showroom trên Website
+                      </span>
+                      <span className="text-[11px] text-[#64748B]">
+                        (Bật tùy chọn này sau khi bạn thuê mặt bằng và khai trương showroom vật lý)
+                      </span>
+                    </div>
+                    <label className="relative inline-flex cursor-pointer items-center">
+                      <input
+                        type="checkbox"
+                        checked={siteSettings.has_showrooms}
+                        onChange={(e) => setSiteSettings({ ...siteSettings, has_showrooms: e.target.checked })}
+                        className="peer sr-only"
+                      />
+                      <div className="peer h-6 w-11 rounded-full bg-[#CBD5E1] after:absolute after:top-0.5 after:left-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:bg-[#0063FD] peer-checked:after:translate-x-full" />
+                    </label>
+                  </div>
+
+                  {siteSettings.has_showrooms && (
+                    <div className="space-y-3 pt-3 border-t border-[#E2E8F0]">
+                      <span className="text-xs font-bold text-[#0F172A] block">
+                        Danh sách Showroom Đang Hoạt Động ({siteSettings.showrooms?.length || 0})
+                      </span>
+
+                      {siteSettings.showrooms && siteSettings.showrooms.length > 0 && (
+                        <div className="space-y-2">
+                          {siteSettings.showrooms.map((sr) => (
+                            <div
+                              key={sr.id}
+                              className="flex items-center justify-between rounded-lg border border-[#CBD5E1] bg-white p-3 text-xs"
+                            >
+                              <div>
+                                <div className="font-bold text-[#0F172A]">{sr.name} ({sr.city})</div>
+                                <div className="text-[11px] text-[#64748B]">{sr.address} • Hotline: {sr.phone}</div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveShowroom(sr.id)}
+                                className="text-rose-500 hover:text-rose-700 font-bold text-xs p-1"
+                              >
+                                Xóa
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Add Showroom Sub-form */}
+                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 pt-2">
+                        <input
+                          type="text"
+                          placeholder="Thành phố (VD: Hà Nội)"
+                          value={newShowroom.city}
+                          onChange={(e) => setNewShowroom({ ...newShowroom, city: e.target.value })}
+                          className="rounded border border-[#CBD5E1] bg-white p-2 text-xs text-[#0F172A]"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Tên Showroom (VD: Showroom Cầu Giấy)"
+                          value={newShowroom.name}
+                          onChange={(e) => setNewShowroom({ ...newShowroom, name: e.target.value })}
+                          className="rounded border border-[#CBD5E1] bg-white p-2 text-xs text-[#0F172A]"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Địa chỉ chi tiết..."
+                          value={newShowroom.address}
+                          onChange={(e) => setNewShowroom({ ...newShowroom, address: e.target.value })}
+                          className="rounded border border-[#CBD5E1] bg-white p-2 text-xs text-[#0F172A]"
+                        />
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          onClick={handleAddShowroom}
+                          className="text-xs font-bold"
+                        >
+                          + Thêm Showroom
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Grid 3: Bo Cong Thuong Legal Registration */}
+              <div className="rounded-xl border border-[#CBD5E1] bg-white p-6 shadow-xs space-y-4">
+                <div className="flex items-center gap-2 text-[#0063FD] font-black uppercase text-xs border-b border-[#E2E8F0] pb-3">
+                  <ShieldCheck className="h-4 w-4" />
+                  <span>3. Pháp Lý Website & Đăng Ký Bộ Công Thương</span>
+                </div>
+
+                <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-xs font-bold text-[#0F172A] block">
+                        Trạng thái Đã Đăng Ký / Thông Báo với Bộ Công Thương
+                      </span>
+                      <span className="text-[11px] text-[#64748B]">
+                        (Bật tùy chọn này sau khi website được Bộ Công Thương phê duyệt và cấp logo xác thực)
+                      </span>
+                    </div>
+                    <label className="relative inline-flex cursor-pointer items-center">
+                      <input
+                        type="checkbox"
+                        checked={siteSettings.bo_cong_thuong_registered}
+                        onChange={(e) => setSiteSettings({ ...siteSettings, bo_cong_thuong_registered: e.target.checked })}
+                        className="peer sr-only"
+                      />
+                      <div className="peer h-6 w-11 rounded-full bg-[#CBD5E1] after:absolute after:top-0.5 after:left-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:bg-[#16A34A] peer-checked:after:translate-x-full" />
+                    </label>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    <div>
+                      <label className="block text-xs font-bold text-[#1E293B] mb-1">
+                        Thông điệp pháp lý / Số thông báo ĐKKD
+                      </label>
+                      <input
+                        type="text"
+                        value={siteSettings.bo_cong_thuong_license_no || ""}
+                        onChange={(e) => setSiteSettings({ ...siteSettings, bo_cong_thuong_license_no: e.target.value })}
+                        className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-[#1E293B] mb-1">
+                        Đường link xác thực của Bộ Công Thương (Khi đã đăng ký)
+                      </label>
+                      <input
+                        type="url"
+                        placeholder="http://online.gov.vn/Home/WebDetails/..."
+                        value={siteSettings.bo_cong_thuong_link || ""}
+                        onChange={(e) => setSiteSettings({ ...siteSettings, bo_cong_thuong_link: e.target.value })}
+                        className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] font-mono focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Grid 4: Social Links */}
+              <div className="rounded-xl border border-[#CBD5E1] bg-white p-6 shadow-xs space-y-4">
+                <div className="flex items-center gap-2 text-[#0063FD] font-black uppercase text-xs border-b border-[#E2E8F0] pb-3">
+                  <Activity className="h-4 w-4" />
+                  <span>4. Mạng Xã Hội & Kênh Truyền Thông Trực Tuyến</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">Facebook Fanpage URL</label>
+                    <input
+                      type="url"
+                      value={siteSettings.facebook_url || ""}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, facebook_url: e.target.value })}
+                      placeholder="https://facebook.com/..."
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">Zalo OA / Chat URL</label>
+                    <input
+                      type="url"
+                      value={siteSettings.zalo_url || ""}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, zalo_url: e.target.value })}
+                      placeholder="https://zalo.me/..."
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">YouTube Channel URL</label>
+                    <input
+                      type="url"
+                      value={siteSettings.youtube_url || ""}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, youtube_url: e.target.value })}
+                      placeholder="https://youtube.com/@..."
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Sticky Action Bar */}
+              <div className="flex items-center justify-end gap-3 border-t border-[#E2E8F0] pt-4">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="md"
+                  disabled={isSavingSettings}
+                  className="font-bold text-xs uppercase shadow-md px-8 py-3"
+                >
+                  {isSavingSettings ? (
+                    <RefreshCw className="h-4 w-4 animate-spin text-white" />
+                  ) : (
+                    <CheckCircle2 className="h-4 w-4 text-white" />
+                  )}
+                  <span>Lưu Toàn Bộ Cấu Hình Website</span>
+                </Button>
+              </div>
+            </form>
+          )}
+
+          {/* ========================================================================= */}
           {/* TAB 9: SECURITY & SYSTEM */}
           {/* ========================================================================= */}
           {activeTab === "security" && (
@@ -2048,48 +2575,48 @@ export default function AdminDashboardPage() {
         <form onSubmit={handleCreateProduct} className="space-y-4 text-xs">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Tên tiếng Việt *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Tên tiếng Việt *</label>
               <input
                 required
                 type="text"
                 placeholder="VD: Card màn hình ASUS ROG Strix RTX 4070 Ti Super 16GB"
                 value={productForm.name_vi}
                 onChange={(e) => setProductForm({ ...productForm, name_vi: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
               />
             </div>
 
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Tên tiếng Anh</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Tên tiếng Anh</label>
               <input
                 type="text"
                 placeholder="VD: ASUS ROG Strix GeForce RTX 4070 Ti Super 16GB"
                 value={productForm.name_en}
                 onChange={(e) => setProductForm({ ...productForm, name_en: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Mã SKU *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Mã SKU *</label>
               <input
                 required
                 type="text"
                 placeholder="VD: GPU-ASUS-4070TIS"
                 value={productForm.sku}
                 onChange={(e) => setProductForm({ ...productForm, sku: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs font-mono"
               />
             </div>
 
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Thương hiệu *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Thương hiệu *</label>
               <select
                 value={productForm.brand}
                 onChange={(e) => setProductForm({ ...productForm, brand: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs font-bold"
               >
                 <option value="ASUS">ASUS</option>
                 <option value="MSI">MSI</option>
@@ -2105,11 +2632,11 @@ export default function AdminDashboardPage() {
             </div>
 
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Danh mục *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Danh mục *</label>
               <select
                 value={productForm.category_id}
                 onChange={(e) => setProductForm({ ...productForm, category_id: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs font-bold"
               >
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -2122,34 +2649,34 @@ export default function AdminDashboardPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Giá bán (VND) *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Giá bán (VND) *</label>
               <input
                 required
                 type="number"
                 value={productForm.price_vnd}
                 onChange={(e) => setProductForm({ ...productForm, price_vnd: parseInt(e.target.value || "0", 10) })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs font-bold"
               />
             </div>
 
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Giá niêm yết cũ (VND)</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Giá niêm yết cũ (VND)</label>
               <input
                 type="number"
                 value={productForm.original_price_vnd}
                 onChange={(e) => setProductForm({ ...productForm, original_price_vnd: parseInt(e.target.value || "0", 10) })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
               />
             </div>
 
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Số lượng tồn kho *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Số lượng tồn kho *</label>
               <input
                 required
                 type="number"
                 value={productForm.stock}
                 onChange={(e) => setProductForm({ ...productForm, stock: parseInt(e.target.value || "0", 10) })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs font-bold"
               />
             </div>
           </div>
@@ -2162,55 +2689,55 @@ export default function AdminDashboardPage() {
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               <div>
-                <label className="block text-[10px] text-[#64748B]">Socket (VD: LGA1700, AM5)</label>
+                <label className="block text-[10px] font-bold text-[#475569]">Socket (VD: LGA1700, AM5)</label>
                 <input
                   type="text"
                   placeholder="LGA1700"
                   value={socketInput}
                   onChange={(e) => setSocketInput(e.target.value)}
-                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A]"
+                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
                 />
               </div>
               <div>
-                <label className="block text-[10px] text-[#64748B]">RAM Type (VD: DDR5, DDR4)</label>
+                <label className="block text-[10px] font-bold text-[#475569]">RAM Type (VD: DDR5, DDR4)</label>
                 <input
                   type="text"
                   placeholder="DDR5"
                   value={ramTypeInput}
                   onChange={(e) => setRamTypeInput(e.target.value)}
-                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A]"
+                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
                 />
               </div>
               <div>
-                <label className="block text-[10px] text-[#64748B]">Công suất TDP (W)</label>
+                <label className="block text-[10px] font-bold text-[#475569]">Công suất TDP (W)</label>
                 <input
                   type="number"
                   placeholder="250"
                   value={tdpInput}
                   onChange={(e) => setTdpInput(e.target.value)}
-                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A]"
+                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs font-mono"
                 />
               </div>
               <div>
-                <label className="block text-[10px] text-[#64748B]">VRAM (GB)</label>
+                <label className="block text-[10px] font-bold text-[#475569]">VRAM (GB)</label>
                 <input
                   type="number"
                   placeholder="16"
                   value={vramInput}
                   onChange={(e) => setVramInput(e.target.value)}
-                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A]"
+                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs font-mono"
                 />
               </div>
             </div>
           </div>
 
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Ảnh sản phẩm URL</label>
-            <input
-              type="url"
+            <CloudinaryImageUpload
               value={productForm.images[0] || ""}
-              onChange={(e) => setProductForm({ ...productForm, images: [e.target.value] })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              onChange={(url) => setProductForm({ ...productForm, images: url ? [url] : [] })}
+              folder="qmdtech/products"
+              label="Ảnh sản phẩm chính"
+              description="Tự động nén WebP và tải lên Cloudinary để tối ưu hóa hiệu năng và quota."
             />
           </div>
 
@@ -2234,26 +2761,26 @@ export default function AdminDashboardPage() {
       >
         <form onSubmit={handleCreateCategory} className="space-y-3 text-xs">
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Tên danh mục (Tiếng Việt) *</label>
+            <label className="block font-bold text-[#1E293B] mb-1">Tên danh mục (Tiếng Việt) *</label>
             <input
               required
               type="text"
               placeholder="VD: Card Màn Hình (VGA)"
               value={categoryForm.name_vi}
               onChange={(e) => setCategoryForm({ ...categoryForm, name_vi: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
             />
           </div>
 
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Slug URL (VD: gpu, cpu, ram) *</label>
+            <label className="block font-bold text-[#1E293B] mb-1">Slug URL (VD: gpu, cpu, ram) *</label>
             <input
               required
               type="text"
               placeholder="VD: gpu"
               value={categoryForm.slug}
               onChange={(e) => setCategoryForm({ ...categoryForm, slug: e.target.value.toLowerCase().trim() })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
             />
           </div>
 
@@ -2277,72 +2804,57 @@ export default function AdminDashboardPage() {
       >
         <form onSubmit={handleCreateBanner} className="space-y-3 text-xs">
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Tiêu đề Poster (Tiếng Việt) *</label>
+            <label className="block font-bold text-[#1E293B] mb-1">Tiêu đề Poster (Tiếng Việt) *</label>
             <input
               required
               type="text"
               placeholder="VD: Mở Bán GeForce RTX 40 Super Series"
               value={bannerForm.title_vi}
               onChange={(e) => setBannerForm({ ...bannerForm, title_vi: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
             />
           </div>
 
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Mô tả phụ / Thông điệp ngắn</label>
+            <label className="block font-bold text-[#1E293B] mb-1">Mô tả phụ / Thông điệp ngắn</label>
             <input
               type="text"
               placeholder="VD: Tặng kèm gói quà tặng gaming cao cấp khi đặt mua"
               value={bannerForm.subtitle_vi}
               onChange={(e) => setBannerForm({ ...bannerForm, subtitle_vi: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Nhãn Tag (VD: SỰ KIỆN MỚI, FLASH SALE)</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Nhãn Tag (VD: SỰ KIỆN MỚI, FLASH SALE)</label>
               <input
                 type="text"
                 value={bannerForm.tag}
                 onChange={(e) => setBannerForm({ ...bannerForm, tag: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
               />
             </div>
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Đường dẫn liên kết (Target URL)</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Đường dẫn liên kết (Target URL)</label>
               <input
                 type="text"
                 value={bannerForm.target_url}
                 onChange={(e) => setBannerForm({ ...bannerForm, target_url: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
               />
             </div>
           </div>
 
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Ảnh Banner URL (Khuyên dùng tỷ lệ 16:9 hoặc 21:9) *</label>
-            <input
-              required
-              type="url"
+            <CloudinaryImageUpload
               value={bannerForm.image_url}
-              onChange={(e) => setBannerForm({ ...bannerForm, image_url: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+              onChange={(url) => setBannerForm({ ...bannerForm, image_url: url })}
+              folder="qmdtech/banners"
+              label="Ảnh Banner Sự Kiện (Tỷ lệ 16:9 hoặc 21:9) *"
+              description="Tự động tối ưu định dạng và kích thước phân phối qua CDN."
             />
-            {bannerForm.image_url && (
-              <div className="mt-2 relative aspect-[21/9] w-full overflow-hidden rounded-lg border border-[#E2E8F0] bg-[#0F172A]">
-                <Image
-                  src={bannerForm.image_url}
-                  alt="Xem trước banner"
-                  fill
-                  sizes="400px"
-                  className="object-cover"
-                />
-                <div className="absolute top-2 left-2 rounded bg-[#0063FD] px-2 py-0.5 text-[9px] font-black text-white uppercase">
-                  {bannerForm.tag || "XEM TRƯỚC"}
-                </div>
-              </div>
-            )}
           </div>
 
           <div className="pt-2">
@@ -2365,55 +2877,55 @@ export default function AdminDashboardPage() {
       >
         <form onSubmit={handleUpdateBanner} className="space-y-3 text-xs">
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Tiêu đề Poster (Tiếng Việt) *</label>
+            <label className="block font-bold text-[#1E293B] mb-1">Tiêu đề Poster (Tiếng Việt) *</label>
             <input
               required
               type="text"
               value={editBannerForm.title_vi}
               onChange={(e) => setEditBannerForm({ ...editBannerForm, title_vi: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
             />
           </div>
 
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Mô tả phụ / Thông điệp ngắn</label>
+            <label className="block font-bold text-[#1E293B] mb-1">Mô tả phụ / Thông điệp ngắn</label>
             <input
               type="text"
               value={editBannerForm.subtitle_vi}
               onChange={(e) => setEditBannerForm({ ...editBannerForm, subtitle_vi: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Nhãn Tag (VD: SỰ KIỆN MỚI, FLASH SALE)</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Nhãn Tag (VD: SỰ KIỆN MỚI, FLASH SALE)</label>
               <input
                 type="text"
                 value={editBannerForm.tag}
                 onChange={(e) => setEditBannerForm({ ...editBannerForm, tag: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
               />
             </div>
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Đường dẫn liên kết (Target URL)</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Đường dẫn liên kết (Target URL)</label>
               <input
                 type="text"
                 value={editBannerForm.target_url}
                 onChange={(e) => setEditBannerForm({ ...editBannerForm, target_url: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3 items-center">
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Thứ tự hiển thị (Display Order)</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Thứ tự hiển thị (Display Order)</label>
               <input
                 type="number"
                 value={editBannerForm.display_order}
                 onChange={(e) => setEditBannerForm({ ...editBannerForm, display_order: parseInt(e.target.value || "1", 10) })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
               />
             </div>
             <div className="pt-4">
@@ -2430,28 +2942,13 @@ export default function AdminDashboardPage() {
           </div>
 
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Ảnh Banner URL (Khuyên dùng tỷ lệ 16:9 hoặc 21:9) *</label>
-            <input
-              required
-              type="url"
+            <CloudinaryImageUpload
               value={editBannerForm.image_url}
-              onChange={(e) => setEditBannerForm({ ...editBannerForm, image_url: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+              onChange={(url) => setEditBannerForm({ ...editBannerForm, image_url: url })}
+              folder="qmdtech/banners"
+              label="Ảnh Banner Sự Kiện (Tỷ lệ 16:9 hoặc 21:9) *"
+              description="Tự động tối ưu định dạng và kích thước phân phối qua CDN."
             />
-            {editBannerForm.image_url && (
-              <div className="mt-2 relative aspect-[21/9] w-full overflow-hidden rounded-lg border border-[#E2E8F0] bg-[#0F172A]">
-                <Image
-                  src={editBannerForm.image_url}
-                  alt="Xem trước banner chỉnh sửa"
-                  fill
-                  sizes="400px"
-                  className="object-cover"
-                />
-                <div className="absolute top-2 left-2 rounded bg-[#0063FD] px-2 py-0.5 text-[9px] font-black text-white uppercase">
-                  {editBannerForm.tag || "XEM TRƯỚC"}
-                </div>
-              </div>
-            )}
           </div>
 
           <div className="pt-2">
@@ -2475,117 +2972,117 @@ export default function AdminDashboardPage() {
         <form onSubmit={handleCreateDeal} className="space-y-3 text-xs">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Tên cấu hình PC *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Tên cấu hình PC *</label>
               <input
                 required
                 type="text"
                 placeholder="VD: PC QMD-G01 Core i5-13400F | RTX 4060"
                 value={dealForm.name_vi}
                 onChange={(e) => setDealForm({ ...dealForm, name_vi: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
               />
             </div>
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Mã cấu hình (Code SKU) *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Mã cấu hình (Code SKU) *</label>
               <input
                 required
                 type="text"
                 placeholder="VD: PC-QMD-G01"
                 value={dealForm.code}
                 onChange={(e) => setDealForm({ ...dealForm, code: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Giá bán (VND) *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Giá bán (VND) *</label>
               <input
                 required
                 type="number"
                 value={dealForm.price_vnd}
                 onChange={(e) => setDealForm({ ...dealForm, price_vnd: parseInt(e.target.value || "0", 10) })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs font-bold"
               />
             </div>
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Giá niêm yết cũ (VND)</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Giá niêm yết cũ (VND)</label>
               <input
                 type="number"
                 value={dealForm.original_price_vnd ?? 0}
                 onChange={(e) => setDealForm({ ...dealForm, original_price_vnd: parseInt(e.target.value || "0", 10) })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
               />
             </div>
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Nhãn Tag (Badge)</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Nhãn Tag (Badge)</label>
               <input
                 type="text"
                 value={dealForm.badge}
                 onChange={(e) => setDealForm({ ...dealForm, badge: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Vi xử lý CPU *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Vi xử lý CPU *</label>
               <input
                 required
                 type="text"
                 placeholder="VD: Intel Core i5-13400F"
                 value={dealForm.cpu}
                 onChange={(e) => setDealForm({ ...dealForm, cpu: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
               />
             </div>
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Card màn hình VGA *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Card màn hình VGA *</label>
               <input
                 required
                 type="text"
                 placeholder="VD: ASUS Dual RTX 4060 8GB"
                 value={dealForm.vga}
                 onChange={(e) => setDealForm({ ...dealForm, vga: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Bộ nhớ RAM *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Bộ nhớ RAM *</label>
               <input
                 required
                 type="text"
                 placeholder="VD: 16GB (2x8GB) DDR4 3200MHz"
                 value={dealForm.ram}
                 onChange={(e) => setDealForm({ ...dealForm, ram: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
               />
             </div>
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Ổ cứng SSD *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Ổ cứng SSD *</label>
               <input
                 required
                 type="text"
                 placeholder="VD: 500GB NVMe M.2 Gen4"
                 value={dealForm.ssd}
                 onChange={(e) => setDealForm({ ...dealForm, ssd: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
               />
             </div>
           </div>
 
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Ảnh đại diện cấu hình URL</label>
-            <input
-              type="url"
+            <CloudinaryImageUpload
               value={dealForm.image_url}
-              onChange={(e) => setDealForm({ ...dealForm, image_url: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+              onChange={(url) => setDealForm({ ...dealForm, image_url: url })}
+              folder="qmdtech/deals"
+              label="Ảnh đại diện cấu hình PC"
+              description="Tự động nén WebP và lưu trữ trên Cloudinary."
             />
           </div>
 
@@ -2610,71 +3107,71 @@ export default function AdminDashboardPage() {
         <form onSubmit={handleCreateSupplier} className="space-y-3 text-xs">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Tên công ty / Nhà phân phối *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Tên công ty / Nhà phân phối *</label>
               <input
                 required
                 type="text"
                 placeholder="VD: Synnex FPT Distribution"
                 value={supplierForm.name}
                 onChange={(e) => setSupplierForm({ ...supplierForm, name: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
               />
             </div>
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Mã nhà cung cấp (Code) *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Mã nhà cung cấp (Code) *</label>
               <input
                 required
                 type="text"
                 placeholder="VD: SUP-FPT"
                 value={supplierForm.code}
                 onChange={(e) => setSupplierForm({ ...supplierForm, code: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Người liên hệ phụ trách</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Người liên hệ phụ trách</label>
               <input
                 type="text"
                 placeholder="VD: Nguyễn Hoàng Long"
                 value={supplierForm.contact_person}
                 onChange={(e) => setSupplierForm({ ...supplierForm, contact_person: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
               />
             </div>
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Số điện thoại hotline</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Số điện thoại hotline</label>
               <input
                 type="text"
                 placeholder="VD: 024.7300.7300"
                 value={supplierForm.phone}
                 onChange={(e) => setSupplierForm({ ...supplierForm, phone: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
               />
             </div>
           </div>
 
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Thương hiệu phân phối (cách nhau bằng dấu phẩy)</label>
+            <label className="block font-bold text-[#1E293B] mb-1">Thương hiệu phân phối (cách nhau bằng dấu phẩy)</label>
             <input
               type="text"
               placeholder="VD: ASUS, Intel, Kingston, Western Digital"
               value={brandInputString}
               onChange={(e) => setBrandInputString(e.target.value)}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
             />
           </div>
 
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Địa chỉ kho / Trụ sở chính</label>
+            <label className="block font-bold text-[#1E293B] mb-1">Địa chỉ kho / Trụ sở chính</label>
             <input
               type="text"
               placeholder="VD: Tòa nhà FPT, Phố Duy Tân, Cầu Giấy, Hà Nội"
               value={supplierForm.address}
               onChange={(e) => setSupplierForm({ ...supplierForm, address: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
             />
           </div>
 
@@ -2698,7 +3195,7 @@ export default function AdminDashboardPage() {
       >
         <form onSubmit={handleCreateBlogPost} className="space-y-4 text-xs">
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Tiêu đề bài viết (Tiếng Việt) *</label>
+            <label className="block font-bold text-[#1E293B] mb-1">Tiêu đề bài viết (Tiếng Việt) *</label>
             <input
               required
               type="text"
@@ -2716,28 +3213,28 @@ export default function AdminDashboardPage() {
                   .replace(/\s+/g, "-");
                 setBlogForm({ ...blogForm, title_vi: title, slug: blogForm.slug || autoSlug });
               }}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2.5 text-[#0F172A] focus:border-[#0063FD] focus:outline-none text-sm font-bold"
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none text-sm font-bold shadow-2xs"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Slug URL (Đường dẫn tĩnh) *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Slug URL (Đường dẫn tĩnh) *</label>
               <input
                 required
                 type="text"
                 placeholder="huong-dan-chon-nguon-psu"
                 value={blogForm.slug}
                 onChange={(e) => setBlogForm({ ...blogForm, slug: e.target.value.toLowerCase().trim() })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
               />
             </div>
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Chuyên mục bài viết *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Chuyên mục bài viết *</label>
               <select
                 value={blogForm.category}
                 onChange={(e) => setBlogForm({ ...blogForm, category: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none bg-white font-bold"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-bold shadow-2xs"
               >
                 <option value="Kiến Thức Phần Cứng">Kiến Thức Phần Cứng</option>
                 <option value="Đánh Giá & Review">Đánh Giá & Review</option>
@@ -2746,62 +3243,54 @@ export default function AdminDashboardPage() {
               </select>
             </div>
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Tác giả biên tập</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Tác giả biên tập</label>
               <input
                 type="text"
                 value={blogForm.author_name}
                 onChange={(e) => setBlogForm({ ...blogForm, author_name: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
               />
             </div>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
-            <div className="sm:col-span-2">
-              <label className="block font-bold text-[#475569] mb-1">Ảnh đại diện bài viết URL (Cover Image) *</label>
-              <input
-                required
-                type="url"
-                value={blogForm.cover_image}
-                onChange={(e) => setBlogForm({ ...blogForm, cover_image: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
-              />
-            </div>
-            <div>
-              <label className="block font-bold text-[#475569] mb-1">Thời gian đọc ước tính</label>
-              <div className="flex items-center gap-1.5">
-                <input
-                  type="number"
-                  value={blogForm.reading_time_mins}
-                  onChange={(e) => setBlogForm({ ...blogForm, reading_time_mins: parseInt(e.target.value || "5", 10) })}
-                  className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono text-center"
-                />
-                <span className="text-xs text-[#64748B] shrink-0">phút</span>
-              </div>
-            </div>
-          </div>
-
-          {blogForm.cover_image && (
-            <div className="relative aspect-[21/9] w-full max-h-40 overflow-hidden rounded-xl border border-[#E2E8F0] bg-[#0F172A]">
-              <Image src={blogForm.cover_image} alt="Preview" fill sizes="600px" className="object-cover" />
-            </div>
-          )}
 
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Đoạn tóm tắt mở đầu (Excerpt) *</label>
+            <CloudinaryImageUpload
+              value={blogForm.cover_image}
+              onChange={(url) => setBlogForm({ ...blogForm, cover_image: url })}
+              folder="qmdtech/blogs"
+              label="Ảnh đại diện bài viết (Cover Image) *"
+              description="Tự động nén WebP và tải lên Cloudinary để tiết kiệm hạn mức."
+            />
+          </div>
+
+          <div className="w-48">
+            <label className="block font-bold text-[#1E293B] mb-1">Thời gian đọc ước tính</label>
+            <div className="flex items-center gap-1.5">
+              <input
+                type="number"
+                value={blogForm.reading_time_mins}
+                onChange={(e) => setBlogForm({ ...blogForm, reading_time_mins: parseInt(e.target.value || "5", 10) })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono text-center shadow-2xs"
+              />
+              <span className="text-xs text-[#64748B] shrink-0 font-bold">phút</span>
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-bold text-[#1E293B] mb-1">Đoạn tóm tắt mở đầu (Excerpt) *</label>
             <textarea
               required
               rows={2}
               placeholder="Tóm tắt ngắn gọn nội dung bài viết hiển thị ở thẻ ngoài danh mục..."
               value={blogForm.excerpt_vi}
               onChange={(e) => setBlogForm({ ...blogForm, excerpt_vi: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none leading-relaxed"
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none leading-relaxed shadow-2xs"
             />
           </div>
 
           {/* Rich Text Editor Content */}
           <div>
-            <label className="block font-bold text-[#475569] mb-1.5">
+            <label className="block font-bold text-[#1E293B] mb-1.5">
               Nội dung bài viết chi tiết (Trình Soạn Thảo Rich Text) *
             </label>
             <RichTextEditor
@@ -2840,33 +3329,33 @@ export default function AdminDashboardPage() {
       >
         <form onSubmit={handleUpdateBlogPost} className="space-y-4 text-xs">
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Tiêu đề bài viết (Tiếng Việt) *</label>
+            <label className="block font-bold text-[#1E293B] mb-1">Tiêu đề bài viết (Tiếng Việt) *</label>
             <input
               required
               type="text"
               value={editBlogForm.title_vi}
               onChange={(e) => setEditBlogForm({ ...editBlogForm, title_vi: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2.5 text-[#0F172A] focus:border-[#0063FD] focus:outline-none text-sm font-bold"
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none text-sm font-bold shadow-2xs"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Slug URL (Đường dẫn tĩnh) *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Slug URL (Đường dẫn tĩnh) *</label>
               <input
                 required
                 type="text"
                 value={editBlogForm.slug}
                 onChange={(e) => setEditBlogForm({ ...editBlogForm, slug: e.target.value.toLowerCase().trim() })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
               />
             </div>
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Chuyên mục bài viết *</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Chuyên mục bài viết *</label>
               <select
                 value={editBlogForm.category}
                 onChange={(e) => setEditBlogForm({ ...editBlogForm, category: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none bg-white font-bold"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-bold shadow-2xs"
               >
                 <option value="Kiến Thức Phần Cứng">Kiến Thức Phần Cứng</option>
                 <option value="Đánh Giá & Review">Đánh Giá & Review</option>
@@ -2875,61 +3364,53 @@ export default function AdminDashboardPage() {
               </select>
             </div>
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Tác giả biên tập</label>
+              <label className="block font-bold text-[#1E293B] mb-1">Tác giả biên tập</label>
               <input
                 type="text"
                 value={editBlogForm.author_name}
                 onChange={(e) => setEditBlogForm({ ...editBlogForm, author_name: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
               />
             </div>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
-            <div className="sm:col-span-2">
-              <label className="block font-bold text-[#475569] mb-1">Ảnh đại diện bài viết URL (Cover Image) *</label>
-              <input
-                required
-                type="url"
-                value={editBlogForm.cover_image}
-                onChange={(e) => setEditBlogForm({ ...editBlogForm, cover_image: e.target.value })}
-                className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono"
-              />
-            </div>
-            <div>
-              <label className="block font-bold text-[#475569] mb-1">Thời gian đọc ước tính</label>
-              <div className="flex items-center gap-1.5">
-                <input
-                  type="number"
-                  value={editBlogForm.reading_time_mins}
-                  onChange={(e) => setEditBlogForm({ ...editBlogForm, reading_time_mins: parseInt(e.target.value || "5", 10) })}
-                  className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-mono text-center"
-                />
-                <span className="text-xs text-[#64748B] shrink-0">phút</span>
-              </div>
-            </div>
-          </div>
-
-          {editBlogForm.cover_image && (
-            <div className="relative aspect-[21/9] w-full max-h-40 overflow-hidden rounded-xl border border-[#E2E8F0] bg-[#0F172A]">
-              <Image src={editBlogForm.cover_image} alt="Preview" fill sizes="600px" className="object-cover" />
-            </div>
-          )}
 
           <div>
-            <label className="block font-bold text-[#475569] mb-1">Đoạn tóm tắt mở đầu (Excerpt) *</label>
+            <CloudinaryImageUpload
+              value={editBlogForm.cover_image}
+              onChange={(url) => setEditBlogForm({ ...editBlogForm, cover_image: url })}
+              folder="qmdtech/blogs"
+              label="Ảnh đại diện bài viết (Cover Image) *"
+              description="Tự động nén WebP và tải lên Cloudinary để tiết kiệm hạn mức."
+            />
+          </div>
+
+          <div className="w-48">
+            <label className="block font-bold text-[#1E293B] mb-1">Thời gian đọc ước tính</label>
+            <div className="flex items-center gap-1.5">
+              <input
+                type="number"
+                value={editBlogForm.reading_time_mins}
+                onChange={(e) => setEditBlogForm({ ...editBlogForm, reading_time_mins: parseInt(e.target.value || "5", 10) })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono text-center shadow-2xs"
+              />
+              <span className="text-xs text-[#64748B] shrink-0 font-bold">phút</span>
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-bold text-[#1E293B] mb-1">Đoạn tóm tắt mở đầu (Excerpt) *</label>
             <textarea
               required
               rows={2}
               value={editBlogForm.excerpt_vi}
               onChange={(e) => setEditBlogForm({ ...editBlogForm, excerpt_vi: e.target.value })}
-              className="w-full rounded-lg border border-[#CBD5E1] p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none leading-relaxed"
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none leading-relaxed shadow-2xs"
             />
           </div>
 
           {/* Rich Text Editor Content */}
           <div>
-            <label className="block font-bold text-[#475569] mb-1.5">
+            <label className="block font-bold text-[#1E293B] mb-1.5">
               Nội dung bài viết chi tiết (Trình Soạn Thảo Rich Text) *
             </label>
             <RichTextEditor

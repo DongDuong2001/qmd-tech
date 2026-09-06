@@ -6,6 +6,7 @@ import {
   getAdminCookieOptions,
   getClearCookieOptions,
 } from "@/shared/security/cookies";
+import { createAdminToken } from "@/shared/security/jwt";
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,12 +25,18 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { username, passcode } = body;
 
-    // Default admin credentials (Can be overridden via env vars in production)
-    const validUsername = process.env.ADMIN_USERNAME || "admin";
-    const validPasscode = process.env.ADMIN_SECRET_PASSCODE || "QmdTech@2026!Admin";
+    // Default admin credentials configured via QMD_ADMIN_USER and QMD_ADMIN_PASSWORD
+    const validUsername =
+      process.env.QMD_ADMIN_USER ||
+      process.env.ADMIN_USERNAME ||
+      "admin@qmd.tech";
+    const validPasscode =
+      process.env.QMD_ADMIN_PASSWORD ||
+      process.env.ADMIN_SECRET_PASSCODE ||
+      "qmd@135";
 
     const isMatch =
-      username?.trim() === validUsername &&
+      username?.trim().toLowerCase() === validUsername.toLowerCase() &&
       passcode === validPasscode;
 
     if (!isMatch) {
@@ -42,14 +49,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Set HttpOnly Admin Token
-    const adminToken = Buffer.from(
-      JSON.stringify({
-        role: "admin",
-        user: validUsername,
-        issuedAt: Date.now(),
-      })
-    ).toString("base64url");
+    // Generate Cryptographically Signed Admin JWT Token
+    const adminToken = await createAdminToken(validUsername);
 
     const cookieStore = await cookies();
     cookieStore.set(ADMIN_COOKIE_NAME, adminToken, getAdminCookieOptions());

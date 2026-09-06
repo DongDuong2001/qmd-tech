@@ -8,7 +8,7 @@ export interface CreateOrderInput {
   shippingAddress: string;
   shippingCity: string;
   shippingDistrict?: string;
-  paymentMethod: "vnpay" | "momo" | "zalopay" | "stripe" | "cod" | "bank_transfer";
+  paymentMethod: "sepay" | "vnpay" | "momo" | "zalopay" | "stripe" | "cod" | "bank_transfer";
   shippingProvider?: "ghn" | "ghtk" | "express";
   items: CartItem[];
   customBuildId?: string;

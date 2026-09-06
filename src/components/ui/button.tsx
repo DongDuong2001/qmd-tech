@@ -8,26 +8,26 @@ export function cn(...inputs: (string | undefined | null | false)[]) {
 }
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-lg font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 select-none cursor-pointer",
+  "btn-wipe group relative inline-flex items-center justify-center rounded-lg font-bold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 select-none cursor-pointer",
   {
     variants: {
       variant: {
         primary:
-          "bg-[#0063FD] text-white hover:bg-[#0052D4] active:bg-[#0042A8] shadow-xs",
+          "btn-wipe-primary bg-[#0063FD] text-white hover:text-white shadow-xs hover:shadow-md",
         accent:
-          "bg-[#0F172A] text-white hover:bg-[#1E293B] active:bg-[#334155] shadow-xs",
+          "btn-wipe-accent bg-[#0F172A] text-white hover:text-white shadow-xs hover:shadow-md",
         gold:
-          "bg-[#0284C7] text-white hover:bg-[#0369A1] active:bg-[#075985] shadow-xs",
+          "btn-wipe-gold bg-[#0284C7] text-white hover:text-white shadow-xs hover:shadow-md",
         blue:
-          "bg-[#0063FD] text-white hover:bg-[#0052D4] active:bg-[#0042A8] shadow-xs",
+          "btn-wipe-primary bg-[#0063FD] text-white hover:text-white shadow-xs hover:shadow-md",
         secondary:
-          "bg-[#FFFFFF] text-[#0F172A] hover:bg-[#F1F5F9] border border-[#CBD5E1] shadow-xs",
+          "btn-wipe-secondary bg-[#FFFFFF] text-[#0F172A] border border-[#CBD5E1] shadow-2xs hover:border-[#0063FD] hover:text-[#0063FD]",
         outline:
-          "border border-[#CBD5E1] bg-transparent text-[#0F172A] hover:bg-[#EFF6FF] hover:border-[#0063FD] hover:text-[#0063FD]",
+          "btn-wipe-outline border border-[#CBD5E1] bg-transparent text-[#0F172A] hover:border-[#0063FD] hover:text-white",
         ghost:
-          "bg-transparent text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]",
+          "btn-wipe-ghost bg-transparent text-[#475569] hover:text-[#0F172A]",
         danger:
-          "bg-[#DC2626] text-white hover:bg-[#B91C1C] shadow-xs",
+          "btn-wipe-danger bg-[#DC2626] text-white hover:text-white shadow-xs hover:shadow-md",
       },
       size: {
         sm: "h-8 px-3 text-xs",
@@ -48,13 +48,17 @@ export interface ButtonProps
     VariantProps<typeof buttonVariants> {}
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, ...props }, ref) => {
+  ({ className, variant, size, children, ...props }, ref) => {
     return (
       <button
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         {...props}
-      />
+      >
+        <span className="relative z-10 w-full inline-flex items-center justify-center gap-1.5 transition-transform duration-200 group-hover:scale-[0.98] group-active:scale-95">
+          {children}
+        </span>
+      </button>
     );
   }
 );

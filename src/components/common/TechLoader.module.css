@@ -1,0 +1,103 @@
+.loaderWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+}
+
+.loader {
+  width: 120px;
+  height: 150px;
+  background-color: #ffffff;
+  background-repeat: no-repeat;
+  background-image:
+    linear-gradient(#e2e8f0 50%, #cbd5e1 51%),
+    linear-gradient(#0063fd, #0063fd),
+    linear-gradient(#e2e8f0, #e2e8f0),
+    radial-gradient(ellipse at center, #0063fd 25%, #dbeafe 26%, #dbeafe 50%, transparent 55%),
+    radial-gradient(ellipse at center, #0284c7 25%, #e0f2fe 26%, #e0f2fe 50%, transparent 55%),
+    radial-gradient(ellipse at center, #10b981 25%, #d1fae5 26%, #d1fae5 50%, transparent 55%);
+  background-position:
+    0 24px,
+    45px 0,
+    8px 8px,
+    55px 5px,
+    75px 5px,
+    95px 5px;
+  background-size:
+    100% 3px,
+    2px 24px,
+    30px 8px,
+    14px 14px,
+    14px 14px,
+    14px 14px;
+  position: relative;
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
+  box-shadow: 0 10px 25px -5px rgba(0, 99, 253, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.05);
+  animation: qmdShake 2.4s ease-in-out infinite;
+  transform-origin: 60px 180px;
+}
+
+.loader::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 100%;
+  width: 8px;
+  height: 5px;
+  background: #0f172a;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 92px 0 #0f172a;
+}
+
+.loader::after {
+  content: "";
+  position: absolute;
+  width: 92px;
+  height: 92px;
+  left: 0;
+  right: 0;
+  margin: auto;
+  bottom: 14px;
+  background-color: #eff6ff;
+  background-image:
+    linear-gradient(to right, rgba(0, 99, 253, 0.15) 0%, rgba(0, 99, 253, 0.15) 49%, transparent 50%, transparent 100%),
+    linear-gradient(135deg, #0063fd 50%, #0284c7 51%);
+  background-size: 28px 100%, 88px 78px;
+  border-radius: 50%;
+  background-repeat: repeat, no-repeat;
+  background-position: 0 0;
+  box-sizing: border-box;
+  border: 8px solid #f1f5f9;
+  box-shadow: 0 0 0 3px #cbd5e1 inset, 0 0 8px 4px rgba(0, 99, 253, 0.25) inset;
+  animation: qmdSpin 2.4s ease-in-out infinite;
+}
+
+@keyframes qmdSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(360deg);
+  }
+  75% {
+    transform: rotate(720deg);
+  }
+  100% {
+    transform: rotate(1440deg);
+  }
+}
+
+@keyframes qmdShake {
+  65%, 80%, 88%, 96% {
+    transform: rotate(0.6deg);
+  }
+  50%, 75%, 84%, 92% {
+    transform: rotate(-0.6deg);
+  }
+  0%, 50%, 100% {
+    transform: rotate(0);
+  }
+}

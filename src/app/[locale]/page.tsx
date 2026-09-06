@@ -48,20 +48,27 @@ export default async function HomePage() {
   const banners = await adminService.getBanners();
   const prebuiltDeals = await adminService.getPrebuiltDeals();
 
+  // Dynamic real count calculator per category
+  const getCategoryProductCount = (slug: string) => {
+    const cat = categories.find((c) => c.slug === slug);
+    if (!cat) return 0;
+    return allProducts.filter((p) => p.category_id === cat.id).length;
+  };
+
   // 12 Category Nav Items (Swipeable on Mobile, Grid on Tablet/Desktop)
   const categoryNavItems = [
-    { slug: "cpu", name: "CPU - Vi Xử Lý", icon: Cpu, count: "24+ SP" },
-    { slug: "gpu", name: "VGA - Card Đồ Họa", icon: Layers, count: "18+ SP", hot: true },
-    { slug: "motherboard", name: "Mainboard", icon: CircuitBoard, count: "30+ SP" },
-    { slug: "ram", name: "RAM DDR4/DDR5", icon: MemoryStick, count: "45+ SP" },
-    { slug: "storage", name: "SSD / HDD", icon: HardDrive, count: "35+ SP" },
-    { slug: "psu", name: "Nguồn Máy Tính", icon: Zap, count: "20+ SP" },
-    { slug: "case", name: "Vỏ Case Gaming", icon: Box, count: "28+ SP" },
-    { slug: "cooling", name: "Tản Nhiệt AIO", icon: Fan, count: "22+ SP" },
-    { slug: "monitor", name: "Màn Hình 240Hz", icon: Monitor, count: "15+ SP", hot: true },
-    { slug: "prebuilt", name: "PC Ráp Sẵn", icon: Gamepad2, count: "40+ Cấu hình", hot: true },
-    { slug: "gear", name: "Bàn Phím & Chuột", icon: Keyboard, count: "50+ SP" },
-    { slug: "audio", name: "Tai Nghe & Ghế", icon: Headphones, count: "16+ SP" },
+    { slug: "cpu", name: "CPU - Vi Xử Lý", icon: Cpu },
+    { slug: "gpu", name: "VGA - Card Đồ Họa", icon: Layers, hot: true },
+    { slug: "motherboard", name: "Mainboard", icon: CircuitBoard },
+    { slug: "ram", name: "RAM DDR4/DDR5", icon: MemoryStick },
+    { slug: "storage", name: "SSD / HDD", icon: HardDrive },
+    { slug: "psu", name: "Nguồn Máy Tính", icon: Zap },
+    { slug: "case", name: "Vỏ Case Gaming", icon: Box },
+    { slug: "cooling", name: "Tản Nhiệt AIO", icon: Fan },
+    { slug: "monitor", name: "Màn Hình 240Hz", icon: Monitor, hot: true },
+    { slug: "prebuilt", name: "PC Ráp Sẵn", icon: Gamepad2, hot: true },
+    { slug: "gear", name: "Bàn Phím & Chuột", icon: Keyboard },
+    { slug: "audio", name: "Tai Nghe & Ghế", icon: Headphones },
   ];
 
   return (
@@ -74,6 +81,7 @@ export default async function HomePage() {
           <div className="flex gap-2 overflow-x-auto no-scrollbar py-0.5 sm:grid sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-12">
             {categoryNavItems.map((item) => {
               const IconComponent = item.icon;
+              const count = getCategoryProductCount(item.slug);
               return (
                 <Link
                   key={item.slug}
@@ -91,9 +99,11 @@ export default async function HomePage() {
                   <span className="text-[10px] sm:text-[11px] font-bold text-[#0F172A] line-clamp-1 group-hover:text-[#0063FD] transition-colors">
                     {item.name}
                   </span>
-                  <span className="text-[8.5px] sm:text-[9px] font-mono text-[#64748B]">
-                    {item.count}
-                  </span>
+                  {count > 0 && (
+                    <span className="text-[8.5px] sm:text-[9px] font-mono text-[#0063FD] font-semibold">
+                      {count} SP
+                    </span>
+                  )}
                 </Link>
               );
             })}
@@ -128,7 +138,7 @@ export default async function HomePage() {
                     ĐANG DIỄN RA
                   </span>
                 </div>
-                <p className="text-[11px] sm:text-xs text-[#64748B]">Số lượng có hạn • Tự động kết thúc khi hết hàng</p>
+                <p className="text-[11px] sm:text-xs text-[#64748B]">Linh kiện chính hãng • Bảo hành 1 đổi 1 trong 30 ngày</p>
               </div>
             </div>
 
@@ -144,16 +154,15 @@ export default async function HomePage() {
             {featuredProducts.slice(0, 4).map((product) => (
               <div key={product.id} className="relative flex flex-col justify-between">
                 <ProductCard product={product} />
-                {/* Stock progress meter below each flash card */}
+                {/* Real Inventory Stock Badge */}
                 <div className="mt-1.5 sm:mt-2 rounded-lg bg-white p-1.5 sm:p-2 border border-[#E2E8F0]">
-                  <div className="flex justify-between text-[9px] sm:text-[10px] font-bold text-[#475569] mb-1">
+                  <div className="flex justify-between text-[9px] sm:text-[10px] font-bold text-[#475569]">
                     <span className="text-[#0063FD] flex items-center gap-1 font-mono">
-                      Đã bán 18/20
+                      Tồn kho thực tế
                     </span>
-                    <span className="text-[#0F172A] font-semibold">Còn 2 suất</span>
-                  </div>
-                  <div className="h-1.5 sm:h-2 w-full overflow-hidden rounded-full bg-[#E2E8F0]">
-                    <div className="h-full bg-[#0063FD] w-[90%]" />
+                    <span className="text-[#0F172A] font-semibold">
+                      {product.stock > 0 ? `${product.stock} sản phẩm` : "Tạm hết"}
+                    </span>
                   </div>
                 </div>
               </div>
