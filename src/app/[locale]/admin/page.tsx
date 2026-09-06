@@ -131,6 +131,9 @@ export default function AdminDashboardPage() {
   // Modals state
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
+  const [isEditCategoryOpen, setIsEditCategoryOpen] = useState(false);
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
+  const [categorySearchQuery, setCategorySearchQuery] = useState("");
   const [isAddBannerOpen, setIsAddBannerOpen] = useState(false);
   const [isEditBannerOpen, setIsEditBannerOpen] = useState(false);
   const [editingBannerId, setEditingBannerId] = useState<string | null>(null);
@@ -210,6 +213,13 @@ export default function AdminDashboardPage() {
 
   // Category Form State
   const [categoryForm, setCategoryForm] = useState({
+    slug: "",
+    name_vi: "",
+    name_en: "",
+    icon: "Cpu",
+  });
+
+  const [editCategoryForm, setEditCategoryForm] = useState({
     slug: "",
     name_vi: "",
     name_en: "",
@@ -440,6 +450,44 @@ export default function AdminDashboardPage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       showNotification("error", "Lỗi tạo danh mục: " + msg);
+    }
+  };
+
+  const handleStartEditCategory = (cat: Category) => {
+    setEditingCategoryId(cat.id);
+    setEditCategoryForm({
+      slug: cat.slug,
+      name_vi: cat.name_vi,
+      name_en: cat.name_en || "",
+      icon: cat.icon || "Cpu",
+    });
+    setIsEditCategoryOpen(true);
+  };
+
+  const handleUpdateCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCategoryId) return;
+    try {
+      await adminService.updateCategory(editingCategoryId, editCategoryForm);
+      showNotification("success", "Đã cập nhật thông tin danh mục thành công!");
+      setIsEditCategoryOpen(false);
+      setEditingCategoryId(null);
+      loadAllData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi cập nhật danh mục: " + msg);
+    }
+  };
+
+  const handleSeedCategories = async () => {
+    try {
+      const seeded = await adminService.seedDefaultCategories();
+      setCategories(seeded);
+      showNotification("success", "Đã đồng bộ và khởi tạo 10 danh mục linh kiện chuẩn!");
+      loadAllData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi đồng bộ danh mục: " + msg);
     }
   };
 
@@ -760,6 +808,19 @@ export default function AdminDashboardPage() {
       return matchCat && matchSearch;
     });
   }, [blogs, blogCategoryFilter, searchQuery]);
+
+  // Filtered Categories
+  const filteredCategories = useMemo(() => {
+    return categories.filter((c) => {
+      const q = categorySearchQuery.toLowerCase().trim();
+      if (!q) return true;
+      return (
+        c.name_vi?.toLowerCase().includes(q) ||
+        c.name_en?.toLowerCase().includes(q) ||
+        c.slug?.toLowerCase().includes(q)
+      );
+    });
+  }, [categories, categorySearchQuery]);
 
   // Financial & Inventory Statistics
   const totalRevenue = orders
@@ -1111,6 +1172,29 @@ export default function AdminDashboardPage() {
                 <Plus className="h-4 w-4" />
                 Thêm Linh Kiện
               </Button>
+            )}
+            {activeTab === "categories" && (
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={handleSeedCategories}
+                  variant="outline"
+                  size="sm"
+                  className="gap-1 text-xs font-bold text-[#0063FD] border-[#BFDBFE] hover:bg-[#EFF6FF]"
+                  title="Khởi tạo hoặc đồng bộ lại 10 danh mục linh kiện PC chuẩn"
+                >
+                  <RefreshCw className="h-3.5 w-3.5 text-[#0063FD]" />
+                  Đồng Bộ 10 Danh Mục Chuẩn
+                </Button>
+                <Button
+                  onClick={() => setIsAddCategoryOpen(true)}
+                  variant="primary"
+                  size="sm"
+                  className="gap-1 text-xs font-black shadow-xs uppercase"
+                >
+                  <Plus className="h-4 w-4" />
+                  Thêm Danh Mục
+                </Button>
+              </div>
             )}
             {activeTab === "banners" && (
               <Button
@@ -1474,51 +1558,144 @@ export default function AdminDashboardPage() {
           )}
 
           {/* ========================================================================= */}
-          {/* TAB 3: CATEGORIES */}
+          {/* TAB 3: CATEGORIES MANAGEMENT */}
           {/* ========================================================================= */}
           {activeTab === "categories" && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-black uppercase tracking-wider text-[#64748B]">
-                  Danh sách phân loại ({categories.length} danh mục)
-                </h3>
-                <Button
-                  onClick={() => setIsAddCategoryOpen(true)}
-                  variant="primary"
-                  size="sm"
-                  className="gap-1 text-xs font-bold"
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  Thêm Danh Mục
-                </Button>
+              {/* Top Controls Bar */}
+              <div className="rounded-xl border border-[#E2E8F0] bg-white p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="relative flex-1 max-w-sm">
+                  <input
+                    type="text"
+                    value={categorySearchQuery}
+                    onChange={(e) => setCategorySearchQuery(e.target.value)}
+                    placeholder="Tìm theo tên danh mục, slug URL..."
+                    className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2 pl-9 pr-3 text-xs text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none"
+                  />
+                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-[#94A3B8]" />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={handleSeedCategories}
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5 text-xs font-bold text-[#0063FD] border-[#BFDBFE] hover:bg-[#EFF6FF]"
+                  >
+                    <RefreshCw className="h-3.5 w-3.5 text-[#0063FD]" />
+                    <span>Đồng bộ 10 danh mục chuẩn</span>
+                  </Button>
+                  <Button
+                    onClick={() => setIsAddCategoryOpen(true)}
+                    variant="primary"
+                    size="sm"
+                    className="gap-1 text-xs font-bold shadow-xs uppercase"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    <span>Thêm danh mục</span>
+                  </Button>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {categories.map((cat) => {
-                  const productCount = products.filter((p) => p.category_id === cat.id).length;
-                  return (
-                    <div
-                      key={cat.id}
-                      className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-xs flex items-center justify-between hover:border-[#0063FD] transition-all"
+              {/* Categories Grid or Empty State */}
+              {filteredCategories.length === 0 ? (
+                <div className="rounded-2xl border border-[#E2E8F0] bg-white p-12 text-center space-y-3 shadow-xs">
+                  <Layers className="mx-auto h-12 w-12 text-[#94A3B8]" />
+                  <h4 className="text-sm font-bold text-[#0F172A]">
+                    {categorySearchQuery ? "Không tìm thấy danh mục phù hợp" : "Chưa có danh mục linh kiện nào"}
+                  </h4>
+                  <p className="text-xs text-[#64748B] max-w-md mx-auto">
+                    {categorySearchQuery
+                      ? "Vui lòng kiểm tra lại từ khóa tìm kiếm hoặc xóa bộ lọc."
+                      : "Bạn có thể tự tạo danh mục mới hoặc bấm nút đồng bộ 10 danh mục linh kiện PC chuẩn (CPU, Main, RAM, VGA, SSD, PSU, Case, Cooling...)."}
+                  </p>
+                  <div className="flex items-center justify-center gap-2 pt-2">
+                    <Button
+                      onClick={handleSeedCategories}
+                      variant="primary"
+                      size="sm"
+                      className="font-bold text-xs"
                     >
-                      <div>
-                        <div className="text-sm font-black text-[#0F172A]">{cat.name_vi}</div>
-                        <div className="text-xs font-mono text-[#64748B] mt-0.5">/{cat.slug}</div>
-                        <div className="text-[11px] text-[#2563EB] font-bold mt-2">
-                          {productCount} linh kiện
+                      <RefreshCw className="h-3.5 w-3.5 mr-1" />
+                      Khởi tạo 10 danh mục chuẩn
+                    </Button>
+                    <Button
+                      onClick={() => setIsAddCategoryOpen(true)}
+                      variant="outline"
+                      size="sm"
+                      className="font-bold text-xs"
+                    >
+                      <Plus className="h-3.5 w-3.5 mr-1" />
+                      Tự tạo danh mục mới
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {filteredCategories.map((cat) => {
+                    const productCount = products.filter((p) => p.category_id === cat.id).length;
+                    return (
+                      <div
+                        key={cat.id}
+                        className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-xs flex flex-col justify-between hover:border-[#0063FD] hover:shadow-sm transition-all group"
+                      >
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#EFF6FF] border border-[#BFDBFE] text-[#0063FD]">
+                              <Layers className="h-4 w-4" />
+                            </div>
+                            <Link
+                              href={`/danh-muc/${cat.slug}`}
+                              target="_blank"
+                              className="text-[11px] font-bold text-[#0063FD] hover:underline flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                              title="Xem trang danh mục trên Web Shop"
+                            >
+                              <span>Web Shop</span>
+                              <ExternalLink className="h-3 w-3" />
+                            </Link>
+                          </div>
+
+                          <div>
+                            <div className="text-sm font-black text-[#0F172A] line-clamp-1">{cat.name_vi}</div>
+                            <div className="text-xs text-[#64748B] line-clamp-1">{cat.name_en}</div>
+                            <div className="text-[11px] font-mono text-[#0063FD] mt-0.5 font-bold">/{cat.slug}</div>
+                          </div>
+                        </div>
+
+                        <div className="border-t border-[#F1F5F9] pt-3 mt-4 flex items-center justify-between">
+                          <button
+                            onClick={() => {
+                              setActiveTab("products");
+                              setCategoryFilter(cat.id);
+                            }}
+                            className="text-[11px] font-bold text-[#2563EB] bg-[#EFF6FF] hover:bg-[#DBEAFE] px-2 py-1 rounded-md transition-colors"
+                            title="Lọc các sản phẩm thuộc danh mục này trong kho"
+                          >
+                            {productCount} sản phẩm →
+                          </button>
+
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => handleStartEditCategory(cat)}
+                              className="p-1.5 rounded-md text-[#0063FD] hover:bg-[#EFF6FF] transition-colors"
+                              title="Chỉnh sửa danh mục"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteCategory(cat.id)}
+                              className="p-1.5 rounded-md text-[#DC2626] hover:bg-[#FEE2E2] transition-colors"
+                              title="Xóa danh mục"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
                         </div>
                       </div>
-                      <button
-                        onClick={() => handleDeleteCategory(cat.id)}
-                        className="rounded p-1.5 text-[#B91C1C] hover:bg-[#FEE2E2] transition-colors"
-                        title="Xóa danh mục"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
@@ -2773,6 +2950,17 @@ export default function AdminDashboardPage() {
           </div>
 
           <div>
+            <label className="block font-bold text-[#1E293B] mb-1">Tên danh mục (Tiếng Anh)</label>
+            <input
+              type="text"
+              placeholder="VD: Graphics Cards (GPU)"
+              value={categoryForm.name_en}
+              onChange={(e) => setCategoryForm({ ...categoryForm, name_en: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
+            />
+          </div>
+
+          <div>
             <label className="block font-bold text-[#1E293B] mb-1">Slug URL (VD: gpu, cpu, ram) *</label>
             <input
               required
@@ -2787,6 +2975,63 @@ export default function AdminDashboardPage() {
           <div className="pt-2">
             <Button type="submit" variant="primary" size="md" className="w-full font-black uppercase text-xs">
               Tạo Danh Mục Mới
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* ========================================================================= */}
+      {/* EDIT CATEGORY MODAL */}
+      {/* ========================================================================= */}
+      <Modal
+        isOpen={isEditCategoryOpen}
+        onClose={() => {
+          setIsEditCategoryOpen(false);
+          setEditingCategoryId(null);
+        }}
+        title="CHỈNH SỬA THÔNG TIN DANH MỤC"
+        description="Cập nhật tên danh mục hiển thị trên Web Shop và đường dẫn Slug"
+        maxWidth="md"
+      >
+        <form onSubmit={handleUpdateCategory} className="space-y-3 text-xs">
+          <div>
+            <label className="block font-bold text-[#1E293B] mb-1">Tên danh mục (Tiếng Việt) *</label>
+            <input
+              required
+              type="text"
+              placeholder="VD: Card Màn Hình (VGA)"
+              value={editCategoryForm.name_vi}
+              onChange={(e) => setEditCategoryForm({ ...editCategoryForm, name_vi: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
+            />
+          </div>
+
+          <div>
+            <label className="block font-bold text-[#1E293B] mb-1">Tên danh mục (Tiếng Anh)</label>
+            <input
+              type="text"
+              placeholder="VD: Graphics Cards (GPU)"
+              value={editCategoryForm.name_en}
+              onChange={(e) => setEditCategoryForm({ ...editCategoryForm, name_en: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
+            />
+          </div>
+
+          <div>
+            <label className="block font-bold text-[#1E293B] mb-1">Slug URL (VD: gpu, cpu, ram) *</label>
+            <input
+              required
+              type="text"
+              placeholder="VD: gpu"
+              value={editCategoryForm.slug}
+              onChange={(e) => setEditCategoryForm({ ...editCategoryForm, slug: e.target.value.toLowerCase().trim() })}
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
+            />
+          </div>
+
+          <div className="pt-2">
+            <Button type="submit" variant="primary" size="md" className="w-full font-black uppercase text-xs">
+              Lưu Thay Đổi Danh Mục
             </Button>
           </div>
         </form>
