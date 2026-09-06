@@ -1,3 +1,12 @@
+## [1.5.1](https://github.com/DongDuong2001/qmd-tech/compare/v1.5.0...v1.5.1) (2026-09-06)
+
+
+### Bug Fixes
+
+* **admin:** provide default hardware categories fallback, edit and seed methods ([d5c056e](https://github.com/DongDuong2001/qmd-tech/commit/d5c056e2ecec3da51cc9becef2621f36948e742b))
+* **admin:** resolve category tab rendering, add search, edit modal, and seed action ([57418cf](https://github.com/DongDuong2001/qmd-tech/commit/57418cfa95c01db1f3041835f0363a9ed9494093))
+* **catalog:** fallback to default hardware categories when database is empty ([2addabf](https://github.com/DongDuong2001/qmd-tech/commit/2addabf0a38ba18751b83e9b410a0fada3033b05))
+
 # [1.5.0](https://github.com/DongDuong2001/qmd-tech/compare/v1.4.0...v1.5.0) (2026-09-06)
 
 
