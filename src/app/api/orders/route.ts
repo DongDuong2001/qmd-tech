@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServiceSupabase } from "@/shared/db/supabase";
+import { cookies } from "next/headers";
+import { getServiceSupabase, supabase } from "@/shared/db/supabase";
 import { cartService } from "@/modules/cart/service";
-import { Order, CartItem } from "@/shared/types";
+import { Order, CartItem, Product } from "@/shared/types";
 import { eventBus } from "@/shared/events/eventBus";
+import { AUTH_COOKIE_NAME } from "@/shared/security/cookies";
+import { catalogService } from "@/modules/catalog/service";
 
 // In-memory fallback cache for orders
 let cachedOrders: Order[] = [];
@@ -17,6 +20,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Try Supabase Service Role
+    let orderData: unknown = null;
     try {
       const db = getServiceSupabase();
       const { data, error } = await db
@@ -26,18 +30,21 @@ export async function GET(req: NextRequest) {
         .single();
 
       if (!error && data) {
-        return NextResponse.json({ success: true, order: data });
+        orderData = data;
       }
     } catch {
       // Fallback to memory
     }
 
-    const cached = cachedOrders.find((o) => o.order_code.toUpperCase() === code.toUpperCase());
-    if (cached) {
-      return NextResponse.json({ success: true, order: cached });
+    if (!orderData) {
+      orderData = cachedOrders.find((o) => o.order_code.toUpperCase() === code.toUpperCase()) || null;
     }
 
-    return NextResponse.json({ success: false, error: "Không tìm thấy đơn hàng." }, { status: 404 });
+    if (!orderData) {
+      return NextResponse.json({ success: false, error: "Không tìm thấy đơn hàng." }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, order: orderData });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Lỗi tìm kiếm đơn hàng.";
     return NextResponse.json({ success: false, error: msg }, { status: 500 });
@@ -59,7 +66,7 @@ export async function POST(req: NextRequest) {
       items = [],
       notes,
       customBuildId,
-      userId,
+      couponCode,
     } = body;
 
     if (!customerName || !customerPhone || !shippingAddress || !Array.isArray(items) || items.length === 0) {
@@ -69,14 +76,108 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const calc = cartService.calculateCart(items as CartItem[]);
+    // 1. Verify authenticated user identity (Do not trust client-supplied userId)
+    let verifiedUserId: string | null = null;
+    try {
+      const cookieStore = await cookies();
+      const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
+      if (token) {
+        const { data: userData } = await supabase.auth.getUser(token);
+        if (userData?.user?.id) {
+          verifiedUserId = userData.user.id;
+        }
+      }
+    } catch {
+      // Guest order
+    }
+
+    // 2. Validate items and verify quantities
+    for (const item of items) {
+      if (!item.product_id || typeof item.product_id !== "string") {
+        return NextResponse.json(
+          { success: false, error: "Mã sản phẩm trong giỏ hàng không hợp lệ." },
+          { status: 400 }
+        );
+      }
+      const qty = Number(item.quantity);
+      if (!Number.isInteger(qty) || qty < 1 || qty > 50) {
+        return NextResponse.json(
+          { success: false, error: "Số lượng sản phẩm phải từ 1 đến 50." },
+          { status: 400 }
+        );
+      }
+    }
+
+    // 3. Fetch products authoritatively from database to verify stock and price
+    const productIds = Array.from(new Set(items.map((i: { product_id: string }) => i.product_id)));
+    let dbProducts: Product[] = [];
+    const db = getServiceSupabase();
+
+    try {
+      const { data, error } = await db.from("products").select("*").in("id", productIds);
+      if (!error && data) {
+        dbProducts = data as Product[];
+      }
+    } catch (err) {
+      console.warn("DB product lookup notice:", err);
+    }
+
+    // Fallback if DB was unavailable or missing items
+    if (dbProducts.length < productIds.length) {
+      const fallbackProducts = await catalogService.getProductsByIds(productIds);
+      const existingIds = new Set(dbProducts.map((p) => p.id));
+      for (const p of fallbackProducts) {
+        if (!existingIds.has(p.id)) {
+          dbProducts.push(p);
+        }
+      }
+    }
+
+    const productMap = new Map<string, Product>(dbProducts.map((p) => [p.id, p]));
+
+    // 4. Construct verified items with authoritative prices & check stock
+    const verifiedItems: CartItem[] = [];
+    for (const rawItem of items) {
+      const product = productMap.get(rawItem.product_id) || rawItem.product;
+      if (!product) {
+        return NextResponse.json(
+          { success: false, error: `Sản phẩm với mã ${rawItem.product_id} không tồn tại hoặc đã ngừng kinh doanh.` },
+          { status: 400 }
+        );
+      }
+
+      const quantity = Number(rawItem.quantity);
+
+      // Check stock availability
+      if (typeof product.stock === "number" && product.stock < quantity) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Sản phẩm "${product.name_vi || product.name_en}" không đủ tồn kho (chỉ còn ${product.stock} sản phẩm).`,
+          },
+          { status: 409 }
+        );
+      }
+
+      const authoritativePrice = product.price_vnd;
+      verifiedItems.push({
+        product_id: product.id,
+        product,
+        quantity,
+        unit_price_vnd: authoritativePrice,
+        total_price_vnd: authoritativePrice * quantity,
+      });
+    }
+
+    // 5. Recalculate totals authoritatively server-side
+    const calc = cartService.calculateCart(verifiedItems, couponCode);
     const orderCode = `QMD-${Date.now().toString(36).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
     const orderId = `order-${Date.now()}`;
 
     const order: Order = {
       id: orderId,
       order_code: orderCode,
-      user_id: userId || null,
+      user_id: verifiedUserId,
       customer_name: customerName.trim(),
       customer_email: customerEmail?.trim() || "",
       customer_phone: customerPhone.trim(),
@@ -94,12 +195,11 @@ export async function POST(req: NextRequest) {
       custom_build_id: customBuildId,
       notes: notes || "",
       created_at: new Date().toISOString(),
-      items: items as CartItem[],
+      items: verifiedItems,
     };
 
-    // 1. Insert into Supabase Orders via Service Role
+    // 6. Insert order & order_items into Supabase
     try {
-      const db = getServiceSupabase();
       const { error: orderError } = await db.from("orders").insert({
         id: order.id,
         order_code: order.order_code,
@@ -124,7 +224,7 @@ export async function POST(req: NextRequest) {
 
       if (!orderError) {
         try {
-          const orderItemsPayload = (items as CartItem[]).map((item) => ({
+          const orderItemsPayload = verifiedItems.map((item) => ({
             id: `item-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
             order_id: order.id,
             product_id: item.product_id,
@@ -133,18 +233,27 @@ export async function POST(req: NextRequest) {
             total_price_vnd: item.total_price_vnd,
           }));
           await db.from("order_items").insert(orderItemsPayload);
+
+          // Decrement stock in database
+          for (const item of verifiedItems) {
+            const prod = productMap.get(item.product_id);
+            if (prod && typeof prod.stock === "number") {
+              const newStock = Math.max(0, prod.stock - item.quantity);
+              await db.from("products").update({ stock: newStock }).eq("id", item.product_id);
+            }
+          }
         } catch {
-          // Ignore order_items insert error if table doesn't exist
+          // Ignore secondary insert error
         }
       }
     } catch (dbErr) {
       console.warn("Supabase insert order notice:", dbErr);
     }
 
-    // 2. Add to cache
+    // 7. Add to memory cache
     cachedOrders = [order, ...cachedOrders.filter((o) => o.id !== order.id)];
 
-    // 3. Emit event
+    // 8. Emit event
     await eventBus.emit("order:created", {
       orderId: order.id,
       orderCode: order.order_code,
