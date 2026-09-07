@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import { useLocale, useTranslations } from "next-intl";
 import { cartService } from "@/modules/cart/service";
 import { i18nService } from "@/modules/i18n/service";
-import { CartItem } from "@/shared/types";
 import { useCart } from "@/shared/context/CartContext";
 import { Button } from "@/components/ui/button";
 import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, Truck, CheckCircle2, Tag } from "lucide-react";
