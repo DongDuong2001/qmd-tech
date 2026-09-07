@@ -2,14 +2,16 @@ import { ComponentSlot, CustomBuild, Product } from "@/shared/types";
 import { compatibilityEngine } from "./compatibilityEngine";
 import { QuoteRequestInput } from "./types";
 import { eventBus } from "@/shared/events/eventBus";
-import { supabase } from "@/shared/db/supabase";
+import { getServiceSupabase } from "@/shared/db/supabase";
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export class BuilderService {
   evaluateBuild(slots: Record<ComponentSlot, Product | null>): CustomBuild {
     const check = compatibilityEngine.evaluate(slots);
 
     return {
-      id: `build-${Date.now()}`,
+      id: crypto.randomUUID(),
       name: "Custom PC Configuration",
       status: "draft",
       items: slots,
@@ -26,39 +28,46 @@ export class BuilderService {
     build: CustomBuild,
     userId?: string
   ): Promise<{ shareToken: string; id: string }> {
-    const shareToken = Math.random().toString(36).substring(2, 10);
-    const buildId = build.id || `build-${Date.now()}`;
+    const shareToken = crypto.randomUUID().replace(/-/g, "").substring(0, 12);
+    const buildId = UUID_REGEX.test(build.id || "") ? build.id : crypto.randomUUID();
+    const db = getServiceSupabase();
 
-    try {
-      await supabase.from("builds").insert({
-        id: buildId,
-        user_id: userId || null,
-        name: build.name,
-        share_token: shareToken,
-        status: "saved",
-        total_price_vnd: build.total_price_vnd,
-        estimated_wattage: build.estimated_wattage,
-        performance_tier: build.performance_tier,
-        compatibility_status: build.compatibility_status,
-        is_public: true,
-      });
+    const { error: buildError } = await db.from("builds").insert({
+      id: buildId,
+      user_id: userId || null,
+      name: build.name || "Custom PC Configuration",
+      share_token: shareToken,
+      status: "saved",
+      total_price_vnd: build.total_price_vnd,
+      estimated_wattage: build.estimated_wattage,
+      performance_tier: build.performance_tier,
+      compatibility_status: build.compatibility_status,
+      is_public: true,
+    });
 
-      // Insert build items
-      const itemsToInsert = Object.entries(build.items)
-        .filter(([_, product]) => product !== null)
-        .map(([slot, product]) => ({
-          build_id: buildId,
-          product_id: product!.id,
-          slot_type: slot,
-          quantity: 1,
-          unit_price_vnd: product!.price_vnd,
-        }));
+    if (buildError) {
+      console.error("BuilderService.saveBuild error:", buildError);
+      throw new Error(`Không thể lưu cấu hình PC: ${buildError.message}`);
+    }
 
-      if (itemsToInsert.length > 0) {
-        await supabase.from("build_items").insert(itemsToInsert);
+    // Insert build items
+    const itemsToInsert = Object.entries(build.items)
+      .filter(([_, product]) => product !== null)
+      .map(([slot, product]) => ({
+        id: crypto.randomUUID(),
+        build_id: buildId,
+        product_id: product!.id,
+        slot_type: slot,
+        quantity: 1,
+        unit_price_vnd: product!.price_vnd,
+      }));
+
+    if (itemsToInsert.length > 0) {
+      const { error: itemsError } = await db.from("build_items").insert(itemsToInsert);
+      if (itemsError) {
+        console.error("BuilderService.saveBuild items error:", itemsError);
+        throw new Error(`Không thể lưu danh sách linh kiện cấu hình: ${itemsError.message}`);
       }
-    } catch {
-      // In local mode or offline, keep running smoothly
     }
 
     await eventBus.emit("build:saved", { buildId, userId });
@@ -67,7 +76,8 @@ export class BuilderService {
 
   async getBuildByShareToken(shareToken: string): Promise<CustomBuild | null> {
     try {
-      const { data, error } = await supabase
+      const db = getServiceSupabase();
+      const { data, error } = await db
         .from("builds")
         .select("*, build_items(*, product:products(*))")
         .eq("share_token", shareToken)
@@ -110,14 +120,14 @@ export class BuilderService {
           notes: data.notes,
         };
       }
-    } catch {
-      // Fallback
+    } catch (err) {
+      console.error("BuilderService.getBuildByShareToken error:", err);
     }
     return null;
   }
 
   async requestQuote(input: QuoteRequestInput): Promise<{ quoteId: string; success: boolean }> {
-    const quoteId = `quote-${Date.now()}`;
+    const quoteId = crypto.randomUUID();
 
     await eventBus.emit("build:quote_requested", {
       buildId: input.build.id,
