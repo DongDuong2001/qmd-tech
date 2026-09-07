@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { settingsService } from "@/modules/settings/service";
-import { verifyAdminToken, verifyJWT } from "@/shared/security/jwt";
-import { ADMIN_COOKIE_NAME, AUTH_COOKIE_NAME } from "@/shared/security/cookies";
+import { requireAdmin } from "@/shared/security/adminAuth";
 
 export async function GET() {
   try {
@@ -15,35 +14,9 @@ export async function GET() {
 
 export async function PUT(req: NextRequest) {
   try {
-    // Admin Authorization Check
-    const adminToken = req.cookies.get(ADMIN_COOKIE_NAME)?.value || req.cookies.get("qmd_admin_session")?.value;
-    const jwtToken = req.cookies.get(AUTH_COOKIE_NAME)?.value || req.cookies.get("qmd_access_token")?.value;
-
-    let isAuthorized = false;
-
-    if (adminToken) {
-      const check = await verifyAdminToken(adminToken);
-      if (check.valid) {
-        isAuthorized = true;
-      }
-    }
-
-    if (!isAuthorized && jwtToken) {
-      const jwtResult = await verifyJWT(jwtToken);
-      if (
-        jwtResult.valid &&
-        jwtResult.payload &&
-        (jwtResult.payload.role === "admin" || jwtResult.payload.email === (process.env.QMD_ADMIN_USER || "admin@qmd.tech"))
-      ) {
-        isAuthorized = true;
-      }
-    }
-
-    if (!isAuthorized) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized: Admin privileges required." },
-        { status: 401 }
-      );
+    const auth = await requireAdmin(req);
+    if (!auth.authorized) {
+      return auth.response!;
     }
 
     const body = await req.json();
