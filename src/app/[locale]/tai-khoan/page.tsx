@@ -133,7 +133,7 @@ function AccountPageContent() {
 
       if (data.user) {
         setUser(data.user);
-        setFeedback({ type: "success", text: "Đăng nhập thành công với Cookie bảo mật HttpOnly!" });
+        setFeedback({ type: "success", text: "Đăng nhập thành công!" });
         if (data.user.email) {
           loadUserData(data.user.email);
         }
@@ -208,7 +208,7 @@ function AccountPageContent() {
       setUser(null);
       setUserOrders([]);
       setUserBuilds([]);
-      setFeedback({ type: "success", text: "Đã đăng xuất và xóa phiên Cookie HttpOnly an toàn." });
+      setFeedback({ type: "success", text: "Đã đăng xuất thành công." });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       setFeedback({ type: "error", text: "Lỗi đăng xuất: " + msg });
@@ -218,7 +218,7 @@ function AccountPageContent() {
   if (loading) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-20 text-center text-xs text-[#64748B]">
-        Đang kiểm tra trạng thái xác thực bảo mật HttpOnly...
+        Đang tải thông tin tài khoản...
       </div>
     );
   }
@@ -352,11 +352,6 @@ function AccountPageContent() {
     <div className="mx-auto max-w-md px-4 py-12 sm:px-6">
       <div className="rounded-2xl border border-[#E2E8F0] bg-[#FFFFFF] p-6 sm:p-8 shadow-sm space-y-6">
         <div className="text-center space-y-1">
-          <div className="flex justify-center mb-1">
-            <span className="inline-flex items-center gap-1 rounded bg-[#EFF6FF] border border-[#BFDBFE] px-2.5 py-0.5 text-[10px] font-bold text-[#1D4ED8]">
-              <ShieldCheck className="h-3.5 w-3.5" /> HttpOnly Cookie & Rate-limit Protected
-            </span>
-          </div>
           <h1 className="text-xl sm:text-2xl font-black uppercase text-[#0F172A]">
             {authMode === "login"
               ? "ĐĂNG NHẬP TÀI KHOẢN"
@@ -367,7 +362,7 @@ function AccountPageContent() {
           <p className="text-xs text-[#64748B]">
             {authMode === "forgot"
               ? "Nhập email của bạn để nhận liên kết khôi phục mật khẩu"
-              : "Hệ thống xác thực an toàn tuyệt đối với mã hóa phiên đăng nhập"}
+              : "Chào mừng bạn đến với hệ thống linh kiện máy tính QMD-Tech"}
           </p>
         </div>
 
@@ -493,9 +488,6 @@ function AccountPageContent() {
                 />
                 <span className="font-bold text-[#0F172A] text-xs">Ghi nhớ đăng nhập (30 ngày)</span>
               </label>
-              <span className="text-[11px] text-[#64748B] flex items-center gap-1">
-                <KeyRound className="h-3 w-3 text-[#16A34A]" /> HttpOnly
-              </span>
             </div>
 
             <Button
@@ -505,7 +497,7 @@ function AccountPageContent() {
               size="md"
               className="w-full font-black uppercase text-xs shadow-xs py-2.5 bg-[#0063FD] hover:bg-[#0052D4]"
             >
-              {isSubmitting ? "Đang xác thực bảo mật..." : "Đăng Nhập"}
+              {isSubmitting ? "Đang xử lý..." : "Đăng Nhập"}
             </Button>
           </form>
         )}
@@ -636,18 +628,7 @@ function AccountPageContent() {
               {isSubmitting ? "Đang gửi yêu cầu..." : "Gửi Yêu Cầu Khôi Phục"}
             </Button>
           </form>
-        )}
-
-        <div className="border-t border-[#E2E8F0] pt-4 text-center text-[10px] text-[#64748B] space-y-1">
-          <p className="flex items-center justify-center gap-1">
-            <ShieldCheck className="h-3.5 w-3.5 text-[#16A34A]" />
-            Bảo mật HttpOnly Cookies & Chống tấn công CSRF / XSS
-          </p>
-          <p className="text-[#94A3B8]">
-            Hệ thống tự động khóa tạm thời nếu phát hiện dò quét mật khẩu bất thường.
-          </p>
-        </div>
-      </div>
+        )}</div>
     </div>
   );
 }

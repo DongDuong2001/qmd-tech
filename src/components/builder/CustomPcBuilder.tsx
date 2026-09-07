@@ -440,8 +440,8 @@ export function CustomPcBuilder({ initialBuild }: CustomPcBuilderProps) {
           </div>
         ) : availableSlotProducts.length === 0 ? (
           <div className="py-12 text-center text-xs text-[#64748B]">
-            <p className="font-bold text-[#0F172A]">Chưa có linh kiện nào thuộc danh mục này trong cơ sở dữ liệu.</p>
-            <p className="mt-1">Bạn có thể thêm linh kiện mới trong <Link href="/admin" className="text-[#0063FD] underline font-bold">Admin Dashboard</Link>.</p>
+            <p className="font-bold text-[#0F172A]">Chưa có linh kiện phù hợp với tiêu chí hiện tại.</p>
+            <p className="mt-1">Vui lòng thử lại với danh mục khác hoặc liên hệ bộ phận hỗ trợ tư vấn ráp máy.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-[65vh] overflow-y-auto pr-1">
