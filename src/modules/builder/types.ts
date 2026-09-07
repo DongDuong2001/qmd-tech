@@ -1,4 +1,4 @@
-import { ComponentSlot, CustomBuild, Product } from "@/shared/types";
+import { ComponentSlot, CustomBuild, Product, CompatibilityIssue } from "@/shared/types";
 
 export interface BuildState {
   id?: string;
@@ -8,12 +8,7 @@ export interface BuildState {
 
 export interface CompatibilityCheckResult {
   status: "compatible" | "warning" | "incompatible";
-  issues: {
-    type: "socket" | "ram_type" | "power_draw" | "form_factor" | "gpu_clearance" | "missing_component";
-    severity: "error" | "warning" | "info";
-    message_vi: string;
-    message_en: string;
-  }[];
+  issues: CompatibilityIssue[];
   estimatedWattage: number;
   recommendedPsuWattage: number;
   performanceTier: "budget" | "mid_range" | "high_end" | "enthusiast";
