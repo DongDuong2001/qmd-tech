@@ -84,7 +84,7 @@ export type PerformanceTier = "budget" | "mid_range" | "high_end" | "enthusiast"
 export type CompatibilityStatus = "compatible" | "warning" | "incompatible";
 
 export interface CompatibilityIssue {
-  type: "socket" | "ram_type" | "power_draw" | "form_factor" | "gpu_clearance" | "missing_component";
+  type: "socket" | "ram_type" | "power_draw" | "form_factor" | "gpu_clearance" | "missing_component" | "cooler_clearance" | "radiator_clearance";
   severity: "error" | "warning" | "info";
   message_vi: string;
   message_en: string;
