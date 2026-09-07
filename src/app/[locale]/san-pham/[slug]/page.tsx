@@ -1,20 +1,16 @@
 import React from "react";
 import Image from "next/image";
-import { Link } from "@/i18n/routing";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { catalogService } from "@/modules/catalog/service";
 import { reviewService } from "@/modules/reviews/service";
 import { i18nService } from "@/modules/i18n/service";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { ProductDetailActions } from "./ProductDetailActions";
 import {
   ShieldCheck,
   Truck,
   RotateCcw,
-  ShoppingCart,
-  Wrench,
   Star,
 } from "lucide-react";
 
