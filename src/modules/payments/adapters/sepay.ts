@@ -114,7 +114,11 @@ export class SePayAdapter {
    */
   verifyWebhookAuth(authHeader?: string | null): boolean {
     if (!this.config.apiKey) {
-      // If no API key configured in development, allow for testing
+      // In production, missing API key must strictly reject webhooks
+      if (process.env.NODE_ENV === "production") {
+        return false;
+      }
+      // If no API key configured in non-production/test, allow for local testing
       return true;
     }
 
