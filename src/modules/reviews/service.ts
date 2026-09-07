@@ -1,4 +1,4 @@
-import { supabase } from "@/shared/db/supabase";
+import { getServiceSupabase } from "@/shared/db/supabase";
 
 export interface ReviewItem {
   id: string;
@@ -16,7 +16,8 @@ export interface ReviewItem {
 export class ReviewService {
   async getProductReviews(productId: string): Promise<ReviewItem[]> {
     try {
-      const { data, error } = await supabase
+      const db = getServiceSupabase();
+      const { data, error } = await db
         .from("reviews")
         .select("*")
         .eq("product_id", productId)
@@ -25,8 +26,12 @@ export class ReviewService {
       if (!error && data && data.length > 0) {
         return data as ReviewItem[];
       }
-    } catch {
-      // Fallback
+    } catch (err) {
+      console.error("ReviewService.getProductReviews error:", err);
+    }
+
+    if (process.env.NODE_ENV === "production") {
+      return [];
     }
 
     return [
@@ -46,17 +51,46 @@ export class ReviewService {
 
   async createReview(review: Omit<ReviewItem, "id" | "created_at">): Promise<ReviewItem | null> {
     try {
-      const { data, error } = await supabase
+      const db = getServiceSupabase();
+      const rating = Math.min(5, Math.max(1, Math.round(Number(review.rating) || 5)));
+      let isVerified = false;
+
+      // Authoritatively verify purchase from database if user_id is provided
+      if (review.user_id) {
+        const { data: paidOrders } = await db
+          .from("orders")
+          .select("id")
+          .eq("user_id", review.user_id)
+          .eq("payment_status", "paid");
+
+        if (paidOrders && paidOrders.length > 0) {
+          const orderIds = paidOrders.map((o) => o.id);
+          const { data: matchItem } = await db
+            .from("order_items")
+            .select("id")
+            .in("order_id", orderIds)
+            .eq("product_id", review.product_id)
+            .limit(1);
+
+          if (matchItem && matchItem.length > 0) {
+            isVerified = true;
+          }
+        }
+      }
+
+      const reviewId = crypto.randomUUID();
+      const { data, error } = await db
         .from("reviews")
         .insert({
+          id: reviewId,
           product_id: review.product_id,
           user_id: review.user_id || null,
-          author_name: review.author_name,
-          rating: review.rating,
-          title: review.title || null,
-          comment: review.comment,
+          author_name: review.author_name.trim().slice(0, 100),
+          rating,
+          title: review.title ? review.title.trim().slice(0, 150) : null,
+          comment: review.comment.trim().slice(0, 2000),
           locale: review.locale || "vi",
-          is_verified_purchase: review.is_verified_purchase ?? true,
+          is_verified_purchase: isVerified,
         })
         .select()
         .single();
@@ -64,11 +98,15 @@ export class ReviewService {
       if (!error && data) {
         return data as ReviewItem;
       }
-    } catch {
-      // Fallback
+      if (error) {
+        console.error("ReviewService.createReview db error:", error);
+      }
+    } catch (err) {
+      console.error("ReviewService.createReview exception:", err);
     }
     return null;
   }
 }
 
 export const reviewService = new ReviewService();
+
