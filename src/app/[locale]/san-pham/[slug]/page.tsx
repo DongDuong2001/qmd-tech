@@ -7,6 +7,7 @@ import { reviewService } from "@/modules/reviews/service";
 import { i18nService } from "@/modules/i18n/service";
 import { Badge } from "@/components/ui/badge";
 import { ProductDetailActions } from "./ProductDetailActions";
+import { escapeJsonLd } from "@/shared/lib/sanitize";
 import {
   ShieldCheck,
   Truck,
@@ -87,7 +88,7 @@ export default async function ProductDetailPage({
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 space-y-12">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: escapeJsonLd(JSON.stringify(jsonLd)) }}
       />
 
       {/* Product Overview Section */}
