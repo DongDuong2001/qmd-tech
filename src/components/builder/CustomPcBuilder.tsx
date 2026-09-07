@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { Link } from "@/i18n/routing";
 import { useLocale, useTranslations } from "next-intl";
 import { Product, ComponentSlot, CustomBuild } from "@/shared/types";
 import { builderService } from "@/modules/builder/service";
