@@ -2,7 +2,7 @@ import { Order } from "@/shared/types";
 import { CreateOrderInput } from "./types";
 import { cartService } from "../cart/service";
 import { eventBus } from "@/shared/events/eventBus";
-import { getServiceSupabase, supabase } from "@/shared/db/supabase";
+import { getServiceSupabase } from "@/shared/db/supabase";
 
 export class OrderService {
   async createOrder(input: CreateOrderInput): Promise<Order> {
