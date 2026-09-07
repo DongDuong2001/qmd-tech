@@ -1,22 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServiceSupabase, supabase } from "@/shared/db/supabase";
-import { verifyJWT } from "@/shared/security/jwt";
+import { getServiceSupabase } from "@/shared/db/supabase";
+import { verifyAdminToken, verifyJWT } from "@/shared/security/jwt";
+import { ADMIN_COOKIE_NAME, AUTH_COOKIE_NAME } from "@/shared/security/cookies";
 import { Product } from "@/shared/types";
 
 // In-memory fallback cache for products
 let cachedProducts: Product[] = [];
 
 async function checkAdminAuth(req: NextRequest): Promise<boolean> {
-  const adminToken = req.cookies.get("qmd_admin_session")?.value;
-  const jwtToken = req.cookies.get("qmd_access_token")?.value;
+  const adminToken = req.cookies.get(ADMIN_COOKIE_NAME)?.value || req.cookies.get("qmd_admin_session")?.value;
+  if (adminToken) {
+    const check = await verifyAdminToken(adminToken);
+    if (check.valid) return true;
+  }
 
-  if (adminToken && adminToken.length > 5) return true;
-  if (jwtToken) {
-    const res = await verifyJWT(jwtToken);
-    if (res.valid && res.payload && (res.payload.role === "admin" || res.payload.email === process.env.QMD_ADMIN_USER)) {
+  const userToken = req.cookies.get(AUTH_COOKIE_NAME)?.value || req.cookies.get("qmd_access_token")?.value;
+  if (userToken) {
+    const res = await verifyJWT(userToken);
+    if (res.valid && res.payload && (res.payload.role === "admin" || res.payload.email === (process.env.QMD_ADMIN_USER || "admin@qmd.tech"))) {
       return true;
     }
   }
+
   return false;
 }
 
