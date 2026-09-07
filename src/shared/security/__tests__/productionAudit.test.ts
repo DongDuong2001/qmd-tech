@@ -231,4 +231,46 @@ describe("Production Audit & Security Hardening Suite", () => {
       }
     });
   });
+
+  describe("HTML & JSON-LD XSS Sanitization Suite", () => {
+    it("should strip malicious script tags and inline event handlers", async () => {
+      const { sanitizeHtml, escapeJsonLd } = await import("@/shared/lib/sanitize");
+
+      const maliciousHtml = '<p>Normal text</p><script>alert("XSS")</script><img src="x" onerror="stealCookies()" /><a href="javascript:alert(1)">Click</a>';
+      const clean = sanitizeHtml(maliciousHtml);
+
+      expect(clean).not.toContain("<script>");
+      expect(clean).not.toContain('alert("XSS")');
+      expect(clean).not.toContain("onerror=");
+      expect(clean).not.toContain("javascript:alert(1)");
+      expect(clean).toContain("<p>Normal text</p>");
+
+      const jsonWithScript = '{"name": "Gaming PC</script><script>alert(1)</script>"}';
+      const safeJson = escapeJsonLd(jsonWithScript);
+      expect(safeJson).not.toContain("</script");
+      expect(safeJson).toContain("\\u003c/script");
+    });
+  });
+
+  describe("Custom PC Builder Robustness", () => {
+    it("should generate RFC4122 v4 UUIDs for custom builds", async () => {
+      const { builderService } = await import("@/modules/builder/service");
+      const emptySlots: Record<ComponentSlot, Product | null> = {
+        cpu: null,
+        motherboard: null,
+        ram: null,
+        gpu: null,
+        storage: null,
+        psu: null,
+        case: null,
+        cooling: null,
+      };
+
+      const build = builderService.evaluateBuild(emptySlots);
+      const uuidV4Regex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      expect(uuidV4Regex.test(build.id)).toBe(true);
+      expect(build.id).not.toContain("build-");
+    });
+  });
 });
+
