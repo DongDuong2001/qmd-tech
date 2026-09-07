@@ -58,6 +58,21 @@ export class AuthService {
     return data;
   }
 
+  async forgotPassword(email: string) {
+    const res = await fetch("/api/auth/forgot-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || "Không thể gửi yêu cầu khôi phục mật khẩu.");
+    }
+
+    return data;
+  }
+
   async signOut() {
     const res = await fetch("/api/auth/logout", {
       method: "POST",

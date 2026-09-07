@@ -31,15 +31,15 @@ import {
   Wrench,
 } from "lucide-react";
 
-const SLOTS_CONFIG: { slot: ComponentSlot; icon: React.ElementType; categorySlug: string }[] = [
-  { slot: "cpu", icon: Cpu, categorySlug: "cpu" },
-  { slot: "motherboard", icon: CircuitBoard, categorySlug: "motherboard" },
-  { slot: "ram", icon: MemoryStick, categorySlug: "ram" },
-  { slot: "gpu", icon: Layers, categorySlug: "gpu" },
-  { slot: "storage", icon: HardDrive, categorySlug: "storage" },
-  { slot: "psu", icon: Zap, categorySlug: "psu" },
-  { slot: "case", icon: Box, categorySlug: "case" },
-  { slot: "cooling", icon: Fan, categorySlug: "cooling" },
+const SLOTS_CONFIG: { slot: ComponentSlot; icon: React.ElementType; keywords: string[] }[] = [
+  { slot: "cpu", icon: Cpu, keywords: ["cpu", "cat-cpu", "processor", "vi-xu-ly", "core", "ryzen", "intel"] },
+  { slot: "motherboard", icon: CircuitBoard, keywords: ["mainboard", "cat-mainboard", "motherboard", "bo-mach-chu", "b650", "b760", "z790", "x670", "b550"] },
+  { slot: "ram", icon: MemoryStick, keywords: ["ram", "cat-ram", "memory", "bo-nho-trong", "ddr4", "ddr5"] },
+  { slot: "gpu", icon: Layers, keywords: ["vga", "cat-vga", "gpu", "graphics", "card-man-hinh", "rtx", "rx", "gtx"] },
+  { slot: "storage", icon: HardDrive, keywords: ["ssd", "cat-ssd", "storage", "hdd", "nvme", "o-cung"] },
+  { slot: "psu", icon: Zap, keywords: ["psu", "cat-psu", "power", "nguon", "watt"] },
+  { slot: "case", icon: Box, keywords: ["case", "cat-case", "vo-case", "thung-may"] },
+  { slot: "cooling", icon: Fan, keywords: ["cooling", "cat-cooling", "cooler", "tan-nhiet", "fan", "aio", "water"] },
 ];
 
 const INITIAL_SLOTS: Record<ComponentSlot, Product | null> = {
@@ -152,10 +152,13 @@ export function CustomPcBuilder({ initialBuild }: CustomPcBuilderProps) {
     if (!config) return [];
 
     return dbProducts.filter((p) => {
-      return (
-        p.category_id?.toLowerCase().includes(config.categorySlug) ||
-        p.sku?.toLowerCase().includes(config.categorySlug) ||
-        p.name_vi?.toLowerCase().includes(config.categorySlug)
+      const catId = (p.category_id || "").toLowerCase();
+      const slug = (p.slug || "").toLowerCase();
+      const sku = (p.sku || "").toLowerCase();
+      const name = ((p.name_vi || "") + " " + (p.name_en || "")).toLowerCase();
+
+      return config.keywords.some(
+        (kw) => catId.includes(kw) || slug.includes(kw) || sku.includes(kw) || name.includes(kw)
       );
     });
   }, [activeSlotPicker, dbProducts]);

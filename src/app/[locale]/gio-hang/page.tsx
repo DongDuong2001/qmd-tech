@@ -7,38 +7,16 @@ import { useLocale, useTranslations } from "next-intl";
 import { cartService } from "@/modules/cart/service";
 import { i18nService } from "@/modules/i18n/service";
 import { CartItem } from "@/shared/types";
+import { useCart } from "@/shared/context/CartContext";
 import { Button } from "@/components/ui/button";
 import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, Truck, CheckCircle2, Tag } from "lucide-react";
 
 export default function CartPage() {
   const t = useTranslations();
   const locale = useLocale() as "vi" | "en";
-
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { items, loading, updateQuantity, removeFromCart } = useCart();
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState("");
-
-  // Load Cart from Secure HttpOnly Cookie
-  const fetchCart = async () => {
-    try {
-      const res = await fetch("/api/cart");
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success) {
-          setItems(data.items || []);
-        }
-      }
-    } catch (err) {
-      console.warn("Failed to fetch cart from cookie:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCart();
-  }, []);
 
   const calculation = cartService.calculateCart(items, appliedCoupon);
 
@@ -46,38 +24,11 @@ export default function CartPage() {
     const current = items.find((i) => i.product_id === productId);
     if (!current) return;
     const newQty = current.quantity + delta;
-
-    try {
-      const res = await fetch("/api/cart", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ product_id: productId, quantity: newQty }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success) {
-          setItems(data.items || []);
-        }
-      }
-    } catch (err) {
-      console.error("Failed to update quantity:", err);
-    }
+    await updateQuantity(productId, newQty);
   };
 
   const handleRemoveItem = async (productId: string) => {
-    try {
-      const res = await fetch(`/api/cart?product_id=${productId}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success) {
-          setItems(data.items || []);
-        }
-      }
-    } catch (err) {
-      console.error("Failed to remove item:", err);
-    }
+    await removeFromCart(productId);
   };
 
   const handleApplyCoupon = (e: React.FormEvent) => {

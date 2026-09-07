@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, Lock, User, AlertTriangle, ArrowRight, CheckCircle2 } from "lucide-react";
+import { ShieldCheck, Lock, User, AlertTriangle, ArrowRight, CheckCircle2, Eye, EyeOff } from "lucide-react";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -15,6 +15,7 @@ export default function AdminLoginPage() {
 
   const [username, setUsername] = useState("admin@qmd.tech");
   const [passcode, setPasscode] = useState("");
+  const [showPasscode, setShowPasscode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -126,13 +127,21 @@ export default function AdminLoginPage() {
               <div className="relative">
                 <input
                   required
-                  type="password"
+                  type={showPasscode ? "text" : "password"}
                   value={passcode}
                   onChange={(e) => setPasscode(e.target.value)}
                   placeholder="Nhập mật mã quản trị..."
-                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2.5 pl-9 pr-3 text-[#0F172A] placeholder-[#94A3B8] focus:bg-white focus:border-[#0063FD] focus:outline-none font-mono"
+                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2.5 pl-9 pr-10 text-[#0F172A] placeholder-[#94A3B8] focus:bg-white focus:border-[#0063FD] focus:outline-none font-mono"
                 />
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-[#64748B]" />
+                <button
+                  type="button"
+                  onClick={() => setShowPasscode(!showPasscode)}
+                  className="absolute right-3 top-3 text-[#94A3B8] hover:text-[#0F172A]"
+                  aria-label={showPasscode ? "Ẩn mật mã" : "Hiện mật mã"}
+                >
+                  {showPasscode ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
             </div>
 

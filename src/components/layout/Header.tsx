@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Link, useRouter } from "@/i18n/routing";
 import { LanguageSwitcher } from "@/components/common/LanguageSwitcher";
+import { useCart } from "@/shared/context/CartContext";
 import { Button } from "@/components/ui/button";
 import {
   Search,
@@ -13,6 +14,8 @@ import {
   Phone,
   ShieldCheck,
   User,
+  UserPlus,
+  LogIn,
   Menu,
   X,
   Truck,
@@ -24,6 +27,7 @@ import {
 export function Header() {
   const pathname = usePathname();
   const router = useRouter();
+  const { cartCount } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -58,7 +62,7 @@ export function Header() {
             </span>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <Link
               href="/blog"
               className="hidden sm:flex items-center gap-1 text-[#475569] hover:text-[#0063FD] transition-colors font-medium"
@@ -74,12 +78,20 @@ export function Header() {
               <ShieldCheck className="h-3.5 w-3.5 text-[#16A34A]" />
               Tra cứu bảo hành
             </Link>
+            <span className="hidden md:inline-block text-[#CBD5E1]">|</span>
             <Link
-              href="/tai-khoan"
-              className="hidden sm:flex items-center gap-1 text-[#475569] hover:text-[#0063FD] transition-colors"
+              href="/tai-khoan?mode=login"
+              className="hidden sm:flex items-center gap-1 text-[#475569] hover:text-[#0063FD] transition-colors font-medium"
             >
-              <User className="h-3.5 w-3.5 text-[#0063FD]" />
-              Tài khoản
+              <LogIn className="h-3.5 w-3.5 text-[#0063FD]" />
+              Đăng nhập
+            </Link>
+            <Link
+              href="/tai-khoan?mode=register"
+              className="hidden sm:flex items-center gap-1 rounded-md bg-[#0063FD] px-2 py-0.5 text-[11px] font-bold text-white hover:bg-[#0052D4] transition-colors"
+            >
+              <UserPlus className="h-3 w-3" />
+              Đăng ký
             </Link>
             <span className="hidden sm:inline-block text-[#CBD5E1]">|</span>
             <LanguageSwitcher />
@@ -144,7 +156,7 @@ export function Header() {
               </div>
             </div>
 
-            {/* Custom PC Builder CTA in Electric Blue (Hidden on phone to prevent overflow, shown on tablet/PC) */}
+            {/* Custom PC Builder CTA in Electric Blue */}
             <Link href="/build-pc" className="hidden sm:inline-flex">
               <Button
                 variant="primary"
@@ -163,6 +175,20 @@ export function Header() {
             >
               <ShoppingCart className="h-4 w-4 text-[#0063FD]" />
               <span className="hidden md:inline font-bold">Giỏ hàng</span>
+              {cartCount > 0 && (
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#0063FD] px-1 text-[10px] font-black text-white shadow-xs">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
+
+            {/* Mobile Account Shortcut */}
+            <Link
+              href="/tai-khoan"
+              className="sm:hidden flex items-center justify-center rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#475569] hover:text-[#0063FD]"
+              aria-label="Tài khoản"
+            >
+              <User className="h-4 w-4" />
             </Link>
 
             {/* Mobile Hamburger Toggle */}
@@ -193,7 +219,31 @@ export function Header() {
 
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-[#E2E8F0] bg-[#FFFFFF] p-4 space-y-3 shadow-lg">
+        <div className="lg:hidden border-t border-[#E2E8F0] bg-[#FFFFFF] p-4 space-y-4 shadow-xl animate-in fade-in slide-in-from-top-2">
+          {/* Mobile Auth Actions - Issue #5 Feature */}
+          <div className="rounded-xl border border-[#BFDBFE] bg-[#EFF6FF] p-3 space-y-2">
+            <div className="text-[11px] font-bold text-[#1D4ED8] uppercase">Tài khoản thành viên</div>
+            <div className="grid grid-cols-2 gap-2">
+              <Link
+                href="/tai-khoan?mode=login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-center gap-1.5 rounded-lg border border-[#CBD5E1] bg-white py-2 text-xs font-bold text-[#0F172A] shadow-2xs"
+              >
+                <LogIn className="h-3.5 w-3.5 text-[#0063FD]" />
+                Đăng nhập
+              </Link>
+              <Link
+                href="/tai-khoan?mode=register"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-center gap-1.5 rounded-lg bg-[#0063FD] py-2 text-xs font-black text-white shadow-2xs"
+              >
+                <UserPlus className="h-3.5 w-3.5" />
+                Đăng ký ngay
+              </Link>
+            </div>
+          </div>
+
+          {/* Core Feature Shortcuts */}
           <div className="grid grid-cols-2 gap-2 text-xs font-bold">
             <Link
               href="/build-pc"
@@ -204,9 +254,24 @@ export function Header() {
               Build PC
             </Link>
             <Link
+              href="/gio-hang"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center justify-between rounded-lg bg-[#F8FAFC] border border-[#CBD5E1] p-2.5 text-[#0F172A]"
+            >
+              <div className="flex items-center gap-2">
+                <ShoppingCart className="h-4 w-4 text-[#0063FD]" />
+                Giỏ hàng
+              </div>
+              {cartCount > 0 && (
+                <span className="rounded-full bg-[#0063FD] px-1.5 py-0.5 text-[10px] font-black text-white">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
+            <Link
               href="/blog"
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-2 rounded-lg bg-[#EFF6FF] border border-[#BFDBFE] p-2.5 text-[#0063FD]"
+              className="flex items-center gap-2 rounded-lg bg-[#F8FAFC] border border-[#CBD5E1] p-2.5 text-[#0F172A]"
             >
               <BookOpen className="h-4 w-4 text-[#0063FD]" />
               Blog Công Nghệ
@@ -222,10 +287,10 @@ export function Header() {
             <Link
               href="/danh-muc"
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-2 rounded-lg bg-[#F8FAFC] border border-[#CBD5E1] p-2.5 text-[#0F172A]"
+              className="flex items-center gap-2 rounded-lg bg-[#F8FAFC] border border-[#CBD5E1] p-2.5 text-[#0F172A] col-span-2"
             >
               <Award className="h-4 w-4 text-[#0063FD]" />
-              Tất cả danh mục
+              Tất cả danh mục sản phẩm
             </Link>
           </div>
         </div>

@@ -2,10 +2,32 @@ import { Order } from "@/shared/types";
 import { CreateOrderInput } from "./types";
 import { cartService } from "../cart/service";
 import { eventBus } from "@/shared/events/eventBus";
-import { supabase } from "@/shared/db/supabase";
+import { getServiceSupabase, supabase } from "@/shared/db/supabase";
 
 export class OrderService {
   async createOrder(input: CreateOrderInput): Promise<Order> {
+    if (typeof window !== "undefined") {
+      try {
+        const res = await fetch("/api/orders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(input),
+        });
+        const json = await res.json();
+        if (json.success && (json.order || json.data)) {
+          return (json.order || json.data) as Order;
+        }
+        if (!json.success && json.error) {
+          throw new Error(json.error);
+        }
+      } catch (fetchErr: unknown) {
+        if (fetchErr instanceof Error && fetchErr.message && !fetchErr.message.includes("fetch")) {
+          throw fetchErr;
+        }
+        console.warn("OrderService.createOrder API fallback:", fetchErr);
+      }
+    }
+
     const calc = cartService.calculateCart(input.items);
     const orderCode = `QMD-${Date.now().toString(36).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
     const orderId = `order-${Date.now()}`;
@@ -26,7 +48,7 @@ export class OrderService {
       discount_vnd: calc.cart.discount_vnd,
       total_vnd: calc.cart.total_vnd,
       payment_method: input.paymentMethod,
-      payment_status: input.paymentMethod === "cod" ? "unpaid" : "unpaid",
+      payment_status: "unpaid",
       shipping_provider: input.shippingProvider || "ghn",
       custom_build_id: input.customBuildId,
       notes: input.notes,
@@ -35,7 +57,8 @@ export class OrderService {
     };
 
     try {
-      await supabase.from("orders").insert({
+      const db = getServiceSupabase();
+      await db.from("orders").insert({
         id: order.id,
         order_code: order.order_code,
         user_id: order.user_id,
@@ -57,7 +80,7 @@ export class OrderService {
         notes: order.notes,
       });
     } catch {
-      // Offline fallback
+      // Fallback
     }
 
     await eventBus.emit("order:created", {
@@ -65,14 +88,29 @@ export class OrderService {
       orderCode: order.order_code,
       totalVnd: order.total_vnd,
       customerEmail: order.customer_email,
-    });
+    }).catch(() => {});
 
     return order;
   }
 
   async getOrderByCode(code: string): Promise<Order | null> {
+    if (typeof window !== "undefined") {
+      try {
+        const res = await fetch(`/api/orders?code=${encodeURIComponent(code)}`);
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.order) {
+            return json.order as Order;
+          }
+        }
+      } catch (err) {
+        console.warn("OrderService.getOrderByCode fetch notice:", err);
+      }
+    }
+
     try {
-      const { data, error } = await supabase
+      const db = getServiceSupabase();
+      const { data, error } = await db
         .from("orders")
         .select("*, order_items(*, product:products(*))")
         .eq("order_code", code)
@@ -89,7 +127,8 @@ export class OrderService {
 
   async markOrderPaid(orderId: string, transactionId: string, paymentMethod: string): Promise<boolean> {
     try {
-      await supabase
+      const db = getServiceSupabase();
+      await db
         .from("orders")
         .update({
           payment_status: "paid",
@@ -105,7 +144,7 @@ export class OrderService {
       orderId,
       paymentMethod,
       transactionId,
-    });
+    }).catch(() => {});
 
     return true;
   }

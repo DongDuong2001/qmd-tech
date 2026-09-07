@@ -7,6 +7,7 @@ import { routing } from "@/i18n/routing";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { PagePreloader } from "@/components/common/PagePreloader";
+import { CartProvider } from "@/shared/context/CartContext";
 import "../globals.css";
 
 const beVietnamPro = Be_Vietnam_Pro({
@@ -124,10 +125,12 @@ export default async function LocaleLayout({
     >
       <body className="min-h-screen max-w-full overflow-x-hidden bg-[#F8FAFC] text-[#0F172A] antialiased flex flex-col justify-between selection:bg-[#0063FD] selection:text-white">
         <NextIntlClientProvider messages={messages}>
-          <PagePreloader />
-          <Header />
-          <main className="flex-1 w-full max-w-full overflow-x-hidden">{children}</main>
-          <Footer />
+          <CartProvider>
+            <PagePreloader />
+            <Header />
+            <main className="flex-1 w-full max-w-full overflow-x-hidden">{children}</main>
+            <Footer />
+          </CartProvider>
         </NextIntlClientProvider>
       </body>
     </html>

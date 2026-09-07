@@ -8,6 +8,7 @@ import { reviewService } from "@/modules/reviews/service";
 import { i18nService } from "@/modules/i18n/service";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ProductDetailActions } from "./ProductDetailActions";
 import {
   ShieldCheck,
   Truck,
@@ -159,33 +160,11 @@ export default async function ProductDetailPage({
             {productDesc}
           </p>
 
-          {/* Action Buttons */}
-          <div className="space-y-3 pt-2">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Link href="/gio-hang">
-                <Button
-                  disabled={isOutOfStock}
-                  variant="primary"
-                  size="lg"
-                  className="w-full gap-2 font-bold shadow-xs"
-                >
-                  <ShoppingCart className="h-5 w-5" />
-                  {t("common.addToCart")}
-                </Button>
-              </Link>
-
-              <Link href="/build-pc">
-                <Button
-                  variant="accent"
-                  size="lg"
-                  className="w-full gap-2 font-bold shadow-xs"
-                >
-                  <Wrench className="h-5 w-5" />
-                  Thêm vào Custom Build
-                </Button>
-              </Link>
-            </div>
-          </div>
+          {/* Action Buttons with Live Add to Cart & Buy Now */}
+          <ProductDetailActions
+            product={product}
+            addToCartText={t("common.addToCart")}
+          />
 
           {/* Trust Guarantees */}
           <div className="rounded-xl border border-[#E4E7EC] bg-[#F8FAFC] p-4 grid grid-cols-3 gap-3 text-xs">
