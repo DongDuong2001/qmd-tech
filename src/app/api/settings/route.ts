@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { settingsService } from "@/modules/settings/service";
-import { verifyJWT } from "@/shared/security/jwt";
+import { verifyAdminToken, verifyJWT } from "@/shared/security/jwt";
+import { ADMIN_COOKIE_NAME, AUTH_COOKIE_NAME } from "@/shared/security/cookies";
 
 export async function GET() {
   try {
@@ -15,19 +16,24 @@ export async function GET() {
 export async function PUT(req: NextRequest) {
   try {
     // Admin Authorization Check
-    const adminToken = req.cookies.get("qmd_admin_session")?.value;
-    const jwtToken = req.cookies.get("qmd_access_token")?.value;
+    const adminToken = req.cookies.get(ADMIN_COOKIE_NAME)?.value || req.cookies.get("qmd_admin_session")?.value;
+    const jwtToken = req.cookies.get(AUTH_COOKIE_NAME)?.value || req.cookies.get("qmd_access_token")?.value;
 
     let isAuthorized = false;
 
-    if (adminToken && adminToken.length > 5) {
-      isAuthorized = true;
-    } else if (jwtToken) {
+    if (adminToken) {
+      const check = await verifyAdminToken(adminToken);
+      if (check.valid) {
+        isAuthorized = true;
+      }
+    }
+
+    if (!isAuthorized && jwtToken) {
       const jwtResult = await verifyJWT(jwtToken);
       if (
         jwtResult.valid &&
         jwtResult.payload &&
-        (jwtResult.payload.role === "admin" || jwtResult.payload.email === process.env.QMD_ADMIN_USER)
+        (jwtResult.payload.role === "admin" || jwtResult.payload.email === (process.env.QMD_ADMIN_USER || "admin@qmd.tech"))
       ) {
         isAuthorized = true;
       }
