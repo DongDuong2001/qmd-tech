@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link } from "@/i18n/routing";
 import { useLocale, useTranslations } from "next-intl";
 import { i18nService } from "@/modules/i18n/service";
@@ -42,6 +42,7 @@ export default function CheckoutPage() {
 
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting || loading) return;
     if (items.length === 0) {
       alert("Giỏ hàng của bạn đang trống.");
       return;
