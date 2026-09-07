@@ -1,3 +1,45 @@
+# [1.6.0](https://github.com/DongDuong2001/qmd-tech/compare/v1.5.4...v1.6.0) (2026-09-07)
+
+
+### Bug Fixes
+
+* **admin:** guard categories api with requireAdmin and remove cache fallback ([9122a22](https://github.com/DongDuong2001/qmd-tech/commit/9122a2246b6e6c4bf5bec8763fef0dab5f1d4a24))
+* **admin:** guard products api with requireAdmin and remove cache fallback ([7979858](https://github.com/DongDuong2001/qmd-tech/commit/79798587816e0b5fe9619f54702ec4dcb1c74b8a))
+* **api:** enforce cryptographic admin token verification for categories ([55229e1](https://github.com/DongDuong2001/qmd-tech/commit/55229e192ee4bdbcd5e412fe6dce0eb30b9c2516))
+* **api:** enforce cryptographic admin token verification for products ([234b614](https://github.com/DongDuong2001/qmd-tech/commit/234b61469bf8c9633d342f5a1829b60f719191ca))
+* **api:** enforce cryptographic admin token verification for settings ([9c6c05e](https://github.com/DongDuong2001/qmd-tech/commit/9c6c05e3b59d51740400421150bd7703df52570c))
+* **api:** harden image upload with auth check, MIME validation, and rate limit ([a534dc1](https://github.com/DongDuong2001/qmd-tech/commit/a534dc1db147d19484edd4dd70f8a07121d83071))
+* **api:** harden order creation with server-side price calculation and stock checks ([7ae0e17](https://github.com/DongDuong2001/qmd-tech/commit/7ae0e175a78684fba03796d7c2ef0c1efc0ddaf7))
+* **auth:** eliminate default admin credentials and enforce fail-closed check ([4d76559](https://github.com/DongDuong2001/qmd-tech/commit/4d765590919c761f771c4d673ed5446965e6727f))
+* **blog:** sanitize article html and add bilingual locale fallbacks ([3ccfa15](https://github.com/DongDuong2001/qmd-tech/commit/3ccfa158926a644de4a63569e704bcc8661b5dfc))
+* **builder:** add socket normalization, cooler clearance, and radiator checks ([59216d4](https://github.com/DongDuong2001/qmd-tech/commit/59216d4e4affb8ca45a47edb369b304c1b00b659))
+* **builder:** reference shared CompatibilityIssue type in CompatibilityCheckResult ([fe2fe3f](https://github.com/DongDuong2001/qmd-tech/commit/fe2fe3f63a50852fd738b215f57b7500e6d9549f))
+* **builder:** sanitize slots and recalculate pricing server-side ([7a0d7b8](https://github.com/DongDuong2001/qmd-tech/commit/7a0d7b88c19a6871089d16c4816d5c460341f4d2))
+* **builder:** use valid uuids and getServiceSupabase for reliable persistence ([6dfa0f4](https://github.com/DongDuong2001/qmd-tech/commit/6dfa0f4f6401372c45b5805cace7a36322ca5fb2))
+* **checkout:** add double-submission guard and clean unused imports ([87d0290](https://github.com/DongDuong2001/qmd-tech/commit/87d0290b91b2c397c4e5d46dc65e183b270a0c96))
+* **db:** enforce fail-closed supabase service role and disable session persistence ([507ca76](https://github.com/DongDuong2001/qmd-tech/commit/507ca764ab39aec9a1ab6fdf73f207b87354ebbb))
+* **orders:** enforce fail-closed order creation and transition checks ([5026100](https://github.com/DongDuong2001/qmd-tech/commit/502610020c6abdc8450572bad63e67985a05479f))
+* **orders:** generate uuid for orders and items with atomic stock decrement ([948c3ba](https://github.com/DongDuong2001/qmd-tech/commit/948c3babade8fa93a7bb865301359b7de6c52211))
+* **payments:** add idempotency guard for already-paid orders in webhook handler ([9ac289f](https://github.com/DongDuong2001/qmd-tech/commit/9ac289f05843a3dc5e0a0313bc8377276a832169))
+* **payments:** add rate limiting and order code format validation ([a03d1ad](https://github.com/DongDuong2001/qmd-tech/commit/a03d1ade6511e10629f493a94cc61b6af7feffd2))
+* **payments:** check cancelled order state and verify markOrderPaid result ([7940593](https://github.com/DongDuong2001/qmd-tech/commit/794059352b5e154d1aea605945f1fd12e4157b90))
+* **payments:** return 401 for unauthorized webhook and 500 on db errors ([e8281d0](https://github.com/DongDuong2001/qmd-tech/commit/e8281d00b4afc9b398930e538c4f099fceb7eacc))
+* **payments:** strictly reject unconfigured SePay webhook in production ([c053870](https://github.com/DongDuong2001/qmd-tech/commit/c0538705ac6f0fe38341eae7b3d7abde06ba345d))
+* **product:** escape json-ld script to prevent xss breakout ([559d31a](https://github.com/DongDuong2001/qmd-tech/commit/559d31a102b10dc49be248d53ba17fc184dbb7fa))
+* resolve issues [#5](https://github.com/DongDuong2001/qmd-tech/issues/5) and [#6](https://github.com/DongDuong2001/qmd-tech/issues/6) - cart, checkout, pc builder slot selection and overlay, auth show/hide password and mobile register ([a9af8cc](https://github.com/DongDuong2001/qmd-tech/commit/a9af8ccdda3ac330f9be49fb1c5e781b07b8defd))
+* **reviews:** verify user purchases against database and clamp ratings ([1626c8c](https://github.com/DongDuong2001/qmd-tech/commit/1626c8cb402669afd0871bfa201d1e22fbfb0010))
+* **security:** enforce 32-character jwt secret requirement and validate claims ([57d5adf](https://github.com/DongDuong2001/qmd-tech/commit/57d5adf67c27ab451da1b0fa4ec8f8ee827aeffb))
+* **security:** unref rate limiter cleanup timer for serverless runtime ([24fe791](https://github.com/DongDuong2001/qmd-tech/commit/24fe7914b20a11fd4e73affd69bad3fae0332efa))
+* **settings:** protect settings api with requireAdmin guard ([cd29774](https://github.com/DongDuong2001/qmd-tech/commit/cd2977436c80316e79d6c9b6b0b06f7c4bc24797))
+* **storefront:** remove admin links and technical security labels from customer-facing pages ([198d485](https://github.com/DongDuong2001/qmd-tech/commit/198d485fa4e1e4f71796a63dad3f2834a659b203))
+* **types:** expand CompatibilityIssue type with clearance checks ([1824818](https://github.com/DongDuong2001/qmd-tech/commit/1824818cd13de8b4bc0372a6f8df4f1854a91733))
+
+
+### Features
+
+* **security:** create centralized requireAdmin middleware guard ([01d78fb](https://github.com/DongDuong2001/qmd-tech/commit/01d78fbd80a261484eb4797e1ec5dd5c03455b66))
+* **security:** create html and json-ld sanitizers for xss prevention ([f4d1579](https://github.com/DongDuong2001/qmd-tech/commit/f4d1579378eecd676bacd7b76c0c4b82241384e3))
+
 ## [1.5.4](https://github.com/DongDuong2001/qmd-tech/compare/v1.5.3...v1.5.4) (2026-09-06)
 
 
