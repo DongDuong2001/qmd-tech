@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/routing";
 import { authService, AuthUser } from "@/modules/auth/service";
 import { supabase } from "@/shared/db/supabase";
@@ -11,34 +12,64 @@ import {
   ShoppingBag,
   Wrench,
   LogOut,
-  ShieldCheck,
   CheckCircle2,
   AlertTriangle,
   Mail,
   Lock,
   Phone,
-  Settings,
-  Shield,
-  KeyRound,
+  Eye,
+  EyeOff,
+  ArrowLeft,
 } from "lucide-react";
 
 export default function AccountPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="mx-auto max-w-7xl px-4 py-20 text-center text-xs text-[#64748B]">
+          Đang tải trang tài khoản...
+        </div>
+      }
+    >
+      <AccountPageContent />
+    </Suspense>
+  );
+}
+
+function AccountPageContent() {
+  const searchParams = useSearchParams();
+  const initialMode = searchParams.get("mode");
+
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [authMode, setAuthMode] = useState<"login" | "register" | "forgot">(
+    initialMode === "register" ? "register" : initialMode === "forgot" ? "forgot" : "login"
+  );
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Form states
+  // Form states & Password Visibility Toggles
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [loginRememberMe, setLoginRememberMe] = useState(true);
 
   const [regFullName, setRegFullName] = useState("");
   const [regPhone, setRegPhone] = useState("");
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
+  const [showRegPassword, setShowRegPassword] = useState(false);
   const [regRememberMe, setRegRememberMe] = useState(true);
+
+  const [forgotEmail, setForgotEmail] = useState("");
+
+  // Update mode if URL param changes
+  useEffect(() => {
+    const mode = searchParams.get("mode");
+    if (mode === "register") setAuthMode("register");
+    else if (mode === "login") setAuthMode("login");
+    else if (mode === "forgot") setAuthMode("forgot");
+  }, [searchParams]);
 
   // User Profile Data
   const [userOrders, setUserOrders] = useState<Order[]>([]);
@@ -98,7 +129,7 @@ export default function AccountPage() {
 
       if (data.user) {
         setUser(data.user);
-        setFeedback({ type: "success", text: "Đăng nhập thành công với Cookie bảo mật HttpOnly!" });
+        setFeedback({ type: "success", text: "Đăng nhập thành công!" });
         if (data.user.email) {
           loadUserData(data.user.email);
         }
@@ -146,13 +177,34 @@ export default function AccountPage() {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setFeedback(null);
+    try {
+      await authService.forgotPassword(forgotEmail);
+      setFeedback({
+        type: "success",
+        text: "Liên kết khôi phục mật khẩu đã được gửi đến email của bạn! Vui lòng kiểm tra hộp thư đến hoặc thư rác.",
+      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Gửi yêu cầu thất bại. Vui lòng kiểm tra lại email.";
+      setFeedback({
+        type: "error",
+        text: msg,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleSignOut = async () => {
     try {
       await authService.signOut();
       setUser(null);
       setUserOrders([]);
       setUserBuilds([]);
-      setFeedback({ type: "success", text: "Đã đăng xuất và xóa phiên Cookie HttpOnly an toàn." });
+      setFeedback({ type: "success", text: "Đã đăng xuất thành công." });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       setFeedback({ type: "error", text: "Lỗi đăng xuất: " + msg });
@@ -162,7 +214,7 @@ export default function AccountPage() {
   if (loading) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-20 text-center text-xs text-[#64748B]">
-        Đang kiểm tra trạng thái xác thực bảo mật HttpOnly...
+        Đang tải thông tin tài khoản...
       </div>
     );
   }
@@ -174,7 +226,6 @@ export default function AccountPage() {
 
     return (
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 space-y-8">
-        {/* User Greeting & Stats Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-[#E2E8F0] bg-[#FFFFFF] p-6 shadow-xs">
           <div className="flex items-center gap-4">
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#EFF6FF] text-[#1D4ED8] border border-[#BFDBFE]">
@@ -183,216 +234,176 @@ export default function AccountPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-black text-[#0F172A]">{fullName}</h1>
-                <span className="rounded bg-[#EFF6FF] border border-[#BFDBFE] px-2 py-0.5 text-[10px] font-black text-[#1D4ED8] uppercase">
-                  Thành viên QMD
-                </span>
-                <span className="rounded bg-[#DCFCE7] border border-[#86EFAC] px-2 py-0.5 text-[10px] font-bold text-[#15803D] flex items-center gap-1">
-                  <ShieldCheck className="h-3 w-3" /> HttpOnly Secured
+                <span className="rounded bg-[#DCFCE7] px-2 py-0.5 text-[10px] font-bold text-[#15803D] border border-[#86EFAC]">
+                  Thành Viên
                 </span>
               </div>
-              <p className="text-xs text-[#64748B] flex items-center gap-2 mt-0.5">
-                <span>{user.email}</span> • <span>SĐT: {phone}</span>
-              </p>
+              <div className="flex flex-wrap items-center gap-3 text-xs text-[#64748B] mt-1">
+                <span className="flex items-center gap-1">
+                  <Mail className="h-3.5 w-3.5 text-[#0063FD]" /> {user.email}
+                </span>
+                <span>•</span>
+                <span className="flex items-center gap-1">
+                  <Phone className="h-3.5 w-3.5 text-[#16A34A]" /> {phone}
+                </span>
+              </div>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <Link href="/admin">
-              <Button variant="secondary" size="sm" className="gap-1.5 font-bold text-xs">
-                <Settings className="h-4 w-4 text-[#EA580C]" /> Admin Dashboard
-              </Button>
-            </Link>
-            <Button
-              onClick={handleSignOut}
-              variant="outline"
-              size="sm"
-              className="gap-1.5 font-bold text-xs text-[#B91C1C] hover:bg-[#FEE2E2]"
-            >
-              <LogOut className="h-4 w-4" /> Đăng xuất
-            </Button>
-          </div>
+          <Button
+            onClick={handleSignOut}
+            variant="outline"
+            size="sm"
+            className="gap-2 text-xs font-bold border-[#CBD5E1] text-[#DC2626] hover:bg-[#FEE2E2] hover:border-[#DC2626]"
+          >
+            <LogOut className="h-4 w-4" />
+            Đăng Xuất
+          </Button>
         </div>
 
-        {/* User Content Tabs */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Left Column: Order History */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           <div className="lg:col-span-8 space-y-4">
-            <div className="rounded-xl border border-[#E2E8F0] bg-[#FFFFFF] p-6 shadow-xs">
-              <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-4 mb-4">
-                <h2 className="text-base font-black uppercase text-[#0F172A] flex items-center gap-2">
-                  <ShoppingBag className="h-4 w-4 text-[#0063FD]" /> Lịch Sử Đơn Hàng Của Bạn
-                </h2>
-                <span className="text-xs font-bold text-[#64748B]">{userOrders.length} đơn hàng</span>
-              </div>
-
-              {userOrders.length === 0 ? (
-                <div className="py-8 text-center text-xs text-[#64748B]">
-                  <ShoppingBag className="mx-auto h-8 w-8 text-[#CBD5E1] mb-2" />
-                  <p className="font-bold text-[#0F172A]">Bạn chưa có đơn hàng nào.</p>
-                  <p className="mt-1">Hãy khám phá linh kiện và đặt hàng ngay hôm nay!</p>
-                  <Link href="/danh-muc" className="mt-3 inline-block">
-                    <Button variant="primary" size="sm" className="text-xs font-bold">
-                      Mua sắm ngay
-                    </Button>
-                  </Link>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {userOrders.map((order) => (
-                    <div
-                      key={order.id}
-                      className="rounded-lg border border-[#E2E8F0] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-[#F8FAFC] transition-colors"
-                    >
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono font-bold text-[#0F172A] text-xs">
-                            {order.order_code}
-                          </span>
-                          <span className="rounded bg-[#DCFCE7] border border-[#86EFAC] px-2 py-0.2 text-[10px] font-bold text-[#15803D] uppercase">
-                            {order.status}
-                          </span>
-                        </div>
-                        <div className="text-[11px] text-[#64748B] mt-1">
-                          Ngày đặt: {order.created_at ? new Date(order.created_at).toLocaleDateString("vi-VN") : "Hôm nay"} • {order.payment_method.toUpperCase()}
-                        </div>
-                      </div>
-
-                      <div className="text-right">
-                        <div className="font-mono text-sm font-black text-[#B45309]">
-                          {new Intl.NumberFormat("vi-VN").format(order.total_vnd)}₫
-                        </div>
-                        <span className="text-[10px] text-[#16A34A] font-semibold">Đã ghi nhận</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Right Column: Account Info & Saved Builds */}
-          <div className="lg:col-span-4 space-y-4">
-            <div className="rounded-xl border border-[#E2E8F0] bg-[#FFFFFF] p-6 shadow-xs space-y-4">
-              <h3 className="text-xs font-black uppercase tracking-wider text-[#0F172A] border-b border-[#E2E8F0] pb-3 flex items-center gap-1.5">
-                <Shield className="h-3.5 w-3.5 text-[#16A34A]" /> Bảo Mật Tài Khoản
-              </h3>
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-[#64748B]">Email:</span>
-                  <span className="font-bold text-[#0F172A]">{user.email}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#64748B]">Cơ chế lưu trữ:</span>
-                  <span className="font-bold text-[#16A34A]">HttpOnly Cookie (XSS Safe)</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#64748B]">Bảo vệ truy cập:</span>
-                  <span className="font-bold text-[#2563EB]">Rate Limit (Chống Brute-force)</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#64748B]">Ngày tham gia:</span>
-                  <span className="font-mono text-[#0F172A]">
-                    {user.created_at ? new Date(user.created_at).toLocaleDateString("vi-VN") : "Hôm nay"}
-                  </span>
-                </div>
-              </div>
+            <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
+              <h2 className="text-sm font-black uppercase tracking-wider text-[#0F172A] flex items-center gap-2">
+                <ShoppingBag className="h-4 w-4 text-[#0063FD]" />
+                Lịch Sử Đơn Hàng ({userOrders.length})
+              </h2>
             </div>
 
-            <div className="rounded-xl border border-[#E2E8F0] bg-[#FFFFFF] p-6 shadow-xs space-y-4">
-              <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
-                <h3 className="text-xs font-black uppercase tracking-wider text-[#0F172A] flex items-center gap-1.5">
-                  <Wrench className="h-3.5 w-3.5 text-[#EA580C]" /> Cấu Hình PC Đã Lưu
-                </h3>
+            {userOrders.length === 0 ? (
+              <div className="rounded-xl border border-[#E2E8F0] bg-white p-8 text-center text-xs text-[#64748B] space-y-3">
+                <p>Bạn chưa có đơn hàng nào tại QMD-Tech.</p>
+                <Link href="/danh-muc">
+                  <Button variant="primary" size="sm" className="font-bold text-xs">
+                    Khám Phá Linh Kiện Máy Tính
+                  </Button>
+                </Link>
               </div>
-
-              {userBuilds.length === 0 ? (
-                <div className="text-xs text-[#64748B] text-center py-4">
-                  Chưa có cấu hình PC nào được lưu.
-                </div>
-              ) : (
-                <div className="space-y-2 text-xs">
-                  {userBuilds.map((b) => (
-                    <Link
-                      key={b.id}
-                      href={`/build-pc/${b.share_token || b.id}`}
-                      className="block p-2.5 rounded-lg border border-[#E2E8F0] hover:border-[#0063FD] transition-colors"
-                    >
-                      <div className="font-bold text-[#0F172A] flex justify-between">
-                        <span>Cấu hình #{(b.share_token || b.id).slice(0, 8)}</span>
-                        <span className="font-mono text-[#B45309]">
-                          {new Intl.NumberFormat("vi-VN").format(b.total_price_vnd)}₫
+            ) : (
+              <div className="space-y-3">
+                {userOrders.map((order) => (
+                  <div key={order.id} className="rounded-xl border border-[#E2E8F0] bg-white p-4 space-y-3 shadow-xs">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#F1F5F9] pb-2 text-xs">
+                      <div className="font-mono font-bold text-[#0063FD]">{order.order_code}</div>
+                      <div className="flex items-center gap-2">
+                        <span className="rounded bg-[#EFF6FF] px-2 py-0.5 text-[10px] font-bold text-[#0063FD]">
+                          {order.payment_method?.toUpperCase()}
+                        </span>
+                        <span className={`rounded px-2 py-0.5 text-[10px] font-bold ${
+                          order.payment_status === "paid" ? "bg-[#DCFCE7] text-[#15803D]" : "bg-[#FEF3C7] text-[#D97706]"
+                        }`}>
+                          {order.payment_status === "paid" ? "Đã thanh toán" : "Chưa thanh toán"}
                         </span>
                       </div>
-                      <div className="text-[10px] text-[#64748B] mt-0.5">
-                        Công suất: ~{b.estimated_wattage}W
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
+                    </div>
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-[#64748B]">Tổng tiền đơn hàng:</span>
+                      <span className="font-mono font-black text-[#0F172A] text-sm">
+                        {new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(order.total_vnd)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
-              <Link href="/build-pc" className="block pt-2">
-                <Button variant="primary" size="sm" className="w-full text-xs font-bold">
-                  Tạo Cấu Hình PC Mới
-                </Button>
-              </Link>
+          <div className="lg:col-span-4 space-y-4">
+            <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
+              <h2 className="text-sm font-black uppercase tracking-wider text-[#0F172A] flex items-center gap-2">
+                <Wrench className="h-4 w-4 text-[#0063FD]" />
+                Cấu Hình Đã Lưu ({userBuilds.length})
+              </h2>
             </div>
+
+            {userBuilds.length === 0 ? (
+              <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 text-center text-xs text-[#64748B] space-y-3">
+                <p>Chưa có cấu hình PC nào được lưu.</p>
+                <Link href="/build-pc">
+                  <Button variant="accent" size="sm" className="font-bold text-xs">
+                    Tạo Cấu Hình Mới
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {userBuilds.map((build) => (
+                  <div key={build.id} className="rounded-xl border border-[#E2E8F0] bg-white p-3 space-y-2 text-xs">
+                    <div className="font-bold text-[#0F172A]">{build.name || "Cấu hình PC Custom"}</div>
+                    <div className="font-mono text-[#0063FD] font-black">
+                      {new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(build.total_price_vnd)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
     );
   }
 
-  // 2. Unauthenticated Login / Register View
+  // 2. Unauthenticated Login / Register / Forgot Password View
   return (
-    <div className="mx-auto max-w-md px-4 py-16 sm:px-6">
-      <div className="rounded-2xl border border-[#E2E8F0] bg-[#FFFFFF] p-8 shadow-sm space-y-6">
-        {/* Header Tabs */}
+    <div className="mx-auto max-w-md px-4 py-12 sm:px-6">
+      <div className="rounded-2xl border border-[#E2E8F0] bg-[#FFFFFF] p-6 sm:p-8 shadow-sm space-y-6">
         <div className="text-center space-y-1">
-          <div className="flex justify-center mb-1">
-            <span className="inline-flex items-center gap-1 rounded bg-[#EFF6FF] border border-[#BFDBFE] px-2.5 py-0.5 text-[10px] font-bold text-[#1D4ED8]">
-              <ShieldCheck className="h-3.5 w-3.5" /> HttpOnly Cookie & Rate-limit Protected
-            </span>
-          </div>
-          <h1 className="text-2xl font-black uppercase text-[#0F172A]">
-            {authMode === "login" ? "ĐĂNG NHẬP TÀI KHOẢN" : "ĐĂNG KÝ THÀNH VIÊN"}
+          <h1 className="text-xl sm:text-2xl font-black uppercase text-[#0F172A]">
+            {authMode === "login"
+              ? "ĐĂNG NHẬP TÀI KHOẢN"
+              : authMode === "register"
+              ? "ĐĂNG KÝ THÀNH VIÊN"
+              : "KHÔI PHỤC MẬT KHẨU"}
           </h1>
           <p className="text-xs text-[#64748B]">
-            Hệ thống xác thực an toàn tuyệt đối với mã hóa phiên đăng nhập
+            {authMode === "forgot"
+              ? "Nhập email của bạn để nhận liên kết khôi phục mật khẩu"
+              : "Chào mừng bạn đến với hệ thống linh kiện máy tính QMD-Tech"}
           </p>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="grid grid-cols-2 gap-1 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] p-1">
+        {authMode !== "forgot" ? (
+          <div className="grid grid-cols-2 gap-1 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] p-1">
+            <button
+              onClick={() => {
+                setAuthMode("login");
+                setFeedback(null);
+              }}
+              className={`rounded-md py-1.5 text-xs font-extrabold uppercase transition-colors ${
+                authMode === "login"
+                  ? "bg-[#FFFFFF] text-[#0063FD] shadow-xs"
+                  : "text-[#64748B] hover:text-[#0F172A]"
+              }`}
+            >
+              Đăng nhập
+            </button>
+            <button
+              onClick={() => {
+                setAuthMode("register");
+                setFeedback(null);
+              }}
+              className={`rounded-md py-1.5 text-xs font-extrabold uppercase transition-colors ${
+                authMode === "register"
+                  ? "bg-[#FFFFFF] text-[#0063FD] shadow-xs"
+                  : "text-[#64748B] hover:text-[#0F172A]"
+              }`}
+            >
+              Đăng ký mới
+            </button>
+          </div>
+        ) : (
           <button
             onClick={() => {
               setAuthMode("login");
               setFeedback(null);
             }}
-            className={`rounded-md py-1.5 text-xs font-extrabold uppercase transition-colors ${
-              authMode === "login"
-                ? "bg-[#FFFFFF] text-[#0063FD] shadow-xs"
-                : "text-[#64748B] hover:text-[#0F172A]"
-            }`}
+            className="flex items-center gap-1.5 text-xs font-bold text-[#0063FD] hover:underline"
           >
-            Đăng nhập
+            <ArrowLeft className="h-3.5 w-3.5" />
+            <span>Quay lại đăng nhập</span>
           </button>
-          <button
-            onClick={() => {
-              setAuthMode("register");
-              setFeedback(null);
-            }}
-            className={`rounded-md py-1.5 text-xs font-extrabold uppercase transition-colors ${
-              authMode === "register"
-                ? "bg-[#FFFFFF] text-[#0063FD] shadow-xs"
-                : "text-[#64748B] hover:text-[#0F172A]"
-            }`}
-          >
-            Đăng ký mới
-          </button>
-        </div>
+        )}
 
-        {/* Feedback Alert */}
         {feedback && (
           <div
             className={`rounded-lg p-3 text-xs font-bold flex items-center gap-2 ${
@@ -410,8 +421,7 @@ export default function AccountPage() {
           </div>
         )}
 
-        {/* Form: Login */}
-        {authMode === "login" ? (
+        {authMode === "login" && (
           <form onSubmit={handleLogin} className="space-y-4 text-xs">
             <div>
               <label className="block font-bold text-[#475569] mb-1">Địa chỉ Email *</label>
@@ -429,21 +439,41 @@ export default function AccountPage() {
             </div>
 
             <div>
-              <label className="block font-bold text-[#475569] mb-1">Mật khẩu *</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="font-bold text-[#475569]">Mật khẩu *</label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode("forgot");
+                    setForgotEmail(loginEmail);
+                    setFeedback(null);
+                  }}
+                  className="text-[11px] font-bold text-[#0063FD] hover:underline"
+                >
+                  Quên mật khẩu?
+                </button>
+              </div>
               <div className="relative">
                 <input
                   required
-                  type="password"
+                  type={showLoginPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
-                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] py-2 pl-9 pr-3 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] py-2 pl-9 pr-10 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
                 />
                 <Lock className="absolute left-3 top-2.5 h-4 w-4 text-[#94A3B8]" />
+                <button
+                  type="button"
+                  onClick={() => setShowLoginPassword(!showLoginPassword)}
+                  className="absolute right-3 top-2.5 text-[#94A3B8] hover:text-[#0F172A]"
+                  aria-label={showLoginPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                >
+                  {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
             </div>
 
-            {/* Remember Me Checkbox */}
             <div className="flex items-center justify-between pt-1">
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
@@ -454,10 +484,6 @@ export default function AccountPage() {
                 />
                 <span className="font-bold text-[#0F172A] text-xs">Ghi nhớ đăng nhập (30 ngày)</span>
               </label>
-
-              <span className="text-[11px] text-[#64748B] flex items-center gap-1">
-                <KeyRound className="h-3 w-3 text-[#16A34A]" /> HttpOnly
-              </span>
             </div>
 
             <Button
@@ -465,13 +491,14 @@ export default function AccountPage() {
               disabled={isSubmitting}
               variant="primary"
               size="md"
-              className="w-full font-black uppercase text-xs shadow-xs"
+              className="w-full font-black uppercase text-xs shadow-xs py-2.5 bg-[#0063FD] hover:bg-[#0052D4]"
             >
-              {isSubmitting ? "Đang xác thực bảo mật..." : "Đăng Nhập"}
+              {isSubmitting ? "Đang xử lý..." : "Đăng Nhập"}
             </Button>
           </form>
-        ) : (
-          /* Form: Register */
+        )}
+
+        {authMode === "register" && (
           <form onSubmit={handleRegister} className="space-y-4 text-xs">
             <div>
               <label className="block font-bold text-[#475569] mb-1">Họ và tên *</label>
@@ -524,18 +551,25 @@ export default function AccountPage() {
                 <input
                   required
                   minLength={8}
-                  type="password"
+                  type={showRegPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={regPassword}
                   onChange={(e) => setRegPassword(e.target.value)}
-                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] py-2 pl-9 pr-3 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] py-2 pl-9 pr-10 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
                 />
                 <Lock className="absolute left-3 top-2.5 h-4 w-4 text-[#94A3B8]" />
+                <button
+                  type="button"
+                  onClick={() => setShowRegPassword(!showRegPassword)}
+                  className="absolute right-3 top-2.5 text-[#94A3B8] hover:text-[#0F172A]"
+                  aria-label={showRegPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                >
+                  {showRegPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
               <p className="text-[10px] text-[#64748B] mt-1">Khuyên dùng chữ hoa, chữ thường và chữ số</p>
             </div>
 
-            {/* Remember Me Checkbox */}
             <div className="flex items-center justify-between pt-1">
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
@@ -553,24 +587,44 @@ export default function AccountPage() {
               disabled={isSubmitting}
               variant="primary"
               size="md"
-              className="w-full font-black uppercase text-xs shadow-xs"
+              className="w-full font-black uppercase text-xs shadow-xs py-2.5 bg-[#0063FD] hover:bg-[#0052D4]"
             >
               {isSubmitting ? "Đang tạo tài khoản..." : "Đăng Ký Tài Khoản"}
             </Button>
           </form>
         )}
 
-        {/* Footer info */}
-        <div className="border-t border-[#E2E8F0] pt-4 text-center text-[10px] text-[#64748B] space-y-1">
-          <p className="flex items-center justify-center gap-1">
-            <ShieldCheck className="h-3.5 w-3.5 text-[#16A34A]" />
-            Bảo mật HttpOnly Cookies & Chống tấn công CSRF / XSS
-          </p>
-          <p className="text-[#94A3B8]">
-            Hệ thống tự động khóa tạm thời nếu phát hiện dò quét mật khẩu bất thường.
-          </p>
-        </div>
-      </div>
+        {authMode === "forgot" && (
+          <form onSubmit={handleForgotPassword} className="space-y-4 text-xs">
+            <div>
+              <label className="block font-bold text-[#475569] mb-1">Địa chỉ Email đã đăng ký *</label>
+              <div className="relative">
+                <input
+                  required
+                  type="email"
+                  placeholder="name@example.com"
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] py-2 pl-9 pr-3 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                />
+                <Mail className="absolute left-3 top-2.5 h-4 w-4 text-[#94A3B8]" />
+              </div>
+              <p className="text-[10px] text-[#64748B] mt-1">
+                Hệ thống sẽ gửi email hướng dẫn đặt lại mật khẩu mới cho bạn.
+              </p>
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              variant="primary"
+              size="md"
+              className="w-full font-black uppercase text-xs shadow-xs py-2.5 bg-[#0063FD] hover:bg-[#0052D4]"
+            >
+              {isSubmitting ? "Đang gửi yêu cầu..." : "Gửi Yêu Cầu Khôi Phục"}
+            </Button>
+          </form>
+        )}</div>
     </div>
   );
 }

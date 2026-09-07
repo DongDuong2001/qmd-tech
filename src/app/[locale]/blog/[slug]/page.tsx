@@ -5,6 +5,7 @@ import { Metadata } from "next";
 import { Link } from "@/i18n/routing";
 import { blogService } from "@/modules/blog/service";
 import { ShareButtons } from "./ShareButtons";
+import { sanitizeHtml } from "@/shared/lib/sanitize";
 import {
   BookOpen,
   Calendar,
@@ -38,7 +39,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: BlogPostPageProps): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug, locale } = await params;
   const post = await blogService.getPostBySlug(slug);
 
   if (!post || !post.is_published) {
@@ -47,12 +48,15 @@ export async function generateMetadata({
     };
   }
 
-  const title = `${post.title_vi} | QMD-Tech Hardware Insights`;
+  const isEn = locale === "en";
+  const localizedTitle = (isEn && post.title_en) ? post.title_en : post.title_vi;
+  const localizedExcerpt = (isEn && post.excerpt_en) ? post.excerpt_en : post.excerpt_vi;
+  const title = `${localizedTitle} | QMD-Tech Hardware Insights`;
   const description =
-    post.excerpt_vi ||
+    localizedExcerpt ||
     "Bài viết phân tích chuyên sâu về công nghệ và phần cứng máy tính từ QMD-Tech.";
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://qmdtech.vercel.app";
-  const postUrl = `${siteUrl}/blog/${post.slug}`;
+  const postUrl = `${siteUrl}/${locale}/blog/${post.slug}`;
 
   return {
     title,
@@ -121,6 +125,12 @@ export default async function BlogPostDetailPage({
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://qmdtech.vercel.app";
   const currentPostUrl = `${siteUrl}/${locale}/blog/${post.slug}`;
 
+  const isEn = locale === "en";
+  const postTitle = (isEn && post.title_en) ? post.title_en : post.title_vi;
+  const postExcerpt = (isEn && post.excerpt_en) ? post.excerpt_en : post.excerpt_vi;
+  const rawHtml = (isEn && post.content_html_en) ? post.content_html_en : post.content_html_vi;
+  const safeContentHtml = sanitizeHtml(rawHtml);
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-8">
       {/* 1. Breadcrumbs */}
@@ -137,7 +147,7 @@ export default async function BlogPostDetailPage({
         <span className="text-[#64748B]">{post.category}</span>
         <ChevronRight className="h-3 w-3 text-[#94A3B8]" />
         <span className="font-bold text-[#0F172A] truncate max-w-xs sm:max-w-md">
-          {post.title_vi}
+          {postTitle}
         </span>
       </nav>
 
@@ -158,12 +168,12 @@ export default async function BlogPostDetailPage({
         </div>
 
         <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-[#0F172A] leading-tight tracking-tight">
-          {post.title_vi}
+          {postTitle}
         </h1>
 
-        {post.excerpt_vi && (
+        {postExcerpt && (
           <p className="text-sm sm:text-base text-[#475569] font-medium leading-relaxed">
-            {post.excerpt_vi}
+            {postExcerpt}
           </p>
         )}
 
@@ -234,7 +244,7 @@ export default async function BlogPostDetailPage({
               prose-pre:bg-[#0F172A] prose-pre:text-[#38BDF8] prose-pre:rounded-xl prose-pre:p-4
               prose-ul:list-disc prose-ul:pl-5 prose-ul:my-3
               prose-ol:list-decimal prose-ol:pl-5 prose-ol:my-3"
-            dangerouslySetInnerHTML={{ __html: post.content_html_vi }}
+            dangerouslySetInnerHTML={{ __html: safeContentHtml }}
           />
 
           {/* Tags */}

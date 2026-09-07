@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link } from "@/i18n/routing";
 import { useLocale, useTranslations } from "next-intl";
 import { i18nService } from "@/modules/i18n/service";
 import { orderService } from "@/modules/orders/service";
-import { CartItem } from "@/shared/types";
+import { useCart } from "@/shared/context/CartContext";
 import { Button } from "@/components/ui/button";
 import { SePayVietQRModal } from "@/components/checkout/SePayVietQRModal";
 import {
@@ -20,6 +20,7 @@ import {
 export default function CheckoutPage() {
   const t = useTranslations();
   const locale = useLocale() as "vi" | "en";
+  const { items, loading, clearCart } = useCart();
 
   const [form, setForm] = useState({
     name: "Dương Quốc Đông",
@@ -34,28 +35,6 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<"sepay" | "cod" | "vnpay" | "momo">("sepay");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createdOrderCode, setCreatedOrderCode] = useState<string | null>(null);
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function loadCartItems() {
-      setLoading(true);
-      try {
-        const res = await fetch("/api/cart");
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success && data.items && data.items.length > 0) {
-            setItems(data.items);
-          }
-        }
-      } catch (err) {
-        console.warn("Failed to load checkout items:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadCartItems();
-  }, []);
 
   const subtotalVnd = items.reduce((acc, i) => acc + i.total_price_vnd, 0);
   const shippingFeeVnd = subtotalVnd >= 5000000 || subtotalVnd === 0 ? 0 : 50000;
@@ -63,6 +42,7 @@ export default function CheckoutPage() {
 
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting || loading) return;
     if (items.length === 0) {
       alert("Giỏ hàng của bạn đang trống.");
       return;
@@ -83,8 +63,8 @@ export default function CheckoutPage() {
         notes: form.notes,
       });
 
-      // Clear the secure HttpOnly cart cookie upon successful checkout
-      await fetch("/api/cart", { method: "DELETE" }).catch(() => {});
+      // Clear the cart upon successful checkout
+      await clearCart();
 
       setCreatedOrderCode(order.order_code);
     } catch (err: unknown) {

@@ -1,6 +1,10 @@
 import { ComponentSlot, CompatibilityIssue, PerformanceTier, Product } from "@/shared/types";
 import { CompatibilityCheckResult } from "./types";
 
+function normalizeSocket(socket?: string): string {
+  return (socket || "").trim().toUpperCase().replace(/[\s\-_]/g, "");
+}
+
 export class CompatibilityEngine {
   /**
    * Evaluate the complete PC configuration for hardware compatibility,
@@ -19,10 +23,10 @@ export class CompatibilityEngine {
 
     // 1. Socket Compatibility (CPU <-> Motherboard)
     if (cpu && mb) {
-      const cpuSocket = cpu.specs.socket?.toUpperCase();
-      const mbSocket = mb.specs.socket?.toUpperCase();
+      const cpuSocket = cpu.specs.socket;
+      const mbSocket = mb.specs.socket;
 
-      if (cpuSocket && mbSocket && cpuSocket !== mbSocket) {
+      if (cpuSocket && mbSocket && normalizeSocket(cpuSocket) !== normalizeSocket(mbSocket)) {
         issues.push({
           type: "socket",
           severity: "error",
@@ -34,10 +38,12 @@ export class CompatibilityEngine {
 
     // 2. Cooler Socket Compatibility (Cooler <-> CPU / Motherboard)
     if (cooler && (cpu || mb)) {
-      const targetSocket = (cpu?.specs.socket || mb?.specs.socket)?.toUpperCase();
-      const supportedSockets = cooler.specs.supported_sockets?.map((s) => s.toUpperCase()) || [];
+      const targetSocket = cpu?.specs.socket || mb?.specs.socket;
+      const rawSupportedSockets = (cooler.specs.supported_sockets || (cooler.specs as Record<string, unknown>).socket_support || []) as string[];
+      const normTarget = normalizeSocket(targetSocket);
+      const normSupported = rawSupportedSockets.map(normalizeSocket);
 
-      if (targetSocket && supportedSockets.length > 0 && !supportedSockets.includes(targetSocket)) {
+      if (normTarget && normSupported.length > 0 && !normSupported.includes(normTarget)) {
         issues.push({
           type: "socket",
           severity: "warning",
@@ -65,7 +71,7 @@ export class CompatibilityEngine {
     // 4. Form Factor (Motherboard <-> Case)
     if (mb && pcCase) {
       const mbFormFactor = mb.specs.form_factor;
-      const supportedCases = pcCase.specs.supported_motherboards || [];
+      const supportedCases = (pcCase.specs.supported_motherboards || (pcCase.specs as Record<string, unknown>).form_factor_support || []) as string[];
 
       if (mbFormFactor && supportedCases.length > 0 && !supportedCases.includes(mbFormFactor)) {
         issues.push({
@@ -92,7 +98,33 @@ export class CompatibilityEngine {
       }
     }
 
-    // 6. Power Estimation & PSU Sufficiency
+    // 6. Cooler Height & Radiator Clearance
+    if (cooler && pcCase) {
+      const coolerHeight = typeof cooler.specs.height_mm === "number" ? cooler.specs.height_mm : (typeof (cooler.specs as Record<string, unknown>).height === "number" ? ((cooler.specs as Record<string, unknown>).height as number) : undefined);
+      const maxCoolerHeight = pcCase.specs.max_cpu_cooler_height_mm;
+
+      if (coolerHeight !== undefined && maxCoolerHeight !== undefined && coolerHeight > maxCoolerHeight) {
+        issues.push({
+          type: "cooler_clearance",
+          severity: "error",
+          message_vi: `Chiều cao tản nhiệt (${coolerHeight}mm) vượt quá giới hạn hỗ trợ của vỏ case (${maxCoolerHeight}mm).`,
+          message_en: `Cooler height (${coolerHeight}mm) exceeds case maximum clearance (${maxCoolerHeight}mm).`,
+        });
+      }
+
+      const radSize = cooler.specs.radiator_size_mm;
+      const supportedRads = pcCase.specs.radiator_support_mm || (pcCase.specs as Record<string, unknown>).supported_radiators as number[] | undefined;
+      if (radSize && Array.isArray(supportedRads) && supportedRads.length > 0 && !supportedRads.includes(radSize)) {
+        issues.push({
+          type: "radiator_clearance",
+          severity: "warning",
+          message_vi: `Vỏ case có thể không hỗ trợ két tản nhiệt nước kích thước ${radSize}mm. Cần kiểm tra vị trí lắp đặt.`,
+          message_en: `Case may not support ${radSize}mm liquid cooling radiator. Please verify mounting slots.`,
+        });
+      }
+    }
+
+    // 7. Power Estimation & PSU Sufficiency
     let estimatedWattage = 100; // Baseline for motherboard, fans, storage, RGB
     if (cpu?.specs.tdp_watts) estimatedWattage += cpu.specs.tdp_watts;
     if (gpu?.specs.tdp_watts) estimatedWattage += gpu.specs.tdp_watts;
@@ -115,6 +147,19 @@ export class CompatibilityEngine {
           severity: "warning",
           message_vi: `Nguồn ${psuWattage}W có thể hoạt động nhưng nên chọn từ ${recommendedPsuWattage}W trở lên để đảm bảo độ bền tối ưu.`,
           message_en: `PSU ${psuWattage}W is acceptable, but ${recommendedPsuWattage}W+ is recommended for peak transient efficiency.`,
+        });
+      }
+    }
+
+    if (gpu && psu) {
+      const recWatts = gpu.specs.recommended_psu_watts;
+      const psuWatts = psu.specs.wattage || 0;
+      if (recWatts && psuWatts < recWatts && !issues.some((i) => i.type === "power_draw" && i.severity === "error")) {
+        issues.push({
+          type: "power_draw",
+          severity: "warning",
+          message_vi: `Nguồn ${psuWatts}W thấp hơn mức khuyến nghị của hãng cho card đồ họa (${recWatts}W).`,
+          message_en: `PSU wattage (${psuWatts}W) is lower than manufacturer recommendation for GPU (${recWatts}W).`,
         });
       }
     }

@@ -25,15 +25,24 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { username, passcode } = body;
 
-    // Default admin credentials configured via QMD_ADMIN_USER and QMD_ADMIN_PASSWORD
-    const validUsername =
-      process.env.QMD_ADMIN_USER ||
-      process.env.ADMIN_USERNAME ||
-      "admin@qmd.tech";
-    const validPasscode =
-      process.env.QMD_ADMIN_PASSWORD ||
-      process.env.ADMIN_SECRET_PASSCODE ||
-      "qmd@135";
+    const configuredUser = process.env.QMD_ADMIN_USER || process.env.ADMIN_USERNAME;
+    const configuredPassword = process.env.QMD_ADMIN_PASSWORD || process.env.ADMIN_SECRET_PASSCODE;
+
+    if (!configuredUser || !configuredPassword) {
+      if (process.env.NODE_ENV === "production") {
+        console.error("CRITICAL: Admin credentials are not configured in production environment.");
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Hệ thống quản trị chưa được thiết lập tài khoản bảo mật trong biến môi trường máy chủ.",
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+    const validUsername = configuredUser || "admin@qmd.tech";
+    const validPasscode = configuredPassword || "qmd@135";
 
     const isMatch =
       username?.trim().toLowerCase() === validUsername.toLowerCase() &&

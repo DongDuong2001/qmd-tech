@@ -6,6 +6,7 @@ import { Link } from "@/i18n/routing";
 import { useLocale, useTranslations } from "next-intl";
 import { Product } from "@/shared/types";
 import { i18nService } from "@/modules/i18n/service";
+import { useCart } from "@/shared/context/CartContext";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import {
@@ -37,7 +38,19 @@ export function ProductCard({
 }: ProductCardProps) {
   const locale = useLocale() as "vi" | "en";
   const t = useTranslations();
+  const { addToCart } = useCart();
   const [isHovered, setIsHovered] = useState(false);
+  const [isAdded, setIsAdded] = useState(false);
+
+  const handleCartClick = async () => {
+    if (onAddToCart) {
+      onAddToCart(product);
+    } else {
+      await addToCart(product, 1);
+    }
+    setIsAdded(true);
+    setTimeout(() => setIsAdded(false), 2000);
+  };
 
   const formattedPrice = i18nService.formatPrice(
     product.price_vnd,
@@ -62,8 +75,8 @@ export function ProductCard({
 
   return (
     <div
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={() => !isBuilderMode && setIsHovered(true)}
+      onMouseLeave={() => !isBuilderMode && setIsHovered(false)}
       className="group relative flex flex-col justify-between rounded-xl border border-[#E2E8F0] bg-[#FFFFFF] p-3.5 shadow-xs transition-all duration-300 hover:border-[#0063FD] hover:shadow-md"
     >
       <div>
@@ -128,24 +141,24 @@ export function ProductCard({
 
         {/* Key Specs Tags */}
         <div className="flex flex-wrap gap-1 mb-2.5">
-          {product.specs.socket && (
+          {product.specs?.socket && (
             <span className="rounded bg-[#F1F5F9] px-1.5 py-0.5 text-[10px] font-mono font-bold text-[#334155] border border-[#E2E8F0]">
-              {product.specs.socket}
+              {String(product.specs.socket)}
             </span>
           )}
-          {product.specs.ram_type && (
+          {product.specs?.ram_type && (
             <span className="rounded bg-[#F1F5F9] px-1.5 py-0.5 text-[10px] font-mono font-bold text-[#334155] border border-[#E2E8F0]">
-              {product.specs.ram_type}
+              {String(product.specs.ram_type)}
             </span>
           )}
-          {product.specs.tdp_watts && (
+          {product.specs?.tdp_watts && (
             <span className="rounded bg-[#EFF6FF] px-1.5 py-0.5 text-[10px] font-mono font-bold text-[#0063FD] border border-[#BFDBFE]">
-              {product.specs.tdp_watts}W
+              {String(product.specs.tdp_watts)}W
             </span>
           )}
-          {product.specs.vram_gb && (
+          {product.specs?.vram_gb && (
             <span className="rounded bg-[#EFF6FF] px-1.5 py-0.5 text-[10px] font-mono font-bold text-[#0063FD] border border-[#BFDBFE]">
-              {product.specs.vram_gb}GB VRAM
+              {String(product.specs.vram_gb)}GB VRAM
             </span>
           )}
         </div>
@@ -158,7 +171,7 @@ export function ProductCard({
       </div>
 
       {/* Pricing & CTA Section */}
-      <div className="pt-2 border-t border-[#E2E8F0]">
+      <div className="pt-2 border-t border-[#E2E8F0] relative z-10">
         {/* Slashed and Current Price */}
         <div className="flex items-baseline justify-between mb-2">
           <div>
@@ -185,7 +198,7 @@ export function ProductCard({
             disabled={isOutOfStock}
             variant="accent"
             size="sm"
-            className="w-full gap-1.5 text-xs font-bold"
+            className="w-full gap-1.5 text-xs font-black shadow-xs py-2 bg-[#0063FD] text-white hover:bg-[#0052D4]"
           >
             <Check className="h-3.5 w-3.5" />
             {t("builder.chooseComponent")}
@@ -193,14 +206,25 @@ export function ProductCard({
         ) : (
           <div className="grid grid-cols-2 gap-1.5">
             <Button
-              onClick={() => onAddToCart?.(product)}
+              onClick={handleCartClick}
               disabled={isOutOfStock}
               variant="outline"
               size="sm"
-              className="w-full gap-1 text-[11px] font-bold py-1.5 border-[#CBD5E1] hover:border-[#0063FD] hover:text-[#0063FD]"
+              className={`w-full gap-1 text-[11px] font-bold py-1.5 border-[#CBD5E1] transition-all ${
+                isAdded ? "border-[#16A34A] text-[#16A34A] bg-[#DCFCE7]" : "hover:border-[#0063FD] hover:text-[#0063FD]"
+              }`}
             >
-              <ShoppingCart className="h-3 w-3" />
-              Thêm giỏ
+              {isAdded ? (
+                <>
+                  <Check className="h-3 w-3 text-[#16A34A]" />
+                  Đã thêm
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="h-3 w-3" />
+                  Thêm giỏ
+                </>
+              )}
             </Button>
             <Link href={`/san-pham/${product.slug}`} className="w-full">
               <Button
@@ -227,12 +251,14 @@ export function ProductCard({
 
       {/* ========================================================================= */}
       {/* HOVER QUICK TECHNICAL SPECS POPOVER (Interactive Hardware Info) */}
+      {/* Hidden in Builder Mode to prevent overlay blocking the Select button */}
       {/* ========================================================================= */}
-      <div
-        className={`absolute inset-x-0 bottom-full mb-2 z-30 transition-all duration-200 pointer-events-none ${
-          isHovered ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-1 scale-95"
-        }`}
-      >
+      {!isBuilderMode && (
+        <div
+          className={`absolute inset-x-0 bottom-full mb-2 z-30 transition-all duration-200 pointer-events-none ${
+            isHovered ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-1 scale-95"
+          }`}
+        >
         <div className="rounded-xl border border-[#CBD5E1] bg-[#FFFFFF] p-3.5 shadow-xl text-xs space-y-2.5 pointer-events-auto">
           <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
             <div className="font-black text-[#0F172A] flex items-center gap-1.5 uppercase text-[11px]">
@@ -302,6 +328,7 @@ export function ProductCard({
           </Link>
         </div>
       </div>
+      )}
     </div>
   );
 }

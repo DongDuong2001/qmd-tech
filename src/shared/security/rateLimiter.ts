@@ -10,7 +10,7 @@ interface RateLimitRecord {
 const rateLimitStore = new Map<string, RateLimitRecord>();
 
 // Periodically purge stale records to avoid memory leaks
-setInterval(() => {
+const cleanupInterval = setInterval(() => {
   const now = Date.now();
   for (const [key, record] of rateLimitStore.entries()) {
     if (record.resetAt <= now) {
@@ -18,6 +18,10 @@ setInterval(() => {
     }
   }
 }, 60000);
+
+if (typeof cleanupInterval.unref === "function") {
+  cleanupInterval.unref();
+}
 
 export interface RateLimitResult {
   success: boolean;

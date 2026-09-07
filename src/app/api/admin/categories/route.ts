@@ -1,107 +1,95 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceSupabase } from "@/shared/db/supabase";
-import { verifyJWT } from "@/shared/security/jwt";
+import { requireAdmin } from "@/shared/security/adminAuth";
 import { Category } from "@/shared/types";
 import { DEFAULT_HARDWARE_CATEGORIES } from "@/modules/admin/service";
 
-let cachedCategories: Category[] = [...DEFAULT_HARDWARE_CATEGORIES];
-
-async function checkAdminAuth(req: NextRequest): Promise<boolean> {
-  const adminToken = req.cookies.get("qmd_admin_session")?.value;
-  const jwtToken = req.cookies.get("qmd_access_token")?.value;
-
-  if (adminToken && adminToken.length > 5) return true;
-  if (jwtToken) {
-    const res = await verifyJWT(jwtToken);
-    if (res.valid && res.payload && (res.payload.role === "admin" || res.payload.email === process.env.QMD_ADMIN_USER)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const db = getServiceSupabase();
-    const { data, error } = await db.from("categories").select("*");
-
-    if (!error && data && data.length > 0) {
-      cachedCategories = data as Category[];
-      return NextResponse.json({ success: true, categories: data });
+    const auth = await requireAdmin(req);
+    if (!auth.authorized) {
+      return auth.response!;
     }
-  } catch (err) {
-    console.warn("GET /api/admin/categories error:", err);
-  }
 
-  return NextResponse.json({ success: true, categories: cachedCategories });
+    const db = getServiceSupabase();
+    const { data, error } = await db.from("categories").select("*").order("sort_order", { ascending: true });
+
+    if (error) {
+      console.error("GET /api/admin/categories database error:", error);
+      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      categories: (data && data.length > 0 ? data : DEFAULT_HARDWARE_CATEGORIES) as Category[],
+    });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Lỗi truy vấn danh mục.";
+    return NextResponse.json({ success: false, error: msg }, { status: 500 });
+  }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const isAuthed = await checkAdminAuth(req);
-    if (!isAuthed) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    const auth = await requireAdmin(req);
+    if (!auth.authorized) {
+      return auth.response!;
     }
 
     const body = await req.json();
 
     // Support Seed Action
     if (body.action === "seed") {
-      try {
-        const db = getServiceSupabase();
-        for (const cat of DEFAULT_HARDWARE_CATEGORIES) {
-          await db.from("categories").upsert([{
+      const db = getServiceSupabase();
+      for (const cat of DEFAULT_HARDWARE_CATEGORIES) {
+        await db.from("categories").upsert([
+          {
             slug: cat.slug,
             name_vi: cat.name_vi,
             name_en: cat.name_en,
             icon: cat.icon,
-          }], { onConflict: "slug" });
-        }
-      } catch {
-        // Fallback
+          },
+        ], { onConflict: "slug" });
       }
-      cachedCategories = [...DEFAULT_HARDWARE_CATEGORIES];
-      return NextResponse.json({ success: true, categories: cachedCategories, message: "Đã đồng bộ danh mục chuẩn." });
+
+      const { data: refreshed } = await db.from("categories").select("*").order("sort_order", { ascending: true });
+      return NextResponse.json({
+        success: true,
+        categories: refreshed || DEFAULT_HARDWARE_CATEGORIES,
+        message: "Đã đồng bộ danh mục chuẩn.",
+      });
     }
 
     const { slug, name_vi, name_en, icon } = body;
-    if (!name_vi || !slug) {
-      return NextResponse.json({ success: false, error: "Vui lòng nhập tên và slug danh mục." }, { status: 400 });
+    if (!name_vi || typeof name_vi !== "string" || name_vi.trim().length === 0) {
+      return NextResponse.json({ success: false, error: "Vui lòng nhập tên danh mục." }, { status: 400 });
     }
 
-    const newCat: Category = {
-      id: `cat_${Date.now()}`,
-      slug: slug.toLowerCase().trim(),
+    if (!slug || typeof slug !== "string" || slug.trim().length === 0) {
+      return NextResponse.json({ success: false, error: "Vui lòng nhập mã slug danh mục." }, { status: 400 });
+    }
+
+    const cleanSlug = slug.toLowerCase().trim().replace(/[^a-z0-9-]+/g, "-");
+    const newCategoryPayload = {
+      slug: cleanSlug,
       name_vi: name_vi.trim(),
       name_en: name_en?.trim() || name_vi.trim(),
-      icon: icon || "Cpu",
-      sort_order: cachedCategories.length + 1,
-      created_at: new Date().toISOString(),
+      icon: icon?.trim() || "Cpu",
     };
 
-    try {
-      const db = getServiceSupabase();
-      const { data, error } = await db
-        .from("categories")
-        .insert([{
-          slug: newCat.slug,
-          name_vi: newCat.name_vi,
-          name_en: newCat.name_en,
-          icon: newCat.icon,
-        }])
-        .select()
-        .single();
+    const db = getServiceSupabase();
+    const { data, error } = await db
+      .from("categories")
+      .insert([newCategoryPayload])
+      .select()
+      .single();
 
-      if (!error && data) {
-        cachedCategories.push(data as Category);
-        return NextResponse.json({ success: true, category: data });
-      }
-    } catch {
-      // Fallback
+    if (error) {
+      console.error("POST /api/admin/categories database error:", error);
+      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
-    cachedCategories.push(newCat);
-    return NextResponse.json({ success: true, category: newCat });
+    return NextResponse.json({ success: true, category: data as Category });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Lỗi xử lý danh mục.";
     return NextResponse.json({ success: false, error: msg }, { status: 500 });
@@ -110,31 +98,37 @@ export async function POST(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    const isAuthed = await checkAdminAuth(req);
-    if (!isAuthed) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    const auth = await requireAdmin(req);
+    if (!auth.authorized) {
+      return auth.response!;
     }
 
     const body = await req.json();
     const { id, slug, name_vi, name_en, icon } = body;
 
-    if (!id) {
-      return NextResponse.json({ success: false, error: "Missing category ID" }, { status: 400 });
+    if (!id || typeof id !== "string") {
+      return NextResponse.json({ success: false, error: "Thiếu ID danh mục cần cập nhật." }, { status: 400 });
     }
 
-    try {
-      const db = getServiceSupabase();
-      await db.from("categories").update({ slug, name_vi, name_en, icon }).eq("id", id);
-    } catch {
-      // Fallback
+    const db = getServiceSupabase();
+    const { data, error } = await db
+      .from("categories")
+      .update({
+        slug: slug?.toLowerCase().trim(),
+        name_vi: name_vi?.trim(),
+        name_en: name_en?.trim(),
+        icon: icon?.trim(),
+      })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("PUT /api/admin/categories database error:", error);
+      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
-    const idx = cachedCategories.findIndex((c) => c.id === id);
-    if (idx !== -1) {
-      cachedCategories[idx] = { ...cachedCategories[idx], slug, name_vi, name_en, icon };
-    }
-
-    return NextResponse.json({ success: true, category: cachedCategories[idx] });
+    return NextResponse.json({ success: true, category: data as Category });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Lỗi cập nhật danh mục.";
     return NextResponse.json({ success: false, error: msg }, { status: 500 });
@@ -143,27 +137,27 @@ export async function PUT(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const isAuthed = await checkAdminAuth(req);
-    if (!isAuthed) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    const auth = await requireAdmin(req);
+    if (!auth.authorized) {
+      return auth.response!;
     }
 
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
 
     if (!id) {
-      return NextResponse.json({ success: false, error: "Missing category ID" }, { status: 400 });
+      return NextResponse.json({ success: false, error: "Thiếu ID danh mục cần xóa." }, { status: 400 });
     }
 
-    try {
-      const db = getServiceSupabase();
-      await db.from("categories").delete().eq("id", id);
-    } catch {
-      // Fallback
+    const db = getServiceSupabase();
+    const { error } = await db.from("categories").delete().eq("id", id);
+
+    if (error) {
+      console.error("DELETE /api/admin/categories database error:", error);
+      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
-    cachedCategories = cachedCategories.filter((c) => c.id !== id);
-    return NextResponse.json({ success: true, message: "Đã xóa danh mục." });
+    return NextResponse.json({ success: true, message: "Đã xóa danh mục khỏi cơ sở dữ liệu thành công." });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Lỗi xóa danh mục.";
     return NextResponse.json({ success: false, error: msg }, { status: 500 });

@@ -1,14 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { orderService } from "@/modules/orders/service";
+import { checkRateLimit, getClientIp } from "@/shared/security/rateLimiter";
 
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const orderCode = searchParams.get("orderCode");
-
-    if (!orderCode) {
+    const ip = getClientIp(req);
+    const rl = checkRateLimit(ip, "check-payment-status", 30, 60);
+    if (!rl.success) {
       return NextResponse.json(
-        { success: false, error: "Thiếu mã đơn hàng." },
+        { success: false, error: rl.error },
+        { status: 429 }
+      );
+    }
+
+    const { searchParams } = new URL(req.url);
+    const orderCode = searchParams.get("orderCode")?.trim();
+
+    if (!orderCode || !/^[A-Za-z0-9_-]{3,50}$/.test(orderCode)) {
+      return NextResponse.json(
+        { success: false, error: "Mã đơn hàng không hợp lệ." },
         { status: 400 }
       );
     }
@@ -33,3 +43,4 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
 }
+

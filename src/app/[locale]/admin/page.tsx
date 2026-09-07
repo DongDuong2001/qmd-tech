@@ -67,7 +67,6 @@ import {
   Sliders,
   Globe,
   Store,
-  Check,
 } from "lucide-react";
 
 export default function AdminDashboardPage() {

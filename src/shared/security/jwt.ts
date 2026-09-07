@@ -14,10 +14,21 @@ export interface JWTPayload {
   iss?: string;
 }
 
-export const DEFAULT_JWT_SECRET =
-  process.env.JWT_SECRET ||
-  process.env.SUPABASE_JWT_SECRET ||
-  "qmdtech_super_secure_jwt_secret_key_2026_production";
+export function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET || process.env.SUPABASE_JWT_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("CRITICAL SECURITY ERROR: JWT_SECRET must be configured in production environment.");
+    }
+    return "qmdtech_dev_local_jwt_secret_min_32_characters_long";
+  }
+  if (process.env.NODE_ENV === "production" && secret.length < 32) {
+    throw new Error("CRITICAL SECURITY ERROR: JWT_SECRET must be at least 32 characters in production.");
+  }
+  return secret;
+}
+
+export const DEFAULT_JWT_SECRET = getJwtSecret();
 
 /**
  * Universal Base64URL encoding
@@ -137,6 +148,14 @@ export async function verifyJWT<T extends JWTPayload = JWTPayload>(
     const now = Math.floor(Date.now() / 1000);
     if (payload.exp && payload.exp < now) {
       return { valid: false, error: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại." };
+    }
+
+    if (payload.iat && payload.iat > now + 60) {
+      return { valid: false, error: "Thời gian khởi tạo token không hợp lệ (lệch đồng hồ máy chủ)." };
+    }
+
+    if (payload.iss && payload.iss !== "qmdtech") {
+      return { valid: false, error: "Tổ chức phát hành (issuer) của token không hợp lệ." };
     }
 
     return { valid: true, payload };

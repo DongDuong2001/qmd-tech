@@ -70,11 +70,11 @@ export default async function CategoriesPage() {
           <Boxes className="mx-auto h-12 w-12 text-[#CBD5E1]" />
           <h3 className="text-lg font-bold text-[#0F172A]">Chưa có sản phẩm nào trong danh mục</h3>
           <p className="text-xs text-[#64748B] max-w-md mx-auto">
-            Dữ liệu sản phẩm đang được kết nối trực tiếp từ Supabase Database. Bạn có thể thêm sản phẩm từ Admin Dashboard.
+            Hiện tại các sản phẩm đang được cập nhật thêm. Quý khách vui lòng quay lại sau hoặc liên hệ Hotline để được tư vấn.
           </p>
-          <Link href="/admin">
+          <Link href="/">
             <Button variant="primary" size="sm" className="font-bold text-xs">
-              Mở Admin Dashboard
+              Về Trang Chủ
             </Button>
           </Link>
         </div>

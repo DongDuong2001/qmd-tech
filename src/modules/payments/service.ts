@@ -80,8 +80,33 @@ export class PaymentService {
       };
     }
 
-    // 5. Mark order as paid
-    await orderService.markOrderPaid(order.id, String(payload.id), "sepay");
+    // 5. Check idempotency and state machine
+    if (order.payment_status === "paid") {
+      return {
+        success: true,
+        message: `Đơn hàng ${orderCode} đã được xác nhận thanh toán trước đó.`,
+      };
+    }
+
+    if (order.status === "cancelled") {
+      return {
+        success: false,
+        message: `Đơn hàng ${orderCode} đã bị hủy, không thể tiếp nhận thanh toán tự động.`,
+      };
+    }
+
+    // 6. Mark order as paid
+    const updated = await orderService.markOrderPaid(order.id, String(payload.id), "sepay");
+    if (!updated) {
+      const refreshed = await orderService.getOrderByCode(orderCode);
+      if (refreshed?.payment_status === "paid") {
+        return {
+          success: true,
+          message: `Đơn hàng ${orderCode} đã được xác nhận thanh toán trước đó.`,
+        };
+      }
+      throw new Error(`Cập nhật trạng thái thanh toán cho đơn hàng ${orderCode} thất bại.`);
+    }
 
     return {
       success: true,
