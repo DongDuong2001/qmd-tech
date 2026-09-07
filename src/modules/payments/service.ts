@@ -80,7 +80,15 @@ export class PaymentService {
       };
     }
 
-    // 5. Mark order as paid
+    // 5. Check idempotency
+    if (order.payment_status === "paid") {
+      return {
+        success: true,
+        message: `Đơn hàng ${orderCode} đã được xác nhận thanh toán trước đó.`,
+      };
+    }
+
+    // 6. Mark order as paid
     await orderService.markOrderPaid(order.id, String(payload.id), "sepay");
 
     return {
