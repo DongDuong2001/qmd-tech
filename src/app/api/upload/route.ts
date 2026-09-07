@@ -1,15 +1,79 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import crypto from "crypto";
+import { supabase } from "@/shared/db/supabase";
+import { ADMIN_COOKIE_NAME, AUTH_COOKIE_NAME } from "@/shared/security/cookies";
+import { verifyAdminToken } from "@/shared/security/jwt";
+import { checkRateLimit } from "@/shared/security/rateLimiter";
+
+const ALLOWED_MIME_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/avif",
+  "image/gif",
+  "image/svg+xml",
+];
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 export async function POST(req: NextRequest) {
   try {
+    // 1. Rate Limiting Check
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1";
+    const rateLimit = checkRateLimit(ip, "upload", 20, 60);
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { success: false, error: "Quá nhiều yêu cầu tải ảnh. Vui lòng thử lại sau giây lát." },
+        { status: 429 }
+      );
+    }
+
+    // 2. Authentication Check (Must be Admin or Authenticated User)
+    const cookieStore = await cookies();
+    const adminToken = cookieStore.get(ADMIN_COOKIE_NAME)?.value;
+    const adminCheck = adminToken ? await verifyAdminToken(adminToken) : null;
+    const isAdmin = adminCheck?.valid === true;
+
+    let isUser = false;
+    if (!isAdmin) {
+      const userToken = cookieStore.get(AUTH_COOKIE_NAME)?.value;
+      if (userToken) {
+        const { data: userData } = await supabase.auth.getUser(userToken);
+        if (userData?.user) isUser = true;
+      }
+    }
+
+    if (!isAdmin && !isUser) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized: Bạn cần đăng nhập để tải tệp lên." },
+        { status: 401 }
+      );
+    }
+
     const formData = await req.formData();
     const file = formData.get("file") as File | Blob | null;
-    const folder = (formData.get("folder") as string) || "qmdtech/uploads";
+    const rawFolder = (formData.get("folder") as string) || "qmdtech/uploads";
+    const folder = rawFolder.replace(/[^a-zA-Z0-9/_-]/g, "").replace(/\.\./g, "");
 
     if (!file) {
       return NextResponse.json(
         { success: false, error: "Không tìm thấy tệp hình ảnh để tải lên." },
+        { status: 400 }
+      );
+    }
+
+    // 3. File Validation (Size and MIME type)
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { success: false, error: "Kích thước ảnh vượt quá giới hạn cho phép (tối đa 5MB)." },
+        { status: 400 }
+      );
+    }
+
+    if (file.type && !ALLOWED_MIME_TYPES.includes(file.type)) {
+      return NextResponse.json(
+        { success: false, error: "Định dạng tệp không được hỗ trợ. Vui lòng tải ảnh định dạng JPG, PNG, WebP, AVIF hoặc SVG." },
         { status: 400 }
       );
     }
