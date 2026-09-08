@@ -70,6 +70,7 @@ import {
   LayoutGrid,
   Save,
   RotateCcw,
+  Briefcase,
 } from "lucide-react";
 import {
   MegaCategoryItem,
@@ -79,10 +80,12 @@ import {
   DEFAULT_MEGA_MENU_CATEGORIES,
 } from "@/components/navigation/megaMenuData";
 import { sanitizeSlug } from "@/modules/blog/service";
+import { CareerJob, CreateCareerInput, UpdateCareerInput } from "@/modules/careers/types";
+import { sanitizeCareerSlug } from "@/modules/careers/service";
 
 export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState<
-    "overview" | "products" | "categories" | "menu" | "banners" | "deals" | "suppliers" | "blogs" | "orders" | "reviews" | "settings" | "security"
+    "overview" | "products" | "categories" | "menu" | "banners" | "deals" | "suppliers" | "blogs" | "careers" | "orders" | "reviews" | "settings" | "security"
   >("overview");
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -93,6 +96,42 @@ export default function AdminDashboardPage() {
   const [deals, setDeals] = useState<PrebuiltDeal[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
+  const [careers, setCareers] = useState<CareerJob[]>([]);
+  const [isAddCareerOpen, setIsAddCareerOpen] = useState(false);
+  const [isEditCareerOpen, setIsEditCareerOpen] = useState(false);
+  const [editingCareerId, setEditingCareerId] = useState<string | null>(null);
+  const [careerSearchQuery, setCareerSearchQuery] = useState("");
+  const [careerDeptFilter, setCareerDeptFilter] = useState("all");
+
+  const [careerForm, setCareerForm] = useState<CreateCareerInput>({
+    title: "",
+    slug: "",
+    department: "Kỹ Thuật & Phần Cứng",
+    location: "Hà Nội",
+    employment_type: "Toàn thời gian",
+    salary: "12.000.000₫ - 18.000.000₫",
+    experience: "1 năm kinh nghiệm hoặc đam mê PC",
+    description: "",
+    requirements: "",
+    benefits: "Chế độ BHXH đầy đủ, thưởng hiệu suất, phụ cấp ăn trưa, ưu đãi mua linh kiện PC giá gốc.",
+    contact_email: "tuyendung@qmdtech.vn",
+    is_active: true,
+  });
+
+  const [editCareerForm, setEditCareerForm] = useState<CreateCareerInput>({
+    title: "",
+    slug: "",
+    department: "Kỹ Thuật & Phần Cứng",
+    location: "Hà Nội",
+    employment_type: "Toàn thời gian",
+    salary: "",
+    experience: "",
+    description: "",
+    requirements: "",
+    benefits: "",
+    contact_email: "tuyendung@qmdtech.vn",
+    is_active: true,
+  });
 
   // Mega Menu Customization State
   const [megaMenuCategories, setMegaMenuCategories] = useState<MegaCategoryItem[]>([]);
@@ -339,7 +378,7 @@ export default function AdminDashboardPage() {
   const loadAllData = async () => {
     setIsRefreshing(true);
     try {
-      const [p, c, o, r, b, d, s, bl, m] = await Promise.all([
+      const [p, c, o, r, b, d, s, bl, m, cr] = await Promise.all([
         adminService.getProducts(),
         adminService.getCategories(),
         adminService.getOrders(),
@@ -349,6 +388,7 @@ export default function AdminDashboardPage() {
         adminService.getSuppliers(),
         adminService.getBlogPosts(),
         adminService.getMegaMenu(),
+        adminService.getCareers(),
       ]);
       setProducts(p);
       setCategories(c);
@@ -359,6 +399,7 @@ export default function AdminDashboardPage() {
       setSuppliers(s);
       setBlogs(bl);
       setMegaMenuCategories(m);
+      setCareers(cr);
       if (m.length > 0) {
         setActiveMenuCatId((prev) => (m.some((cat) => cat.id === prev) ? prev : m[0].id));
       }
@@ -1123,6 +1164,79 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // Career / Recruitment Handlers
+  const handleCreateCareer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const cleanSlug = sanitizeCareerSlug(careerForm.slug, careerForm.title);
+      await adminService.createCareer({ ...careerForm, slug: cleanSlug });
+      showNotification("success", "Đã thêm vị trí tuyển dụng mới thành công!");
+      setIsAddCareerOpen(false);
+      setCareerForm({
+        title: "",
+        slug: "",
+        department: "Kỹ Thuật & Phần Cứng",
+        location: "Hà Nội",
+        employment_type: "Toàn thời gian",
+        salary: "12.000.000₫ - 18.000.000₫",
+        experience: "1 năm kinh nghiệm hoặc đam mê PC",
+        description: "",
+        requirements: "",
+        benefits: "Chế độ BHXH đầy đủ, thưởng hiệu suất, phụ cấp ăn trưa, ưu đãi mua linh kiện PC giá gốc.",
+        contact_email: "tuyendung@qmdtech.vn",
+        is_active: true,
+      });
+      loadAllData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi thêm vị trí: " + msg);
+    }
+  };
+
+  const handleUpdateCareer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCareerId) return;
+    try {
+      const cleanSlug = sanitizeCareerSlug(editCareerForm.slug, editCareerForm.title);
+      await adminService.updateCareer(editingCareerId, { ...editCareerForm, slug: cleanSlug });
+      showNotification("success", "Cập nhật vị trí tuyển dụng thành công!");
+      setIsEditCareerOpen(false);
+      setEditingCareerId(null);
+      loadAllData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi cập nhật vị trí: " + msg);
+    }
+  };
+
+  const handleToggleActiveCareer = async (job: CareerJob) => {
+    try {
+      await adminService.updateCareer(job.id, { is_active: !job.is_active });
+      showNotification(
+        "success",
+        job.is_active
+          ? "Đã tạm đóng nhận hồ sơ cho vị trí này."
+          : "Đã kích hoạt hiển thị tuyển dụng cho vị trí này!"
+      );
+      loadAllData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi chuyển trạng thái: " + msg);
+    }
+  };
+
+  const handleDeleteCareer = async (id: string) => {
+    if (!confirm("Bạn có chắc chắn muốn xóa vị trí tuyển dụng này?")) return;
+    try {
+      await adminService.deleteCareer(id);
+      showNotification("success", "Đã xóa vị trí tuyển dụng!");
+      loadAllData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi xóa vị trí: " + msg);
+    }
+  };
+
   const handleAdminLogout = async () => {
     if (!confirm("Bạn có chắc chắn muốn đăng xuất khỏi hệ thống Quản trị?")) return;
     try {
@@ -1164,6 +1278,20 @@ export default function AdminDashboardPage() {
       return matchCat && matchSearch;
     });
   }, [blogs, blogCategoryFilter, searchQuery]);
+
+  // Filtered Careers
+  const filteredCareers = useMemo(() => {
+    return careers.filter((job) => {
+      const matchDept =
+        careerDeptFilter === "all" || job.department === careerDeptFilter;
+      const matchSearch =
+        !careerSearchQuery.trim() ||
+        job.title.toLowerCase().includes(careerSearchQuery.toLowerCase()) ||
+        job.department.toLowerCase().includes(careerSearchQuery.toLowerCase()) ||
+        job.location.toLowerCase().includes(careerSearchQuery.toLowerCase());
+      return matchDept && matchSearch;
+    });
+  }, [careers, careerDeptFilter, careerSearchQuery]);
 
   // Filtered Categories
   const filteredCategories = useMemo(() => {
@@ -1386,6 +1514,28 @@ export default function AdminDashboardPage() {
                   : "bg-[#EFF6FF] text-[#0063FD] font-black border border-[#BFDBFE]"
               }`}>
                 {blogs.length}
+              </span>
+            </button>
+
+            {/* CAREERS / RECRUITMENT TAB */}
+            <button
+              onClick={() => setActiveTab("careers")}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
+                activeTab === "careers"
+                  ? "bg-[#0063FD] text-white shadow-xs font-black"
+                  : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <Briefcase className="h-4 w-4" />
+                <span>Tuyển dụng & Career</span>
+              </div>
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-mono ${
+                activeTab === "careers"
+                  ? "bg-white/20 text-white font-bold"
+                  : "bg-[#EFF6FF] text-[#0063FD] font-black border border-[#BFDBFE]"
+              }`}>
+                {careers.length}
               </span>
             </button>
 
@@ -3062,6 +3212,176 @@ export default function AdminDashboardPage() {
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* TAB: CAREERS & RECRUITMENT MANAGEMENT                                     */}
+          {/* ========================================================================= */}
+          {activeTab === "careers" && (
+            <div className="space-y-6">
+              {/* Top Controls Bar */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl border border-[#E2E8F0] bg-white p-4 shadow-xs">
+                <div className="flex flex-wrap items-center gap-3 flex-1 w-full">
+                  <div className="relative flex-1 min-w-[240px]">
+                    <Search className="absolute left-3.5 top-3 h-4 w-4 text-[#64748B]" />
+                    <input
+                      type="text"
+                      placeholder="Tìm theo vị trí, phòng ban, địa điểm..."
+                      value={careerSearchQuery}
+                      onChange={(e) => setCareerSearchQuery(e.target.value)}
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2 pl-10 pr-4 text-xs text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none"
+                    />
+                  </div>
+
+                  <select
+                    value={careerDeptFilter}
+                    onChange={(e) => setCareerDeptFilter(e.target.value)}
+                    className="rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3 py-2 text-xs font-bold text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                  >
+                    <option value="all">Tất cả phòng ban</option>
+                    <option value="Kỹ Thuật & Phần Cứng">Kỹ Thuật & Phần Cứng</option>
+                    <option value="Kinh Doanh & Chăm Sóc Khách Hàng">Kinh Doanh & Chăm Sóc Khách Hàng</option>
+                    <option value="Bảo Hành & Kiểm Soát Chất Lượng">Bảo Hành & Kiểm Soát Chất Lượng</option>
+                    <option value="Marketing & Truyền Thông">Marketing & Truyền Thông</option>
+                    <option value="Kho Vận & Logistics">Kho Vận & Logistics</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <Link
+                    href="/tuyen-dung"
+                    target="_blank"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-[#CBD5E1] bg-white px-3.5 py-2 text-xs font-bold text-[#334155] hover:bg-[#F8FAFC] hover:text-[#0063FD] transition-all shadow-2xs"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    <span>Xem Trang Tuyển Dụng</span>
+                  </Link>
+
+                  <Button
+                    onClick={() => setIsAddCareerOpen(true)}
+                    variant="primary"
+                    size="sm"
+                    className="flex items-center gap-1.5 shadow-xs font-black uppercase text-xs tracking-wider"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>Thêm Vị Trí Tuyển Dụng</span>
+                  </Button>
+                </div>
+              </div>
+
+              {/* Careers Table */}
+              <div className="overflow-x-auto rounded-xl border border-[#E2E8F0] bg-white shadow-xs">
+                <table className="w-full text-left text-xs">
+                  <thead className="border-b border-[#E2E8F0] bg-[#F8FAFC] text-[11px] font-black uppercase text-[#475569]">
+                    <tr>
+                      <th className="p-3.5">Vị trí & Đường dẫn</th>
+                      <th className="p-3.5">Phòng ban</th>
+                      <th className="p-3.5">Mức lương</th>
+                      <th className="p-3.5">Địa điểm</th>
+                      <th className="p-3.5">Hình thức</th>
+                      <th className="p-3.5">Trạng thái</th>
+                      <th className="p-3.5 text-right">Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#E2E8F0]">
+                    {filteredCareers.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="p-12 text-center text-[#64748B]">
+                          Chưa có vị trí tuyển dụng nào phù hợp với bộ lọc.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredCareers.map((job) => (
+                        <tr key={job.id} className="hover:bg-[#F8FAFC] transition-colors">
+                          <td className="p-3.5">
+                            <div className="font-bold text-[#0F172A]">{job.title}</div>
+                            <div className="text-[10px] font-mono text-[#64748B] truncate max-w-xs">
+                              /tuyen-dung/{job.slug}
+                            </div>
+                          </td>
+                          <td className="p-3.5">
+                            <span className="rounded-md bg-[#EFF6FF] border border-[#BFDBFE] px-2 py-0.5 text-[10px] font-bold text-[#0063FD]">
+                              {job.department}
+                            </span>
+                          </td>
+                          <td className="p-3.5 font-bold text-[#16A34A]">{job.salary}</td>
+                          <td className="p-3.5 text-[#475569]">{job.location}</td>
+                          <td className="p-3.5 text-[#64748B]">{job.employment_type}</td>
+                          <td className="p-3.5">
+                            <span
+                              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase ${
+                                job.is_active
+                                  ? "bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC]"
+                                  : "bg-[#F1F5F9] text-[#64748B] border border-[#CBD5E1]"
+                              }`}
+                            >
+                              <span
+                                className={`h-1.5 w-1.5 rounded-full ${
+                                  job.is_active ? "bg-[#16A34A]" : "bg-[#94A3B8]"
+                                }`}
+                              />
+                              {job.is_active ? "Đang Tuyển" : "Đã Đóng"}
+                            </span>
+                          </td>
+                          <td className="p-3.5 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                onClick={() => handleToggleActiveCareer(job)}
+                                className={`p-1.5 rounded text-xs font-bold transition-colors ${
+                                  job.is_active
+                                    ? "text-[#64748B] hover:text-[#0F172A] hover:bg-[#E2E8F0]"
+                                    : "text-[#16A34A] hover:bg-[#DCFCE7]"
+                                }`}
+                                title={job.is_active ? "Tạm đóng nhận hồ sơ" : "Mở lại tuyển dụng"}
+                              >
+                                {job.is_active ? (
+                                  <EyeOff className="h-3.5 w-3.5" />
+                                ) : (
+                                  <Eye className="h-3.5 w-3.5" />
+                                )}
+                              </button>
+
+                              <button
+                                onClick={() => {
+                                  setEditingCareerId(job.id);
+                                  setEditCareerForm({
+                                    title: job.title,
+                                    slug: job.slug,
+                                    department: job.department,
+                                    location: job.location,
+                                    employment_type: job.employment_type,
+                                    salary: job.salary,
+                                    experience: job.experience,
+                                    description: job.description,
+                                    requirements: job.requirements,
+                                    benefits: job.benefits,
+                                    contact_email: job.contact_email,
+                                    is_active: job.is_active,
+                                  });
+                                  setIsEditCareerOpen(true);
+                                }}
+                                className="p-1.5 rounded text-[#0063FD] hover:bg-[#EFF6FF] transition-colors"
+                                title="Chỉnh sửa vị trí"
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                              </button>
+
+                              <button
+                                onClick={() => handleDeleteCareer(job.id)}
+                                className="p-1.5 rounded text-rose-600 hover:bg-rose-50 transition-colors"
+                                title="Xóa vị trí này"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
 
@@ -4888,6 +5208,310 @@ export default function AdminDashboardPage() {
 
             <Button type="submit" variant="primary" size="md" className="font-black uppercase text-xs shadow-md">
               Lưu Thay Đổi Bài Viết
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* ========================================================================= */}
+      {/* ADD CAREER JOB MODAL                                                      */}
+      {/* ========================================================================= */}
+      <Modal
+        isOpen={isAddCareerOpen}
+        onClose={() => setIsAddCareerOpen(false)}
+        title="THÊM VỊ TRÍ TUYỂN DỤNG MỚI"
+        description="Đăng tin tuyển dụng nhân sự mới cho hệ thống QMD-Tech"
+        maxWidth="4xl"
+      >
+        <form onSubmit={handleCreateCareer} className="space-y-4 text-xs">
+          <div>
+            <label className="block font-bold text-[#1E293B] mb-1">
+              Tên vị trí tuyển dụng *
+            </label>
+            <input
+              required
+              type="text"
+              placeholder="VD: Kỹ Thuật Viên Lắp Ráp & Cài Đặt PC"
+              value={careerForm.title}
+              onChange={(e) => setCareerForm({ ...careerForm, title: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:outline-none text-sm font-bold shadow-2xs"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">
+                Slug URL (Để trống để tự động tạo)
+              </label>
+              <input
+                type="text"
+                placeholder="VD: ky-thuat-vien-lap-rap-pc"
+                value={careerForm.slug}
+                onChange={(e) => setCareerForm({ ...careerForm, slug: sanitizeCareerSlug(e.target.value) })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:outline-none font-mono shadow-2xs"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Phòng ban *</label>
+              <select
+                value={careerForm.department}
+                onChange={(e) => setCareerForm({ ...careerForm, department: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-bold shadow-2xs"
+              >
+                <option value="Kỹ Thuật & Phần Cứng">Kỹ Thuật & Phần Cứng</option>
+                <option value="Kinh Doanh & Chăm Sóc Khách Hàng">Kinh Doanh & Chăm Sóc Khách Hàng</option>
+                <option value="Bảo Hành & Kiểm Soát Chất Lượng">Bảo Hành & Kiểm Soát Chất Lượng</option>
+                <option value="Marketing & Truyền Thông">Marketing & Truyền Thông</option>
+                <option value="Kho Vận & Logistics">Kho Vận & Logistics</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Mức lương *</label>
+              <input
+                required
+                type="text"
+                placeholder="VD: 12.000.000₫ - 18.000.000₫"
+                value={careerForm.salary}
+                onChange={(e) => setCareerForm({ ...careerForm, salary: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#16A34A] font-bold focus:border-[#0063FD] focus:outline-none shadow-2xs"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Địa điểm làm việc</label>
+              <input
+                type="text"
+                placeholder="Hà Nội"
+                value={careerForm.location}
+                onChange={(e) => setCareerForm({ ...careerForm, location: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Hình thức làm việc</label>
+              <select
+                value={careerForm.employment_type}
+                onChange={(e) => setCareerForm({ ...careerForm, employment_type: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+              >
+                <option value="Toàn thời gian">Toàn thời gian</option>
+                <option value="Bán thời gian">Bán thời gian</option>
+                <option value="Thực tập sinh">Thực tập sinh</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Yêu cầu kinh nghiệm</label>
+              <input
+                type="text"
+                placeholder="1 năm kinh nghiệm hoặc đam mê PC"
+                value={careerForm.experience}
+                onChange={(e) => setCareerForm({ ...careerForm, experience: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-bold text-[#1E293B] mb-1">Mô tả công việc *</label>
+            <textarea
+              required
+              rows={3}
+              placeholder="Chi tiết công việc hằng ngày của vị trí..."
+              value={careerForm.description}
+              onChange={(e) => setCareerForm({ ...careerForm, description: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:outline-none leading-relaxed shadow-2xs"
+            />
+          </div>
+
+          <div>
+            <label className="block font-bold text-[#1E293B] mb-1">Yêu cầu ứng viên *</label>
+            <textarea
+              required
+              rows={3}
+              placeholder="Kỹ năng, thái độ hoặc phẩm chất cần có..."
+              value={careerForm.requirements}
+              onChange={(e) => setCareerForm({ ...careerForm, requirements: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:outline-none leading-relaxed shadow-2xs"
+            />
+          </div>
+
+          <div>
+            <label className="block font-bold text-[#1E293B] mb-1">Quyền lợi & Chế độ đãi ngộ</label>
+            <textarea
+              rows={2}
+              placeholder="BHXH, thưởng KPI, phụ cấp ăn trưa, ưu đãi linh kiện..."
+              value={careerForm.benefits}
+              onChange={(e) => setCareerForm({ ...careerForm, benefits: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:outline-none leading-relaxed shadow-2xs"
+            />
+          </div>
+
+          <div className="flex items-center justify-between pt-3 border-t border-[#E2E8F0]">
+            <label className="flex items-center gap-2 cursor-pointer font-bold text-[#0F172A]">
+              <input
+                type="checkbox"
+                checked={careerForm.is_active}
+                onChange={(e) => setCareerForm({ ...careerForm, is_active: e.target.checked })}
+                className="rounded border-[#CBD5E1] text-[#0063FD] focus:ring-[#0063FD] h-4 w-4"
+              />
+              <span>Mở tuyển dụng công khai ngay</span>
+            </label>
+
+            <Button type="submit" variant="primary" size="md" className="font-black uppercase text-xs shadow-md">
+              Đăng Tuyển Vị Trí
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* ========================================================================= */}
+      {/* EDIT CAREER JOB MODAL                                                     */}
+      {/* ========================================================================= */}
+      <Modal
+        isOpen={isEditCareerOpen}
+        onClose={() => setIsEditCareerOpen(false)}
+        title="CHỈNH SỬA VỊ TRÍ TUYỂN DỤNG"
+        description="Cập nhật thông tin mô tả, mức lương hoặc trạng thái tuyển dụng"
+        maxWidth="4xl"
+      >
+        <form onSubmit={handleUpdateCareer} className="space-y-4 text-xs">
+          <div>
+            <label className="block font-bold text-[#1E293B] mb-1">
+              Tên vị trí tuyển dụng *
+            </label>
+            <input
+              required
+              type="text"
+              value={editCareerForm.title}
+              onChange={(e) => setEditCareerForm({ ...editCareerForm, title: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none text-sm font-bold shadow-2xs"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Slug URL</label>
+              <input
+                type="text"
+                value={editCareerForm.slug}
+                onChange={(e) => setEditCareerForm({ ...editCareerForm, slug: sanitizeCareerSlug(e.target.value) })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Phòng ban *</label>
+              <select
+                value={editCareerForm.department}
+                onChange={(e) => setEditCareerForm({ ...editCareerForm, department: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-bold shadow-2xs"
+              >
+                <option value="Kỹ Thuật & Phần Cứng">Kỹ Thuật & Phần Cứng</option>
+                <option value="Kinh Doanh & Chăm Sóc Khách Hàng">Kinh Doanh & Chăm Sóc Khách Hàng</option>
+                <option value="Bảo Hành & Kiểm Soát Chất Lượng">Bảo Hành & Kiểm Soát Chất Lượng</option>
+                <option value="Marketing & Truyền Thông">Marketing & Truyền Thông</option>
+                <option value="Kho Vận & Logistics">Kho Vận & Logistics</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Mức lương *</label>
+              <input
+                required
+                type="text"
+                value={editCareerForm.salary}
+                onChange={(e) => setEditCareerForm({ ...editCareerForm, salary: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#16A34A] font-bold focus:border-[#0063FD] focus:outline-none shadow-2xs"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Địa điểm làm việc</label>
+              <input
+                type="text"
+                value={editCareerForm.location}
+                onChange={(e) => setEditCareerForm({ ...editCareerForm, location: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Hình thức làm việc</label>
+              <select
+                value={editCareerForm.employment_type}
+                onChange={(e) => setEditCareerForm({ ...editCareerForm, employment_type: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+              >
+                <option value="Toàn thời gian">Toàn thời gian</option>
+                <option value="Bán thời gian">Bán thời gian</option>
+                <option value="Thực tập sinh">Thực tập sinh</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Yêu cầu kinh nghiệm</label>
+              <input
+                type="text"
+                value={editCareerForm.experience}
+                onChange={(e) => setEditCareerForm({ ...editCareerForm, experience: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-bold text-[#1E293B] mb-1">Mô tả công việc *</label>
+            <textarea
+              required
+              rows={3}
+              value={editCareerForm.description}
+              onChange={(e) => setEditCareerForm({ ...editCareerForm, description: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:outline-none leading-relaxed shadow-2xs"
+            />
+          </div>
+
+          <div>
+            <label className="block font-bold text-[#1E293B] mb-1">Yêu cầu ứng viên *</label>
+            <textarea
+              required
+              rows={3}
+              value={editCareerForm.requirements}
+              onChange={(e) => setEditCareerForm({ ...editCareerForm, requirements: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:outline-none leading-relaxed shadow-2xs"
+            />
+          </div>
+
+          <div>
+            <label className="block font-bold text-[#1E293B] mb-1">Quyền lợi & Chế độ đãi ngộ</label>
+            <textarea
+              rows={2}
+              value={editCareerForm.benefits}
+              onChange={(e) => setEditCareerForm({ ...editCareerForm, benefits: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:outline-none leading-relaxed shadow-2xs"
+            />
+          </div>
+
+          <div className="flex items-center justify-between pt-3 border-t border-[#E2E8F0]">
+            <label className="flex items-center gap-2 cursor-pointer font-bold text-[#0F172A]">
+              <input
+                type="checkbox"
+                checked={editCareerForm.is_active}
+                onChange={(e) => setEditCareerForm({ ...editCareerForm, is_active: e.target.checked })}
+                className="rounded border-[#CBD5E1] text-[#0063FD] focus:ring-[#0063FD] h-4 w-4"
+              />
+              <span>Mở nhận hồ sơ ứng tuyển</span>
+            </label>
+
+            <Button type="submit" variant="primary" size="md" className="font-black uppercase text-xs shadow-md">
+              Lưu Thay Đổi
             </Button>
           </div>
         </form>
