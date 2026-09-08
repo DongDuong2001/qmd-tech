@@ -18,6 +18,12 @@ import {
   Users,
   Send,
   X,
+  FileText,
+  UploadCloud,
+  AlertCircle,
+  Paperclip,
+  Trash2,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -35,9 +41,12 @@ export default function CareerStorefrontPage() {
     phone: "",
     email: "",
     experience: "",
-    cvLink: "",
     introduction: "",
   });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [applySuccess, setApplySuccess] = useState(false);
 
   useEffect(() => {
@@ -80,13 +89,79 @@ export default function CareerStorefrontPage() {
     });
   }, [careers, selectedDepartment, searchQuery]);
 
-  const handleApplySubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!applyForm.fullName || !applyForm.phone || !applyForm.email) {
-      alert("Vui lòng điền đầy đủ họ tên, số điện thoại và email liên hệ.");
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith(".pdf") && file.type !== "application/pdf") {
+      setFileError("Vui lòng chỉ tải lên tệp định dạng PDF (.pdf).");
+      setSelectedFile(null);
       return;
     }
-    setApplySuccess(true);
+
+    if (file.size > 10 * 1024 * 1024) {
+      setFileError("Kích thước tệp vượt quá giới hạn 10MB. Vui lòng chọn tệp nhỏ hơn.");
+      setSelectedFile(null);
+      return;
+    }
+
+    setFileError(null);
+    setSelectedFile(file);
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const handleApplySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitError(null);
+
+    if (!applyForm.fullName.trim() || !applyForm.phone.trim() || !applyForm.email.trim()) {
+      setSubmitError("Vui lòng điền đầy đủ họ tên, số điện thoại và email liên hệ.");
+      return;
+    }
+
+    if (!selectedFile) {
+      setFileError("Vui lòng đính kèm tệp CV ứng tuyển định dạng PDF.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const formData = new FormData();
+      if (applyModalJob?.id) formData.append("career_id", applyModalJob.id);
+      formData.append("job_title", applyModalJob?.title || "Vị trí tuyển dụng");
+      formData.append("full_name", applyForm.fullName.trim());
+      formData.append("phone", applyForm.phone.trim());
+      formData.append("email", applyForm.email.trim());
+      if (applyForm.experience.trim()) {
+        formData.append("experience", applyForm.experience.trim());
+      }
+      if (applyForm.introduction.trim()) {
+        formData.append("introduction", applyForm.introduction.trim());
+      }
+      formData.append("resume", selectedFile);
+
+      const res = await fetch("/api/careers/apply", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Không thể gửi hồ sơ ứng tuyển.");
+      }
+
+      setApplySuccess(true);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Đã có lỗi xảy ra.";
+      setSubmitError(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -420,19 +495,30 @@ export default function CareerStorefrontPage() {
                 <h4 className="text-base font-bold text-[#0F172A]">
                   Gửi Hồ Sơ Thành Công!
                 </h4>
-                <p className="text-xs text-[#64748B] max-w-sm mx-auto">
-                  Cảm ơn bạn đã quan tâm đến vị trí tại QMD-Tech. Bộ phận Tuyển dụng sẽ liên hệ lại qua số điện thoại hoặc email của bạn trong vòng 24 - 48 giờ làm việc.
+                <p className="text-xs text-[#64748B] max-w-sm mx-auto leading-relaxed">
+                  Cảm ơn bạn <span className="font-bold text-[#0F172A]">{applyForm.fullName}</span> đã nộp hồ sơ ứng tuyển vị trí{" "}
+                  <span className="font-bold text-[#0F172A]">{applyModalJob.title}</span> kèm tệp CV{" "}
+                  <span className="font-mono text-[11px] text-[#0063FD]">
+                    {selectedFile?.name || "CV_UngVien.pdf"}
+                  </span>
+                  . Bộ phận Tuyển dụng QMD-Tech sẽ liên hệ lại với bạn trong vòng 24 - 48 giờ làm việc.
                 </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setApplyModalJob(null)}
-                >
-                  Đóng cửa sổ
-                </Button>
+                <div className="pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setApplyModalJob(null);
+                      setApplySuccess(false);
+                      setSelectedFile(null);
+                    }}
+                  >
+                    Đóng cửa sổ
+                  </Button>
+                </div>
               </div>
             ) : (
-              <form onSubmit={handleApplySubmit} className="space-y-3">
+              <form onSubmit={handleApplySubmit} className="space-y-3.5">
                 <div>
                   <label className="block text-xs font-semibold text-[#64748B] mb-1">
                     Họ và Tên *
@@ -444,8 +530,8 @@ export default function CareerStorefrontPage() {
                     onChange={(e) =>
                       setApplyForm({ ...applyForm, fullName: e.target.value })
                     }
-                    placeholder="Ví dụ: Nguyễn Văn A"
-                    className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3.5 py-2 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                    placeholder="Ví dụ: Nguyễn Văn An"
+                    className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3.5 py-2 text-xs text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none"
                   />
                 </div>
 
@@ -462,7 +548,7 @@ export default function CareerStorefrontPage() {
                         setApplyForm({ ...applyForm, phone: e.target.value })
                       }
                       placeholder="0988..."
-                      className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3.5 py-2 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3.5 py-2 text-xs text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none"
                     />
                   </div>
 
@@ -478,52 +564,139 @@ export default function CareerStorefrontPage() {
                         setApplyForm({ ...applyForm, email: e.target.value })
                       }
                       placeholder="email@example.com"
-                      className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3.5 py-2 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3.5 py-2 text-xs text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none"
                     />
                   </div>
                 </div>
 
+                {/* PDF File Resume Attachment */}
+                <div>
+                  <label className="block text-xs font-bold text-[#0F172A] mb-1">
+                    Hồ sơ CV đính kèm (File PDF) *
+                  </label>
+                  {!selectedFile ? (
+                    <div className="relative border-2 border-dashed border-[#CBD5E1] hover:border-[#0063FD] bg-[#F8FAFC] hover:bg-[#F0F7FF] rounded-xl p-4 text-center transition-colors cursor-pointer group">
+                      <input
+                        type="file"
+                        accept=".pdf,application/pdf"
+                        onChange={handleFileChange}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        required
+                      />
+                      <div className="flex flex-col items-center justify-center gap-1.5 pointer-events-none">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#EFF6FF] text-[#0063FD] group-hover:scale-110 transition-transform">
+                          <UploadCloud className="h-5 w-5" />
+                        </div>
+                        <div className="text-xs font-bold text-[#0F172A]">
+                          Chọn file CV từ máy tính hoặc kéo thả vào đây
+                        </div>
+                        <div className="text-[11px] text-[#64748B]">
+                          Định dạng: <span className="font-semibold text-[#0F172A]">.PDF</span> (Tối đa: 10MB)
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between p-3 rounded-xl border border-[#BFDBFE] bg-[#EFF6FF]/60 text-xs">
+                      <div className="flex items-center gap-2.5 overflow-hidden">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#0063FD] text-white shadow-2xs">
+                          <FileText className="h-5 w-5" />
+                        </div>
+                        <div className="truncate">
+                          <div className="font-bold text-[#0F172A] truncate">
+                            {selectedFile.name}
+                          </div>
+                          <div className="text-[10px] text-[#64748B]">
+                            {formatFileSize(selectedFile.size)} • Định dạng PDF chuẩn
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedFile(null);
+                          setFileError(null);
+                        }}
+                        className="p-1.5 rounded-lg text-[#DC2626] hover:bg-white transition-colors shrink-0"
+                        title="Gỡ bỏ tệp để chọn tệp khác"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
+
+                  {fileError && (
+                    <div className="mt-1.5 flex items-center gap-1.5 text-xs text-[#DC2626]">
+                      <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                      <span>{fileError}</span>
+                    </div>
+                  )}
+                </div>
+
                 <div>
                   <label className="block text-xs font-semibold text-[#64748B] mb-1">
-                    Liên kết CV / Hồ sơ năng lực (Google Drive, TopCV, LinkedIn...)
+                    Kinh nghiệm làm việc liên quan (tùy chọn)
                   </label>
                   <input
-                    type="url"
-                    value={applyForm.cvLink}
+                    type="text"
+                    value={applyForm.experience}
                     onChange={(e) =>
-                      setApplyForm({ ...applyForm, cvLink: e.target.value })
+                      setApplyForm({ ...applyForm, experience: e.target.value })
                     }
-                    placeholder="https://drive.google.com/..."
-                    className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3.5 py-2 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                    placeholder="Ví dụ: 2 năm lắp ráp PC gaming, bảo trì phần cứng..."
+                    className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3.5 py-2 text-xs text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-[#64748B] mb-1">
-                    Đôi nét giới thiệu bản thân hoặc kinh nghiệm liên quan
+                    Giới thiệu bản thân & nguyện vọng
                   </label>
                   <textarea
-                    rows={3}
+                    rows={2}
                     value={applyForm.introduction}
                     onChange={(e) =>
                       setApplyForm({ ...applyForm, introduction: e.target.value })
                     }
-                    placeholder="Kinh nghiệm ráp máy, phần cứng hoặc những dự án công nghệ bạn từng tham gia..."
-                    className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3.5 py-2 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                    placeholder="Những dự án công nghệ bạn từng làm, thế mạnh hoặc mong muốn khi gia nhập QMD-Tech..."
+                    className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3.5 py-2 text-xs text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none"
                   />
                 </div>
 
-                <div className="pt-2 flex justify-end gap-2">
+                {submitError && (
+                  <div className="rounded-lg border border-[#FECACA] bg-[#FEF2F2] p-2.5 text-xs text-[#DC2626] flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4 shrink-0" />
+                    <span>{submitError}</span>
+                  </div>
+                )}
+
+                <div className="pt-2 flex justify-end gap-2 border-t border-[#F1F5F9]">
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
+                    disabled={isSubmitting}
                     onClick={() => setApplyModalJob(null)}
                   >
                     Hủy bỏ
                   </Button>
-                  <Button type="submit" variant="primary" size="sm">
-                    Gửi Hồ Sơ Ứng Tuyển
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="sm"
+                    disabled={isSubmitting}
+                    className="flex items-center gap-1.5 shadow-xs font-bold"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        <span>Đang gửi hồ sơ...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-3.5 w-3.5" />
+                        <span>Gửi Hồ Sơ Ứng Tuyển</span>
+                      </>
+                    )}
                   </Button>
                 </div>
               </form>
