@@ -55,7 +55,7 @@ export function Header() {
             <span className="flex items-center gap-1.5 truncate text-[11px] sm:text-xs text-[#334155]">
               <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 shrink-0 rounded-full bg-[#16A34A] animate-pulse" />
               <span className="truncate">
-                <strong className="text-[#0F172A]">Bán Hàng & Ráp PC Online Toàn Quốc</strong> • Giao tận nơi 63 tỉnh thành
+                <strong className="text-[#0F172A]">Bán Hàng & Ráp PC Online Toàn Quốc</strong> • Giao tận nơi 34 tỉnh thành
               </span>
             </span>
             <span className="hidden md:inline-block text-[#CBD5E1]">|</span>
