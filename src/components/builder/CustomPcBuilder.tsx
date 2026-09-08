@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Product, ComponentSlot, CustomBuild } from "@/shared/types";
+import { Product, ComponentSlot, CustomBuild, Category } from "@/shared/types";
 import { builderService } from "@/modules/builder/service";
 import { catalogService } from "@/modules/catalog/service";
 import { i18nService } from "@/modules/i18n/service";
@@ -31,14 +31,49 @@ import {
 } from "lucide-react";
 
 const SLOTS_CONFIG: { slot: ComponentSlot; icon: React.ElementType; keywords: string[] }[] = [
-  { slot: "cpu", icon: Cpu, keywords: ["cpu", "cat-cpu", "processor", "vi-xu-ly", "core", "ryzen", "intel"] },
-  { slot: "motherboard", icon: CircuitBoard, keywords: ["mainboard", "cat-mainboard", "motherboard", "bo-mach-chu", "b650", "b760", "z790", "x670", "b550"] },
+  { slot: "cpu", icon: Cpu, keywords: ["cpu", "cat-cpu", "processor", "vi-xu-ly", "core", "ryzen", "intel", "ultra"] },
+  {
+    slot: "motherboard",
+    icon: CircuitBoard,
+    keywords: [
+      "mainboard",
+      "cat-mainboard",
+      "motherboard",
+      "bo-mach-chu",
+      "mb-",
+      "b650",
+      "b760",
+      "z790",
+      "z890",
+      "b860",
+      "x870",
+      "x870e",
+      "x670",
+      "b550",
+      "h610",
+      "a620",
+      "b450",
+      "z690",
+      "z590",
+      "h510",
+      "b460",
+      "b365",
+      "am5",
+      "lga1700",
+      "lga1851",
+      "lga1200",
+      "matx",
+      "atx",
+      "itx",
+      "e-atx",
+    ],
+  },
   { slot: "ram", icon: MemoryStick, keywords: ["ram", "cat-ram", "memory", "bo-nho-trong", "ddr4", "ddr5"] },
-  { slot: "gpu", icon: Layers, keywords: ["vga", "cat-vga", "gpu", "graphics", "card-man-hinh", "rtx", "rx", "gtx"] },
-  { slot: "storage", icon: HardDrive, keywords: ["ssd", "cat-ssd", "storage", "hdd", "nvme", "o-cung"] },
-  { slot: "psu", icon: Zap, keywords: ["psu", "cat-psu", "power", "nguon", "watt"] },
-  { slot: "case", icon: Box, keywords: ["case", "cat-case", "vo-case", "thung-may"] },
-  { slot: "cooling", icon: Fan, keywords: ["cooling", "cat-cooling", "cooler", "tan-nhiet", "fan", "aio", "water"] },
+  { slot: "gpu", icon: Layers, keywords: ["vga", "cat-vga", "gpu", "graphics", "card-man-hinh", "rtx", "rx", "gtx", "radeon", "geforce"] },
+  { slot: "storage", icon: HardDrive, keywords: ["ssd", "cat-ssd", "storage", "hdd", "nvme", "o-cung", "pcie"] },
+  { slot: "psu", icon: Zap, keywords: ["psu", "cat-psu", "power", "nguon", "watt", "bronze", "gold", "platinum"] },
+  { slot: "case", icon: Box, keywords: ["case", "cat-case", "vo-case", "thung-may", "chassis"] },
+  { slot: "cooling", icon: Fan, keywords: ["cooling", "cat-cooling", "cooler", "tan-nhiet", "fan", "aio", "water", "tan-khi", "tan-nuoc"] },
 ];
 
 const INITIAL_SLOTS: Record<ComponentSlot, Product | null> = {
@@ -63,6 +98,7 @@ export function CustomPcBuilder({ initialBuild }: CustomPcBuilderProps) {
   const [selectedSlots, setSelectedSlots] = useState<Record<ComponentSlot, Product | null>>(INITIAL_SLOTS);
   const [activeSlotPicker, setActiveSlotPicker] = useState<ComponentSlot | null>(null);
   const [dbProducts, setDbProducts] = useState<Product[]>([]);
+  const [dbCategories, setDbCategories] = useState<Category[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [shareSuccessMsg, setShareSuccessMsg] = useState<string | null>(null);
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
@@ -74,8 +110,12 @@ export function CustomPcBuilder({ initialBuild }: CustomPcBuilderProps) {
     async function loadCatalog() {
       setLoadingProducts(true);
       try {
-        const { products } = await catalogService.getProducts({ limit: 100 });
+        const [{ products }, categories] = await Promise.all([
+          catalogService.getProducts({ limit: 150 }),
+          catalogService.getCategories(),
+        ]);
         setDbProducts(products);
+        setDbCategories(categories);
 
         // Pre-fill initial build if editing
         if (initialBuild && initialBuild.items) {
@@ -150,7 +190,40 @@ export function CustomPcBuilder({ initialBuild }: CustomPcBuilderProps) {
     const config = SLOTS_CONFIG.find((c) => c.slot === activeSlotPicker);
     if (!config) return [];
 
+    const catMap = new Map<string, Category>();
+    dbCategories.forEach((c) => catMap.set(c.id, c));
+
     return dbProducts.filter((p) => {
+      // 1. Direct Category Matching
+      const matchedCat = catMap.get(p.category_id);
+      if (matchedCat) {
+        const cSlug = matchedCat.slug.toLowerCase();
+        const cName = ((matchedCat.name_vi || "") + " " + (matchedCat.name_en || "")).toLowerCase();
+
+        if (
+          activeSlotPicker === "motherboard" &&
+          (cSlug === "motherboard" || cSlug === "mainboard" || cSlug.includes("main") || cName.includes("bo mach") || cName.includes("mainboard"))
+        ) {
+          return true;
+        }
+        if (activeSlotPicker === "cpu" && (cSlug === "cpu" || cName.includes("vi xu ly"))) return true;
+        if (activeSlotPicker === "ram" && (cSlug === "ram" || cName.includes("ram") || cName.includes("bo nho"))) return true;
+        if (activeSlotPicker === "gpu" && (cSlug === "gpu" || cSlug === "vga" || cName.includes("card") || cName.includes("do hoa"))) return true;
+        if (activeSlotPicker === "storage" && (cSlug === "storage" || cSlug === "ssd" || cName.includes("o cung") || cName.includes("ssd"))) return true;
+        if (activeSlotPicker === "psu" && (cSlug === "psu" || cSlug === "power" || cName.includes("nguon"))) return true;
+        if (activeSlotPicker === "case" && (cSlug === "case" || cName.includes("vo may") || cName.includes("case"))) return true;
+        if (activeSlotPicker === "cooling" && (cSlug === "cooling" || cSlug === "cooler" || cName.includes("tan nhiet"))) return true;
+      }
+
+      // 2. Hardware specs heuristics for Motherboards
+      if (activeSlotPicker === "motherboard") {
+        const specs = p.specs || {};
+        if (specs.chipset || specs.ram_slots || (specs.form_factor && !specs.power_watts)) {
+          return true;
+        }
+      }
+
+      // 3. Fallback keyword matching on catId, slug, sku, name
       const catId = (p.category_id || "").toLowerCase();
       const slug = (p.slug || "").toLowerCase();
       const sku = (p.sku || "").toLowerCase();
@@ -160,7 +233,7 @@ export function CustomPcBuilder({ initialBuild }: CustomPcBuilderProps) {
         (kw) => catId.includes(kw) || slug.includes(kw) || sku.includes(kw) || name.includes(kw)
       );
     });
-  }, [activeSlotPicker, dbProducts]);
+  }, [activeSlotPicker, dbProducts, dbCategories]);
 
   const getTierLabel = (tier: string) => {
     switch (tier) {
