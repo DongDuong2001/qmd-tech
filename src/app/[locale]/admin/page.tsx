@@ -129,6 +129,8 @@ export default function AdminDashboardPage() {
 
   // Modals state
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
+  const [isEditProductOpen, setIsEditProductOpen] = useState(false);
+  const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
   const [isEditCategoryOpen, setIsEditCategoryOpen] = useState(false);
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
@@ -209,6 +211,37 @@ export default function AdminDashboardPage() {
   const [ramTypeInput, setRamTypeInput] = useState("");
   const [tdpInput, setTdpInput] = useState("");
   const [vramInput, setVramInput] = useState("");
+
+  // Edit Product Form State
+  const [editProductForm, setEditProductForm] = useState<CreateProductInput>({
+    name_vi: "",
+    name_en: "",
+    slug: "",
+    sku: "",
+    brand: "ASUS",
+    category_id: "",
+    price_vnd: 0,
+    original_price_vnd: 0,
+    stock: 10,
+    images: ["https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?auto=format&fit=crop&w=600&q=80"],
+    specs: {},
+    warranty_months: 36,
+    is_featured: false,
+  });
+
+  const [editSocketInput, setEditSocketInput] = useState("");
+  const [editRamTypeInput, setEditRamTypeInput] = useState("");
+  const [editTdpInput, setEditTdpInput] = useState("");
+  const [editVramInput, setEditVramInput] = useState("");
+
+  const formatVndNumber = (num?: number | null) => {
+    return new Intl.NumberFormat("en-US").format(num || 0);
+  };
+
+  const parseVndNumber = (val: string) => {
+    const digits = val.replace(/[^0-9]/g, "");
+    return digits ? parseInt(digits, 10) : 0;
+  };
 
   // Category Form State
   const [categoryForm, setCategoryForm] = useState({
@@ -434,6 +467,60 @@ export default function AdminDashboardPage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       showNotification("error", "Lỗi xóa sản phẩm: " + msg);
+    }
+  };
+
+  const handleOpenEditProduct = (p: Product) => {
+    setEditingProductId(p.id);
+    setEditProductForm({
+      name_vi: p.name_vi || "",
+      name_en: p.name_en || "",
+      slug: p.slug || "",
+      sku: p.sku || "",
+      brand: p.brand || "ASUS",
+      category_id: p.category_id || categories[0]?.id || "",
+      price_vnd: p.price_vnd || 0,
+      original_price_vnd: p.original_price_vnd || 0,
+      stock: p.stock || 0,
+      images: p.images || [],
+      specs: p.specs || {},
+      warranty_months: p.warranty_months || 36,
+      is_featured: !!p.is_featured,
+    });
+    setEditSocketInput(p.specs?.socket ? String(p.specs.socket) : "");
+    setEditRamTypeInput(p.specs?.ram_type ? String(p.specs.ram_type) : "");
+    setEditTdpInput(p.specs?.tdp_watts ? String(p.specs.tdp_watts) : "");
+    setEditVramInput(p.specs?.vram_gb ? String(p.specs.vram_gb) : "");
+    setIsEditProductOpen(true);
+  };
+
+  const handleUpdateProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProductId) return;
+    try {
+      const specs: Record<string, unknown> = { ...(editProductForm.specs || {}) };
+      if (editSocketInput.trim()) specs.socket = editSocketInput.trim();
+      if (editRamTypeInput.trim()) specs.ram_type = editRamTypeInput.trim();
+      if (editTdpInput.trim()) specs.tdp_watts = parseInt(editTdpInput.trim(), 10);
+      if (editVramInput.trim()) specs.vram_gb = parseInt(editVramInput.trim(), 10);
+
+      const generatedSlug =
+        editProductForm.slug ||
+        editProductForm.name_vi.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+      await adminService.updateProduct(editingProductId, {
+        ...editProductForm,
+        slug: generatedSlug,
+        specs,
+      });
+
+      showNotification("success", "Đã cập nhật linh kiện thành công!");
+      setIsEditProductOpen(false);
+      setEditingProductId(null);
+      loadAllData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi cập nhật sản phẩm: " + msg);
     }
   };
 
@@ -1539,13 +1626,22 @@ export default function AdminDashboardPage() {
                             {p.specs?.vram_gb && <span>{String(p.specs.vram_gb)}GB</span>}
                           </td>
                           <td className="p-3.5 text-right">
-                            <button
-                              onClick={() => handleDeleteProduct(p.id)}
-                              className="rounded p-1.5 text-[#B91C1C] hover:bg-[#FEE2E2] transition-colors"
-                              title="Xóa linh kiện"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
+                            <div className="flex items-center justify-end gap-1">
+                              <button
+                                onClick={() => handleOpenEditProduct(p)}
+                                className="rounded p-1.5 text-[#0063FD] hover:bg-[#EFF6FF] transition-colors"
+                                title="Chỉnh sửa thông tin linh kiện"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteProduct(p.id)}
+                                className="rounded p-1.5 text-[#B91C1C] hover:bg-[#FEE2E2] transition-colors"
+                                title="Xóa linh kiện"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))
@@ -2828,21 +2924,31 @@ export default function AdminDashboardPage() {
               <label className="block font-bold text-[#1E293B] mb-1">Giá bán (VND) *</label>
               <input
                 required
-                type="number"
-                value={productForm.price_vnd}
-                onChange={(e) => setProductForm({ ...productForm, price_vnd: parseInt(e.target.value || "0", 10) })}
+                type="text"
+                placeholder="VD: 15,000,000"
+                value={productForm.price_vnd ? formatVndNumber(productForm.price_vnd) : ""}
+                onChange={(e) => setProductForm({ ...productForm, price_vnd: parseVndNumber(e.target.value) })}
                 className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs font-bold"
               />
+              <span className="text-[10px] font-mono font-bold text-[#0063FD] mt-1 block">
+                = {formatVndNumber(productForm.price_vnd)} VNĐ
+              </span>
             </div>
 
             <div>
               <label className="block font-bold text-[#1E293B] mb-1">Giá niêm yết cũ (VND)</label>
               <input
-                type="number"
-                value={productForm.original_price_vnd}
-                onChange={(e) => setProductForm({ ...productForm, original_price_vnd: parseInt(e.target.value || "0", 10) })}
+                type="text"
+                placeholder="VD: 18,000,000"
+                value={productForm.original_price_vnd ? formatVndNumber(productForm.original_price_vnd) : ""}
+                onChange={(e) => setProductForm({ ...productForm, original_price_vnd: parseVndNumber(e.target.value) })}
                 className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
               />
+              {productForm.original_price_vnd ? (
+                <span className="text-[10px] font-mono text-[#64748B] mt-1 block">
+                  = {formatVndNumber(productForm.original_price_vnd)} VNĐ
+                </span>
+              ) : null}
             </div>
 
             <div>
@@ -2920,6 +3026,217 @@ export default function AdminDashboardPage() {
           <div className="pt-3 border-t border-[#E2E8F0]">
             <Button type="submit" variant="primary" size="md" className="w-full font-black uppercase text-xs">
               Lưu Sản Phẩm Vào Kho
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* ========================================================================= */}
+      {/* EDIT PRODUCT MODAL */}
+      {/* ========================================================================= */}
+      <Modal
+        isOpen={isEditProductOpen}
+        onClose={() => {
+          setIsEditProductOpen(false);
+          setEditingProductId(null);
+        }}
+        title="CHỈNH SỬA THÔNG TIN LINH KIỆN"
+        description="Cập nhật thông số kỹ thuật, giá bán VNĐ và tồn kho linh kiện trong hệ thống"
+        maxWidth="2xl"
+      >
+        <form onSubmit={handleUpdateProduct} className="space-y-4 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Tên tiếng Việt *</label>
+              <input
+                required
+                type="text"
+                placeholder="VD: Card màn hình ASUS ROG Strix RTX 4070 Ti Super 16GB"
+                value={editProductForm.name_vi}
+                onChange={(e) => setEditProductForm({ ...editProductForm, name_vi: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Tên tiếng Anh</label>
+              <input
+                type="text"
+                placeholder="VD: ASUS ROG Strix GeForce RTX 4070 Ti Super 16GB"
+                value={editProductForm.name_en}
+                onChange={(e) => setEditProductForm({ ...editProductForm, name_en: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Mã SKU *</label>
+              <input
+                required
+                type="text"
+                placeholder="VD: GPU-ASUS-4070TIS"
+                value={editProductForm.sku}
+                onChange={(e) => setEditProductForm({ ...editProductForm, sku: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs font-mono"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Thương hiệu *</label>
+              <select
+                value={editProductForm.brand}
+                onChange={(e) => setEditProductForm({ ...editProductForm, brand: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs font-bold"
+              >
+                <option value="ASUS">ASUS</option>
+                <option value="MSI">MSI</option>
+                <option value="Intel">Intel</option>
+                <option value="AMD">AMD</option>
+                <option value="GIGABYTE">GIGABYTE</option>
+                <option value="Corsair">Corsair</option>
+                <option value="Samsung">Samsung</option>
+                <option value="Kingston">Kingston</option>
+                <option value="NZXT">NZXT</option>
+                <option value="Lian Li">Lian Li</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Danh mục *</label>
+              <select
+                value={editProductForm.category_id}
+                onChange={(e) => setEditProductForm({ ...editProductForm, category_id: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs font-bold"
+              >
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name_vi}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Giá bán (VND) *</label>
+              <input
+                required
+                type="text"
+                placeholder="VD: 15,000,000"
+                value={editProductForm.price_vnd ? formatVndNumber(editProductForm.price_vnd) : ""}
+                onChange={(e) => setEditProductForm({ ...editProductForm, price_vnd: parseVndNumber(e.target.value) })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs font-bold"
+              />
+              <span className="text-[10px] font-mono font-bold text-[#0063FD] mt-1 block">
+                = {formatVndNumber(editProductForm.price_vnd)} VNĐ
+              </span>
+            </div>
+
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Giá niêm yết cũ (VND)</label>
+              <input
+                type="text"
+                placeholder="VD: 18,000,000"
+                value={editProductForm.original_price_vnd ? formatVndNumber(editProductForm.original_price_vnd) : ""}
+                onChange={(e) => setEditProductForm({ ...editProductForm, original_price_vnd: parseVndNumber(e.target.value) })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
+              />
+              {editProductForm.original_price_vnd ? (
+                <span className="text-[10px] font-mono text-[#64748B] mt-1 block">
+                  = {formatVndNumber(editProductForm.original_price_vnd)} VNĐ
+                </span>
+              ) : null}
+            </div>
+
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Số lượng tồn kho *</label>
+              <input
+                required
+                type="number"
+                value={editProductForm.stock}
+                onChange={(e) => setEditProductForm({ ...editProductForm, stock: parseInt(e.target.value || "0", 10) })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs font-bold"
+              />
+            </div>
+          </div>
+
+          {/* PC Builder Compatibility Specs */}
+          <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-3.5 space-y-2">
+            <div className="font-black text-[#0F172A] uppercase text-[11px] flex items-center gap-1.5">
+              <Activity className="h-3.5 w-3.5 text-[#0063FD]" />
+              Thông số tương thích công cụ Custom PC Builder
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <div>
+                <label className="block text-[10px] font-bold text-[#475569]">Socket (VD: LGA1700, AM5)</label>
+                <input
+                  type="text"
+                  placeholder="LGA1700"
+                  value={editSocketInput}
+                  onChange={(e) => setEditSocketInput(e.target.value)}
+                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-[#475569]">RAM Type (VD: DDR5, DDR4)</label>
+                <input
+                  type="text"
+                  placeholder="DDR5"
+                  value={editRamTypeInput}
+                  onChange={(e) => setEditRamTypeInput(e.target.value)}
+                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-[#475569]">Công suất TDP (W)</label>
+                <input
+                  type="number"
+                  placeholder="250"
+                  value={editTdpInput}
+                  onChange={(e) => setEditTdpInput(e.target.value)}
+                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs font-mono"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-[#475569]">VRAM (GB)</label>
+                <input
+                  type="number"
+                  placeholder="16"
+                  value={editVramInput}
+                  onChange={(e) => setEditVramInput(e.target.value)}
+                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs font-mono"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <CloudinaryImageUpload
+              value={editProductForm.images[0] || ""}
+              onChange={(url) => setEditProductForm({ ...editProductForm, images: url ? [url] : [] })}
+              folder="qmdtech/products"
+              label="Ảnh sản phẩm chính"
+              description="Tự động nén WebP và tải lên Cloudinary để tối ưu hóa hiệu năng và quota."
+            />
+          </div>
+
+          <div className="pt-3 border-t border-[#E2E8F0] flex items-center justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setIsEditProductOpen(false);
+                setEditingProductId(null);
+              }}
+            >
+              Hủy
+            </Button>
+            <Button type="submit" variant="primary" size="sm" className="font-black uppercase text-xs">
+              Cập Nhật Sản Phẩm
             </Button>
           </div>
         </form>
@@ -3244,20 +3561,30 @@ export default function AdminDashboardPage() {
               <label className="block font-bold text-[#1E293B] mb-1">Giá bán (VND) *</label>
               <input
                 required
-                type="number"
-                value={dealForm.price_vnd}
-                onChange={(e) => setDealForm({ ...dealForm, price_vnd: parseInt(e.target.value || "0", 10) })}
+                type="text"
+                placeholder="VD: 25,000,000"
+                value={dealForm.price_vnd ? formatVndNumber(dealForm.price_vnd) : ""}
+                onChange={(e) => setDealForm({ ...dealForm, price_vnd: parseVndNumber(e.target.value) })}
                 className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs font-bold"
               />
+              <span className="text-[10px] font-mono font-bold text-[#0063FD] mt-1 block">
+                = {formatVndNumber(dealForm.price_vnd)} VNĐ
+              </span>
             </div>
             <div>
               <label className="block font-bold text-[#1E293B] mb-1">Giá niêm yết cũ (VND)</label>
               <input
-                type="number"
-                value={dealForm.original_price_vnd ?? 0}
-                onChange={(e) => setDealForm({ ...dealForm, original_price_vnd: parseInt(e.target.value || "0", 10) })}
+                type="text"
+                placeholder="VD: 28,000,000"
+                value={dealForm.original_price_vnd ? formatVndNumber(dealForm.original_price_vnd) : ""}
+                onChange={(e) => setDealForm({ ...dealForm, original_price_vnd: parseVndNumber(e.target.value) })}
                 className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
               />
+              {dealForm.original_price_vnd ? (
+                <span className="text-[10px] font-mono text-[#64748B] mt-1 block">
+                  = {formatVndNumber(dealForm.original_price_vnd)} VNĐ
+                </span>
+              ) : null}
             </div>
             <div>
               <label className="block font-bold text-[#1E293B] mb-1">Nhãn Tag (Badge)</label>
