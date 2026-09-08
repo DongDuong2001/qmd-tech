@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import crypto from "crypto";
 import { checkRateLimit, getClientIp } from "@/shared/security/rateLimiter";
 import {
   ADMIN_COOKIE_NAME,
@@ -7,6 +8,12 @@ import {
   getClearCookieOptions,
 } from "@/shared/security/cookies";
 import { createAdminToken } from "@/shared/security/jwt";
+
+function timingSafeStringEqual(a: string, b: string): boolean {
+  const hashA = crypto.createHash("sha256").update(a).digest();
+  const hashB = crypto.createHash("sha256").update(b).digest();
+  return crypto.timingSafeEqual(hashA, hashB);
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -39,11 +46,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const isMatch =
-      username?.trim().toLowerCase() === configuredUser.toLowerCase() &&
-      passcode === configuredPassword;
+    const isUserMatch = timingSafeStringEqual(
+      (username || "").trim().toLowerCase(),
+      configuredUser.toLowerCase()
+    );
+    const isPassMatch = timingSafeStringEqual(
+      passcode || "",
+      configuredPassword
+    );
 
-    if (!isMatch) {
+    if (!isUserMatch || !isPassMatch) {
       return NextResponse.json(
         {
           success: false,
