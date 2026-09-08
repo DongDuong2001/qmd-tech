@@ -33,7 +33,7 @@ export function Footer() {
             </div>
             <div>
               <h4 className="text-sm font-black text-[#0F172A] uppercase">Giao Hàng Siêu Tốc</h4>
-              <p className="text-xs text-[#64748B]">Giao 2h nội thành HN & TP.HCM</p>
+              <p className="text-xs text-[#64748B]">Hỏa tốc nhanh nhất tại HN • Tỉnh khác 1 - 3 ngày</p>
             </div>
           </div>
 
@@ -99,7 +99,7 @@ export function Footer() {
             <div className="space-y-3 text-xs">
               <div>
                 <strong className="text-[#0F172A]">Mô hình kinh doanh:</strong>
-                <p className="text-[#64748B]">Bán hàng & Ráp PC Online giao tận nơi 34 tỉnh thành</p>
+                <p className="text-[#64748B]">Bán hàng & Ráp PC Online giao tận nơi 34 tỉnh thành (Hà Nội giao hỏa tốc, tỉnh khác 1 - 3 ngày)</p>
               </div>
               <div>
                 <strong className="text-[#0F172A]">Trụ sở chính & Kho hàng:</strong>
@@ -134,6 +134,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/tuyen-dung" className="hover:text-[#0063FD] transition-colors font-semibold text-[#0063FD]">
+                  Cơ hội nghề nghiệp & Tuyển dụng (Career)
+                </Link>
+              </li>
+              <li>
                 <Link href="/khuyen-mai" className="hover:text-[#0063FD] transition-colors">
                   Chương trình khuyến mãi & quà tặng
                 </Link>
@@ -155,14 +160,14 @@ export function Footer() {
               <span className="flex items-center justify-center rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] py-2 font-bold text-[#0F172A]">
                 SEPAY VIETQR
               </span>
-              <span className="flex items-center justify-center rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] py-2 font-bold text-[#DB2777]">
-                MOMO
-              </span>
               <span className="flex items-center justify-center rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] py-2 font-bold text-[#2563EB]">
-                CHUYỂN KHOẢN
+                CHUYỂN KHOẢN 24/7
               </span>
               <span className="flex items-center justify-center rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] py-2 font-bold text-[#16A34A]">
                 COD TẬN NƠI
+              </span>
+              <span className="flex items-center justify-center rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] py-2 font-bold text-[#475569]">
+                TIỀN MẶT / ATM
               </span>
             </div>
 
