@@ -15,11 +15,6 @@ import {
   ShieldCheck,
   Gift,
   Zap,
-  Cpu,
-  Layers,
-  HardDrive,
-  Activity,
-  ChevronRight,
   Eye,
 } from "lucide-react";
 
@@ -39,7 +34,6 @@ export function ProductCard({
   const locale = useLocale() as "vi" | "en";
   const t = useTranslations();
   const { addToCart } = useCart();
-  const [isHovered, setIsHovered] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
 
   const handleCartClick = async () => {
@@ -75,8 +69,6 @@ export function ProductCard({
 
   return (
     <div
-      onMouseEnter={() => !isBuilderMode && setIsHovered(true)}
-      onMouseLeave={() => !isBuilderMode && setIsHovered(false)}
       className="group relative flex flex-col justify-between rounded-xl border border-[#E2E8F0] bg-[#FFFFFF] p-3.5 shadow-xs transition-all duration-300 hover:border-[#0063FD] hover:shadow-md"
     >
       <div>
@@ -248,87 +240,6 @@ export function ProductCard({
           <span className="text-[#0F172A] font-semibold">Giao 2h HN/HCM</span>
         </div>
       </div>
-
-      {/* ========================================================================= */}
-      {/* HOVER QUICK TECHNICAL SPECS POPOVER (Interactive Hardware Info) */}
-      {/* Hidden in Builder Mode to prevent overlay blocking the Select button */}
-      {/* ========================================================================= */}
-      {!isBuilderMode && (
-        <div
-          className={`absolute inset-x-0 bottom-full mb-2 z-30 transition-all duration-200 pointer-events-none ${
-            isHovered ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-1 scale-95"
-          }`}
-        >
-        <div className="rounded-xl border border-[#CBD5E1] bg-[#FFFFFF] p-3.5 shadow-xl text-xs space-y-2.5 pointer-events-auto">
-          <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
-            <div className="font-black text-[#0F172A] flex items-center gap-1.5 uppercase text-[11px]">
-              <Activity className="h-3.5 w-3.5 text-[#0063FD]" />
-              <span>Thông Số Kỹ Thuật</span>
-            </div>
-            <span className="font-mono text-[10px] text-[#64748B]">SKU: {product.sku}</span>
-          </div>
-
-          <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11px]">
-            {product.specs.socket && (
-              <div className="flex items-center justify-between">
-                <span className="text-[#64748B] flex items-center gap-1">
-                  <Cpu className="h-3 w-3 text-[#0063FD]" /> Socket:
-                </span>
-                <span className="font-mono font-bold text-[#0F172A]">{String(product.specs.socket)}</span>
-              </div>
-            )}
-            {product.specs.ram_type && (
-              <div className="flex items-center justify-between">
-                <span className="text-[#64748B] flex items-center gap-1">
-                  <Layers className="h-3 w-3 text-[#16A34A]" /> Chuẩn RAM:
-                </span>
-                <span className="font-mono font-bold text-[#0F172A]">{String(product.specs.ram_type)}</span>
-              </div>
-            )}
-            {product.specs.vram_gb && (
-              <div className="flex items-center justify-between">
-                <span className="text-[#64748B]">VRAM:</span>
-                <span className="font-mono font-bold text-[#0063FD]">{String(product.specs.vram_gb)} GB</span>
-              </div>
-            )}
-            {product.specs.tdp_watts && (
-              <div className="flex items-center justify-between">
-                <span className="text-[#64748B]">Công suất TDP:</span>
-                <span className="font-mono font-bold text-[#0F172A]">{String(product.specs.tdp_watts)} W</span>
-              </div>
-            )}
-            {product.specs.form_factor && (
-              <div className="flex items-center justify-between">
-                <span className="text-[#64748B]">Kích thước:</span>
-                <span className="font-mono font-bold text-[#0F172A]">{String(product.specs.form_factor)}</span>
-              </div>
-            )}
-            {product.specs.capacity_gb && (
-              <div className="flex items-center justify-between">
-                <span className="text-[#64748B] flex items-center gap-1">
-                  <HardDrive className="h-3 w-3 text-[#0284C7]" /> Dung lượng:
-                </span>
-                <span className="font-mono font-bold text-[#0F172A]">{String(product.specs.capacity_gb)} GB</span>
-              </div>
-            )}
-            <div className="flex items-center justify-between col-span-2 pt-1 border-t border-[#F1F5F9]">
-              <span className="text-[#64748B]">Tình trạng kho:</span>
-              <span className={`font-bold ${product.stock > 0 ? "text-[#16A34A]" : "text-[#DC2626]"}`}>
-                {product.stock > 0 ? `Còn ${product.stock} sản phẩm sẵn sàng giao` : "Tạm hết hàng"}
-              </span>
-            </div>
-          </div>
-
-          <Link
-            href={`/san-pham/${product.slug}`}
-            className="flex items-center justify-center gap-1 w-full rounded-lg bg-[#F8FAFC] py-1.5 text-[11px] font-bold text-[#0F172A] hover:bg-[#0063FD] hover:text-white transition-colors border border-[#E2E8F0]"
-          >
-            <span>Xem thông số chi tiết đầy đủ</span>
-            <ChevronRight className="h-3 w-3" />
-          </Link>
-        </div>
-      </div>
-      )}
     </div>
   );
 }
