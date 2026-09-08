@@ -92,31 +92,34 @@ export default function CareerStorefrontPage() {
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       {/* 1. Hero Banner */}
-      <section className="relative overflow-hidden bg-linear-to-b from-[#0F172A] to-[#1E293B] text-white py-16 px-4 sm:px-6 lg:px-8 border-b border-[#334155]">
+      <section className="relative overflow-hidden bg-slate-900 py-16 px-4 sm:px-6 lg:px-8 border-b border-slate-800">
         <div className="mx-auto max-w-5xl text-center space-y-4">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#0063FD]/40 bg-[#0063FD]/10 px-3.5 py-1 text-xs font-bold text-[#60A5FA] uppercase tracking-wider">
-            <Sparkles className="h-3.5 w-3.5 text-[#60A5FA]" />
-            Tuyển Dụng & Phát Triển Sự Nghiệp Tại QMD-Tech
+          <div className="inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-500/10 px-3.5 py-1 text-xs font-semibold text-blue-400 uppercase tracking-wider">
+            <Sparkles className="h-3.5 w-3.5 text-blue-400" />
+            Cổng Thông Tin Tuyển Dụng
           </div>
 
-          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
-            Cùng QMD-Tech Định Hình{" "}
-            <span className="text-[#0063FD]">Hệ Sinh Thái PC</span> Hàng Đầu
+          <h1
+            style={{ color: "#ffffff" }}
+            className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-white"
+          >
+            Cơ Hội Việc Làm &{" "}
+            <span className="text-[#38BDF8]">Gia Nhập Đội Ngũ</span> QMD-Tech
           </h1>
 
-          <p className="text-xs sm:text-base text-[#94A3B8] max-w-2xl mx-auto leading-relaxed">
-            Chúng tôi tìm kiếm những cộng sự đam mê công nghệ phần cứng, tận tâm phục vụ khách hàng và luôn sẵn sàng bứt phá giới hạn để cùng tạo nên những giá trị khác biệt.
+          <p className="text-xs sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
+            QMD-Tech cung cấp môi trường làm việc minh bạch, chuyên nghiệp dành cho các nhân sự am hiểu phần cứng máy tính và giải pháp công nghệ.
           </p>
 
           <div className="pt-2 flex flex-wrap justify-center gap-3 text-xs font-mono">
-            <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-1.5 backdrop-blur-xs">
-              <MapPin className="h-3.5 w-3.5 text-[#60A5FA]" /> Trụ sở chính: Cầu Giấy, Hà Nội
+            <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 border border-slate-700 px-3 py-1.5 text-slate-200">
+              <MapPin className="h-3.5 w-3.5 text-blue-400" /> Trụ sở làm việc: Cầu Giấy, Hà Nội
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-1.5 backdrop-blur-xs">
-              <Users className="h-3.5 w-3.5 text-[#34D399]" /> Quy mô mở rộng liên tục
+            <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 border border-slate-700 px-3 py-1.5 text-slate-200">
+              <Users className="h-3.5 w-3.5 text-emerald-400" /> Môi trường làm việc chuyên nghiệp
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-1.5 backdrop-blur-xs">
-              <Award className="h-3.5 w-3.5 text-[#FBBF24]" /> Đãi ngộ cạnh tranh bậc nhất
+            <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 border border-slate-700 px-3 py-1.5 text-slate-200">
+              <Award className="h-3.5 w-3.5 text-amber-400" /> Chế độ đãi ngộ & phúc lợi rõ ràng
             </span>
           </div>
         </div>
@@ -346,10 +349,10 @@ export default function CareerStorefrontPage() {
         <section className="mt-14 rounded-2xl border border-[#E2E8F0] bg-white p-6 sm:p-10 shadow-xs space-y-8">
           <div className="text-center space-y-2 max-w-2xl mx-auto">
             <h3 className="text-xl sm:text-2xl font-black text-[#0F172A] uppercase">
-              Văn Hóa Làm Việc Tại QMD-Tech
+              Môi Trường Làm Việc Tại QMD-Tech
             </h3>
             <p className="text-xs sm:text-sm text-[#64748B]">
-              Tại QMD-Tech, chúng tôi trân trọng sự đam mê, tính trung thực và tinh thần trách nhiệm với từng cỗ máy của khách hàng.
+              QMD-Tech định hướng xây dựng môi trường làm việc hợp tác, trách nhiệm và tôn trọng năng lực cá nhân.
             </p>
           </div>
 
@@ -360,7 +363,7 @@ export default function CareerStorefrontPage() {
               </div>
               <h4 className="text-sm font-bold text-[#0F172A]">Minh Bạch & Công Bằng</h4>
               <p className="text-xs text-[#64748B] leading-relaxed">
-                Mọi chế độ lương thưởng, hoa hồng đều được công khai minh bạch. Đánh giá dựa trên năng lực và đóng góp thực tế.
+                Chính sách đãi ngộ, đánh giá năng lực và quy chế làm việc được công khai rõ ràng đối với từng vị trí.
               </p>
             </div>
 
@@ -368,9 +371,9 @@ export default function CareerStorefrontPage() {
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#F0FDF4] text-[#16A34A] font-black">
                 02
               </div>
-              <h4 className="text-sm font-bold text-[#0F172A]">Tiếp Cận Công Nghệ Đỉnh Cao</h4>
+              <h4 className="text-sm font-bold text-[#0F172A]">Tiếp Cận Thiết Bị Mới</h4>
               <p className="text-xs text-[#64748B] leading-relaxed">
-                Là đại lý của các thương hiệu hàng đầu, bạn sẽ được trên tay và thử nghiệm những linh kiện máy tính mới nhất thị trường.
+                Là đại lý phân phối, nhân sự có điều kiện trực tiếp tiếp cận, kiểm thử và làm việc cùng các dòng sản phẩm phần cứng đa dạng.
               </p>
             </div>
 
@@ -378,9 +381,9 @@ export default function CareerStorefrontPage() {
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#FEF3C7] text-[#D97706] font-black">
                 03
               </div>
-              <h4 className="text-sm font-bold text-[#0F172A]">Lộ Trình Phát Triển Rõ Ràng</h4>
+              <h4 className="text-sm font-bold text-[#0F172A]">Lộ Trình Đào Tạo Rõ Ràng</h4>
               <p className="text-xs text-[#64748B] leading-relaxed">
-                Được đào tạo định kỳ về chuyên môn phần cứng, kỹ năng bán hàng và cơ hội thăng tiến lên Trưởng nhóm, Quản lý chi nhánh.
+                Được đào tạo định kỳ về chuyên môn kỹ thuật, kỹ năng tư vấn và lộ trình phát triển theo năng lực công việc.
               </p>
             </div>
           </div>
