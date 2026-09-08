@@ -13,7 +13,7 @@ export default function AdminLoginPage() {
   const searchParams = useSearchParams();
   const redirectPath = searchParams.get("redirect") || `/${locale}/admin`;
 
-  const [username, setUsername] = useState("admin@qmd.tech");
+  const [username, setUsername] = useState("");
   const [passcode, setPasscode] = useState("");
   const [showPasscode, setShowPasscode] = useState(false);
   const [loading, setLoading] = useState(false);
