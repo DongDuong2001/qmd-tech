@@ -32,12 +32,31 @@ export class CatalogService {
     return DEFAULT_HARDWARE_CATEGORIES;
   }
 
+  private normalizeCategorySlug(slug: string): string {
+    const s = slug.trim().toLowerCase();
+    const map: Record<string, string> = {
+      gpu: "vga",
+      "card-man-hinh": "vga",
+      motherboard: "mainboard",
+      "bo-mach-chu": "mainboard",
+      storage: "ssd",
+      hdd: "ssd",
+      "o-cung": "ssd",
+      "nguon-may-tinh": "psu",
+      "vo-case": "case",
+      "tan-nhiet": "cooling",
+      "man-hinh": "monitor",
+    };
+    return map[s] || s;
+  }
+
   async getCategoryBySlug(slug: string): Promise<Category | null> {
+    const normalized = this.normalizeCategorySlug(slug);
     try {
       const { data, error } = await supabase
         .from("categories")
         .select("*")
-        .eq("slug", slug)
+        .or(`slug.eq.${slug},slug.eq.${normalized}`)
         .maybeSingle();
 
       if (!error && data) {
@@ -46,7 +65,11 @@ export class CatalogService {
     } catch (err) {
       console.warn("CatalogService.getCategoryBySlug exception:", err);
     }
-    return DEFAULT_HARDWARE_CATEGORIES.find((c) => c.slug === slug) || null;
+    return (
+      DEFAULT_HARDWARE_CATEGORIES.find(
+        (c) => c.slug === slug || c.slug === normalized
+      ) || null
+    );
   }
 
   async getProducts(filter: ProductFilter = {}): Promise<{ products: Product[]; total: number }> {
