@@ -12,12 +12,11 @@ import { Province34, WardItem } from "@/modules/location/service";
 import {
   CheckCircle2,
   ShieldCheck,
-  CreditCard,
   Banknote,
-  Smartphone,
   QrCode,
   ChevronDown,
   MapPin,
+  Truck,
 } from "lucide-react";
 
 export default function CheckoutPage() {
@@ -113,7 +112,7 @@ export default function CheckoutPage() {
     setForm((prev) => ({ ...prev, district: e.target.value }));
   };
 
-  const [paymentMethod, setPaymentMethod] = useState<"sepay" | "cod" | "vnpay" | "momo">("sepay");
+  const [paymentMethod, setPaymentMethod] = useState<"sepay" | "cod">("sepay");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createdOrderCode, setCreatedOrderCode] = useState<string | null>(null);
 
@@ -360,6 +359,35 @@ export default function CheckoutPage() {
                 className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3.5 py-2 text-sm text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
               />
             </div>
+
+            {/* Dynamic Delivery Time Policy Notice */}
+            <div
+              className={`rounded-xl border p-3.5 text-xs flex items-start gap-3 transition-colors ${
+                selectedProvinceCode === 1 ||
+                form.city.toLowerCase().includes("hà nội") ||
+                form.city.toLowerCase().includes("ha noi")
+                  ? "border-[#86EFAC] bg-[#F0FDF4] text-[#166534]"
+                  : "border-[#BFDBFE] bg-[#EFF6FF] text-[#1E40AF]"
+              }`}
+            >
+              <Truck className="h-4 w-4 shrink-0 mt-0.5" />
+              <div className="space-y-0.5">
+                <div className="font-bold uppercase text-[11px] tracking-wider">
+                  {selectedProvinceCode === 1 ||
+                  form.city.toLowerCase().includes("hà nội") ||
+                  form.city.toLowerCase().includes("ha noi")
+                    ? "Giao Hỏa Tốc Hà Nội (Nhanh Nhất Có Thể)"
+                    : "Giao Hàng Toàn Quốc (Từ 1 - 3 Ngày Làm Việc)"}
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  {selectedProvinceCode === 1 ||
+                  form.city.toLowerCase().includes("hà nội") ||
+                  form.city.toLowerCase().includes("ha noi")
+                    ? "Đơn hàng nội thành Hà Nội được điều phối xuất kho và bàn giao shipper giao ngay nhanh nhất có thể."
+                    : "Đơn hàng tại các tỉnh thành khác được đóng gói chống sốc 3 lớp, bảo hiểm 100% và giao tận nơi trong vòng 1 - 3 ngày."}
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Payment Methods Selection */}
@@ -396,7 +424,7 @@ export default function CheckoutPage() {
                       </span>
                     </div>
                     <p className="text-[11px] text-[#64748B] leading-relaxed">
-                      Quét mã QR tự động điền số tiền và nội dung qua MBBank, Vietcombank, Techcombank, MoMo... Khớp lệnh tự động 24/7 trong 30 giây.
+                      Quét mã QR tự động điền số tiền và nội dung qua MBBank, Vietcombank, Techcombank, ACB... Khớp lệnh tự động 24/7 trong 30 giây.
                     </p>
                   </div>
                 </div>
@@ -429,62 +457,6 @@ export default function CheckoutPage() {
                   </div>
                 </div>
                 <span className="text-[10px] text-[#64748B]">Kiểm tra trước khi trả</span>
-              </label>
-
-              {/* Option 3: VNPAY */}
-              <label
-                className={`flex items-center justify-between rounded-xl border p-4 cursor-pointer transition-all ${
-                  paymentMethod === "vnpay"
-                    ? "border-[#2563EB] bg-[#EFF6FF]"
-                    : "border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#2563EB]/50"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    checked={paymentMethod === "vnpay"}
-                    onChange={() => setPaymentMethod("vnpay")}
-                    className="text-[#2563EB]"
-                  />
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="h-4 w-4 text-[#2563EB]" />
-                    <span className="text-xs font-semibold text-[#0F172A]">
-                      Cổng VNPAY / Thẻ Quốc Tế (Visa / Master)
-                    </span>
-                  </div>
-                </div>
-                <span className="rounded bg-[#FFFFFF] px-2 py-0.5 text-[10px] font-bold text-[#0F172A] border border-[#E2E8F0]">
-                  VNPAY-QR
-                </span>
-              </label>
-
-              {/* Option 4: MoMo */}
-              <label
-                className={`flex items-center justify-between rounded-xl border p-4 cursor-pointer transition-all ${
-                  paymentMethod === "momo"
-                    ? "border-[#DB2777] bg-[#FDF2F8]"
-                    : "border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#DB2777]/50"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    checked={paymentMethod === "momo"}
-                    onChange={() => setPaymentMethod("momo")}
-                    className="text-[#DB2777]"
-                  />
-                  <div className="flex items-center gap-2">
-                    <Smartphone className="h-4 w-4 text-[#DB2777]" />
-                    <span className="text-xs font-semibold text-[#0F172A]">
-                      Ví Điện Tử MoMo
-                    </span>
-                  </div>
-                </div>
-                <span className="rounded bg-[#FFFFFF] px-2 py-0.5 text-[10px] font-bold text-[#DB2777] border border-[#FBCFE8]">
-                  MoMo Wallet
-                </span>
               </label>
             </div>
           </div>
