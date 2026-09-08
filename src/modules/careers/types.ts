@@ -73,6 +73,7 @@ export interface SubmitApplicationInput {
 }
 
 export interface UpdateApplicationStatusInput {
+  id?: string;
   status: ApplicationStatus;
   notes?: string;
 }
