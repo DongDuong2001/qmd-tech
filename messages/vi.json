@@ -98,7 +98,7 @@
     "email": "Địa chỉ Email",
     "address": "Địa chỉ cụ thể (Số nhà, tên đường)",
     "city": "Tỉnh / Thành phố",
-    "district": "Quận / Huyện",
+    "district": "Phường / Xã",
     "notes": "Ghi chú giao hàng (Giao giờ hành chính, gọi trước khi giao...)",
     "paymentMethod": "Phương thức thanh toán",
     "vnpay": "Cổng VNPAY (Thẻ ATM, QR Pay, Visa/Mastercard)",
