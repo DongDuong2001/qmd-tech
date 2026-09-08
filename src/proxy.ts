@@ -6,7 +6,7 @@ import { verifyAdminToken } from "./shared/security/jwt";
 
 const intlMiddleware = createMiddleware(routing);
 
-export default async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 0. Redirect legacy English routes to Vietnamese
@@ -53,3 +53,6 @@ export default async function middleware(request: NextRequest) {
 export const config = {
   matcher: ["/", "/(vi|en)/:path*", "/((?!api|_next|_vercel|.*\\..*).*)"],
 };
+
+export default proxy;
+
