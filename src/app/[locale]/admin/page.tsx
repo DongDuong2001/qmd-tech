@@ -71,6 +71,7 @@ import {
   Save,
   RotateCcw,
   Briefcase,
+  Download,
 } from "lucide-react";
 import {
   MegaCategoryItem,
@@ -80,7 +81,13 @@ import {
   DEFAULT_MEGA_MENU_CATEGORIES,
 } from "@/components/navigation/megaMenuData";
 import { sanitizeSlug } from "@/modules/blog/service";
-import { CareerJob, CreateCareerInput, UpdateCareerInput } from "@/modules/careers/types";
+import {
+  CareerJob,
+  CreateCareerInput,
+  UpdateCareerInput,
+  CareerApplication,
+  ApplicationStatus,
+} from "@/modules/careers/types";
 import { sanitizeCareerSlug } from "@/modules/careers/service";
 
 export default function AdminDashboardPage() {
@@ -102,6 +109,18 @@ export default function AdminDashboardPage() {
   const [editingCareerId, setEditingCareerId] = useState<string | null>(null);
   const [careerSearchQuery, setCareerSearchQuery] = useState("");
   const [careerDeptFilter, setCareerDeptFilter] = useState("all");
+
+  // Career Sub-tabs & Applications State
+  const [careerSubTab, setCareerSubTab] = useState<"jobs" | "applications">("jobs");
+  const [applications, setApplications] = useState<CareerApplication[]>([]);
+  const [applicationSearch, setApplicationSearch] = useState("");
+  const [applicationStatusFilter, setApplicationStatusFilter] = useState<string>("all");
+  const [applicationJobFilter, setApplicationJobFilter] = useState<string>("all");
+  const [selectedApplication, setSelectedApplication] = useState<CareerApplication | null>(null);
+  const [isAppDetailOpen, setIsAppDetailOpen] = useState(false);
+  const [editingAppNotes, setEditingAppNotes] = useState("");
+  const [editingAppStatus, setEditingAppStatus] = useState<ApplicationStatus>("pending");
+  const [isUpdatingApp, setIsUpdatingApp] = useState(false);
 
   const [careerForm, setCareerForm] = useState<CreateCareerInput>({
     title: "",
@@ -378,7 +397,7 @@ export default function AdminDashboardPage() {
   const loadAllData = async () => {
     setIsRefreshing(true);
     try {
-      const [p, c, o, r, b, d, s, bl, m, cr] = await Promise.all([
+      const [p, c, o, r, b, d, s, bl, m, cr, apps] = await Promise.all([
         adminService.getProducts(),
         adminService.getCategories(),
         adminService.getOrders(),
@@ -389,6 +408,7 @@ export default function AdminDashboardPage() {
         adminService.getBlogPosts(),
         adminService.getMegaMenu(),
         adminService.getCareers(),
+        adminService.getCareerApplications(),
       ]);
       setProducts(p);
       setCategories(c);
@@ -400,6 +420,7 @@ export default function AdminDashboardPage() {
       setBlogs(bl);
       setMegaMenuCategories(m);
       setCareers(cr);
+      setApplications(apps || []);
       if (m.length > 0) {
         setActiveMenuCatId((prev) => (m.some((cat) => cat.id === prev) ? prev : m[0].id));
       }
@@ -1237,6 +1258,97 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // Career Applications Handlers
+  const handleUpdateApplicationStatus = async (
+    id: string,
+    status: ApplicationStatus,
+    notes?: string
+  ) => {
+    setIsUpdatingApp(true);
+    try {
+      const updated = await adminService.updateApplicationStatus(id, {
+        status,
+        notes: notes !== undefined ? notes : undefined,
+      });
+      if (updated) {
+        setApplications((prev) =>
+          prev.map((app) => (app.id === id ? updated : app))
+        );
+        if (selectedApplication?.id === id) {
+          setSelectedApplication(updated);
+        }
+        showNotification("success", "Cập nhật trạng thái hồ sơ ứng viên thành công!");
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi cập nhật hồ sơ: " + msg);
+    } finally {
+      setIsUpdatingApp(false);
+    }
+  };
+
+  const handleDeleteApplication = async (id: string) => {
+    if (!confirm("Bạn có chắc chắn muốn xóa hồ sơ ứng tuyển này không?")) return;
+    try {
+      await adminService.deleteCareerApplication(id);
+      setApplications((prev) => prev.filter((a) => a.id !== id));
+      if (selectedApplication?.id === id) {
+        setIsAppDetailOpen(false);
+        setSelectedApplication(null);
+      }
+      showNotification("success", "Đã xóa hồ sơ ứng viên!");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi xóa hồ sơ: " + msg);
+    }
+  };
+
+  const filteredApplications = useMemo(() => {
+    return applications.filter((app) => {
+      const matchStatus =
+        applicationStatusFilter === "all" || app.status === applicationStatusFilter;
+      const matchJob =
+        applicationJobFilter === "all" ||
+        app.career_id === applicationJobFilter ||
+        app.job_title === applicationJobFilter;
+      const q = applicationSearch.trim().toLowerCase();
+      const matchSearch =
+        !q ||
+        app.full_name.toLowerCase().includes(q) ||
+        app.email.toLowerCase().includes(q) ||
+        app.phone.toLowerCase().includes(q) ||
+        app.job_title.toLowerCase().includes(q) ||
+        (app.notes && app.notes.toLowerCase().includes(q));
+      return matchStatus && matchJob && matchSearch;
+    });
+  }, [applications, applicationStatusFilter, applicationJobFilter, applicationSearch]);
+
+  const getAppStatusBadge = (status: ApplicationStatus) => {
+    switch (status) {
+      case "pending":
+        return { label: "Chờ duyệt", bg: "bg-[#FEF3C7] text-[#B45309] border-[#FDE68A]" };
+      case "reviewed":
+        return { label: "Đã xem qua", bg: "bg-[#EFF6FF] text-[#1D4ED8] border-[#BFDBFE]" };
+      case "contacted":
+        return { label: "Đã liên hệ", bg: "bg-[#ECFEFF] text-[#0E7490] border-[#A5F3FC]" };
+      case "interview":
+        return { label: "Phỏng vấn", bg: "bg-[#FAF5FF] text-[#7E22CE] border-[#E9D5FF]" };
+      case "accepted":
+        return { label: "Tuyển dụng", bg: "bg-[#DCFCE7] text-[#15803D] border-[#86EFAC]" };
+      case "rejected":
+        return { label: "Từ chối", bg: "bg-[#F1F5F9] text-[#64748B] border-[#CBD5E1]" };
+      default:
+        return { label: status, bg: "bg-[#F1F5F9] text-[#64748B] border-[#CBD5E1]" };
+    }
+  };
+
+  const formatAppFileSize = (bytes: number) => {
+    if (!bytes) return "0 B";
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
   const handleAdminLogout = async () => {
     if (!confirm("Bạn có chắc chắn muốn đăng xuất khỏi hệ thống Quản trị?")) return;
     try {
@@ -1530,13 +1642,24 @@ export default function AdminDashboardPage() {
                 <Briefcase className="h-4 w-4" />
                 <span>Tuyển dụng & Career</span>
               </div>
-              <span className={`rounded-full px-2 py-0.5 text-[10px] font-mono ${
-                activeTab === "careers"
-                  ? "bg-white/20 text-white font-bold"
-                  : "bg-[#EFF6FF] text-[#0063FD] font-black border border-[#BFDBFE]"
-              }`}>
-                {careers.length}
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className={`rounded-full px-2 py-0.5 text-[10px] font-mono ${
+                  activeTab === "careers"
+                    ? "bg-white/20 text-white font-bold"
+                    : "bg-[#EFF6FF] text-[#0063FD] font-black border border-[#BFDBFE]"
+                }`}>
+                  {careers.length} VT
+                </span>
+                {applications.length > 0 && (
+                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-mono font-bold ${
+                    activeTab === "careers"
+                      ? "bg-white/30 text-white"
+                      : "bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A]"
+                  }`}>
+                    {applications.length} HS
+                  </span>
+                )}
+              </div>
             </button>
 
             <button
@@ -3220,35 +3343,58 @@ export default function AdminDashboardPage() {
           {/* ========================================================================= */}
           {activeTab === "careers" && (
             <div className="space-y-6">
-              {/* Top Controls Bar */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl border border-[#E2E8F0] bg-white p-4 shadow-xs">
-                <div className="flex flex-wrap items-center gap-3 flex-1 w-full">
-                  <div className="relative flex-1 min-w-[240px]">
-                    <Search className="absolute left-3.5 top-3 h-4 w-4 text-[#64748B]" />
-                    <input
-                      type="text"
-                      placeholder="Tìm theo vị trí, phòng ban, địa điểm..."
-                      value={careerSearchQuery}
-                      onChange={(e) => setCareerSearchQuery(e.target.value)}
-                      className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2 pl-10 pr-4 text-xs text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none"
-                    />
-                  </div>
-
-                  <select
-                    value={careerDeptFilter}
-                    onChange={(e) => setCareerDeptFilter(e.target.value)}
-                    className="rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3 py-2 text-xs font-bold text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+              {/* Sub-tab Navigation Bar */}
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E2E8F0] pb-3">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCareerSubTab("jobs")}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                      careerSubTab === "jobs"
+                        ? "bg-[#0063FD] text-white shadow-xs font-black"
+                        : "bg-white border border-[#CBD5E1] text-[#475569] hover:text-[#0F172A] hover:bg-[#F8FAFC]"
+                    }`}
                   >
-                    <option value="all">Tất cả phòng ban</option>
-                    <option value="Kỹ Thuật & Phần Cứng">Kỹ Thuật & Phần Cứng</option>
-                    <option value="Kinh Doanh & Chăm Sóc Khách Hàng">Kinh Doanh & Chăm Sóc Khách Hàng</option>
-                    <option value="Bảo Hành & Kiểm Soát Chất Lượng">Bảo Hành & Kiểm Soát Chất Lượng</option>
-                    <option value="Marketing & Truyền Thông">Marketing & Truyền Thông</option>
-                    <option value="Kho Vận & Logistics">Kho Vận & Logistics</option>
-                  </select>
+                    <Briefcase className="h-4 w-4" />
+                    <span>Vị Trí Tuyển Dụng</span>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-mono font-bold ${
+                        careerSubTab === "jobs"
+                          ? "bg-white/20 text-white"
+                          : "bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0]"
+                      }`}
+                    >
+                      {careers.length}
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={() => setCareerSubTab("applications")}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                      careerSubTab === "applications"
+                        ? "bg-[#0063FD] text-white shadow-xs font-black"
+                        : "bg-white border border-[#CBD5E1] text-[#475569] hover:text-[#0F172A] hover:bg-[#F8FAFC]"
+                    }`}
+                  >
+                    <FileText className="h-4 w-4" />
+                    <span>Hồ Sơ Ứng Viên</span>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-mono font-bold ${
+                        careerSubTab === "applications"
+                          ? "bg-white/20 text-white"
+                          : "bg-[#EFF6FF] text-[#0063FD] border border-[#BFDBFE]"
+                      }`}
+                    >
+                      {applications.length}
+                    </span>
+                    {applications.filter((a) => a.status === "pending").length > 0 && (
+                      <span className="rounded-full bg-amber-500 text-white px-2 py-0.5 text-[9px] font-black uppercase tracking-wider animate-pulse">
+                        {applications.filter((a) => a.status === "pending").length} Mới
+                      </span>
+                    )}
+                  </button>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-2">
                   <Link
                     href="/tuyen-dung"
                     target="_blank"
@@ -3258,130 +3404,383 @@ export default function AdminDashboardPage() {
                     <span>Xem Trang Tuyển Dụng</span>
                   </Link>
 
-                  <Button
-                    onClick={() => setIsAddCareerOpen(true)}
-                    variant="primary"
-                    size="sm"
-                    className="flex items-center gap-1.5 shadow-xs font-black uppercase text-xs tracking-wider"
-                  >
-                    <Plus className="h-4 w-4" />
-                    <span>Thêm Vị Trí Tuyển Dụng</span>
-                  </Button>
+                  {careerSubTab === "jobs" && (
+                    <Button
+                      onClick={() => setIsAddCareerOpen(true)}
+                      variant="primary"
+                      size="sm"
+                      className="flex items-center gap-1.5 shadow-xs font-black uppercase text-xs tracking-wider"
+                    >
+                      <Plus className="h-4 w-4" />
+                      <span>Thêm Vị Trí Tuyển Dụng</span>
+                    </Button>
+                  )}
                 </div>
               </div>
 
-              {/* Careers Table */}
-              <div className="overflow-x-auto rounded-xl border border-[#E2E8F0] bg-white shadow-xs">
-                <table className="w-full text-left text-xs">
-                  <thead className="border-b border-[#E2E8F0] bg-[#F8FAFC] text-[11px] font-black uppercase text-[#475569]">
-                    <tr>
-                      <th className="p-3.5">Vị trí & Đường dẫn</th>
-                      <th className="p-3.5">Phòng ban</th>
-                      <th className="p-3.5">Mức lương</th>
-                      <th className="p-3.5">Địa điểm</th>
-                      <th className="p-3.5">Hình thức</th>
-                      <th className="p-3.5">Trạng thái</th>
-                      <th className="p-3.5 text-right">Thao tác</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#E2E8F0]">
-                    {filteredCareers.length === 0 ? (
-                      <tr>
-                        <td colSpan={7} className="p-12 text-center text-[#64748B]">
-                          Chưa có vị trí tuyển dụng nào phù hợp với bộ lọc.
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredCareers.map((job) => (
-                        <tr key={job.id} className="hover:bg-[#F8FAFC] transition-colors">
-                          <td className="p-3.5">
-                            <div className="font-bold text-[#0F172A]">{job.title}</div>
-                            <div className="text-[10px] font-mono text-[#64748B] truncate max-w-xs">
-                              /tuyen-dung/{job.slug}
-                            </div>
-                          </td>
-                          <td className="p-3.5">
-                            <span className="rounded-md bg-[#EFF6FF] border border-[#BFDBFE] px-2 py-0.5 text-[10px] font-bold text-[#0063FD]">
-                              {job.department}
-                            </span>
-                          </td>
-                          <td className="p-3.5 font-bold text-[#16A34A]">{job.salary}</td>
-                          <td className="p-3.5 text-[#475569]">{job.location}</td>
-                          <td className="p-3.5 text-[#64748B]">{job.employment_type}</td>
-                          <td className="p-3.5">
-                            <span
-                              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase ${
-                                job.is_active
-                                  ? "bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC]"
-                                  : "bg-[#F1F5F9] text-[#64748B] border border-[#CBD5E1]"
-                              }`}
-                            >
-                              <span
-                                className={`h-1.5 w-1.5 rounded-full ${
-                                  job.is_active ? "bg-[#16A34A]" : "bg-[#94A3B8]"
-                                }`}
-                              />
-                              {job.is_active ? "Đang Tuyển" : "Đã Đóng"}
-                            </span>
-                          </td>
-                          <td className="p-3.5 text-right">
-                            <div className="flex items-center justify-end gap-1.5">
-                              <button
-                                onClick={() => handleToggleActiveCareer(job)}
-                                className={`p-1.5 rounded text-xs font-bold transition-colors ${
-                                  job.is_active
-                                    ? "text-[#64748B] hover:text-[#0F172A] hover:bg-[#E2E8F0]"
-                                    : "text-[#16A34A] hover:bg-[#DCFCE7]"
-                                }`}
-                                title={job.is_active ? "Tạm đóng nhận hồ sơ" : "Mở lại tuyển dụng"}
-                              >
-                                {job.is_active ? (
-                                  <EyeOff className="h-3.5 w-3.5" />
-                                ) : (
-                                  <Eye className="h-3.5 w-3.5" />
-                                )}
-                              </button>
+              {/* Sub-tab 1: Jobs Postings List */}
+              {careerSubTab === "jobs" && (
+                <div className="space-y-4">
+                  {/* Top Controls Bar for Jobs */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl border border-[#E2E8F0] bg-white p-4 shadow-xs">
+                    <div className="flex flex-wrap items-center gap-3 flex-1 w-full">
+                      <div className="relative flex-1 min-w-[240px]">
+                        <Search className="absolute left-3.5 top-3 h-4 w-4 text-[#64748B]" />
+                        <input
+                          type="text"
+                          placeholder="Tìm theo vị trí, phòng ban, địa điểm..."
+                          value={careerSearchQuery}
+                          onChange={(e) => setCareerSearchQuery(e.target.value)}
+                          className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2 pl-10 pr-4 text-xs text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none"
+                        />
+                      </div>
 
-                              <button
-                                onClick={() => {
-                                  setEditingCareerId(job.id);
-                                  setEditCareerForm({
-                                    title: job.title,
-                                    slug: job.slug,
-                                    department: job.department,
-                                    location: job.location,
-                                    employment_type: job.employment_type,
-                                    salary: job.salary,
-                                    experience: job.experience,
-                                    description: job.description,
-                                    requirements: job.requirements,
-                                    benefits: job.benefits,
-                                    contact_email: job.contact_email,
-                                    is_active: job.is_active,
-                                  });
-                                  setIsEditCareerOpen(true);
-                                }}
-                                className="p-1.5 rounded text-[#0063FD] hover:bg-[#EFF6FF] transition-colors"
-                                title="Chỉnh sửa vị trí"
-                              >
-                                <Pencil className="h-3.5 w-3.5" />
-                              </button>
+                      <select
+                        value={careerDeptFilter}
+                        onChange={(e) => setCareerDeptFilter(e.target.value)}
+                        className="rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3 py-2 text-xs font-bold text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                      >
+                        <option value="all">Tất cả phòng ban</option>
+                        <option value="Kỹ Thuật & Phần Cứng">Kỹ Thuật & Phần Cứng</option>
+                        <option value="Kinh Doanh & Chăm Sóc Khách Hàng">Kinh Doanh & Chăm Sóc Khách Hàng</option>
+                        <option value="Bảo Hành & Kiểm Soát Chất Lượng">Bảo Hành & Kiểm Soát Chất Lượng</option>
+                        <option value="Marketing & Truyền Thông">Marketing & Truyền Thông</option>
+                        <option value="Kho Vận & Logistics">Kho Vận & Logistics</option>
+                      </select>
+                    </div>
+                  </div>
 
-                              <button
-                                onClick={() => handleDeleteCareer(job.id)}
-                                className="p-1.5 rounded text-rose-600 hover:bg-rose-50 transition-colors"
-                                title="Xóa vị trí này"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </button>
-                            </div>
-                          </td>
+                  {/* Careers Table */}
+                  <div className="overflow-x-auto rounded-xl border border-[#E2E8F0] bg-white shadow-xs">
+                    <table className="w-full text-left text-xs">
+                      <thead className="border-b border-[#E2E8F0] bg-[#F8FAFC] text-[11px] font-black uppercase text-[#475569]">
+                        <tr>
+                          <th className="p-3.5">Vị trí & Đường dẫn</th>
+                          <th className="p-3.5">Phòng ban</th>
+                          <th className="p-3.5">Mức lương</th>
+                          <th className="p-3.5">Địa điểm</th>
+                          <th className="p-3.5">Hình thức</th>
+                          <th className="p-3.5">Trạng thái</th>
+                          <th className="p-3.5 text-right">Thao tác</th>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                      </thead>
+                      <tbody className="divide-y divide-[#E2E8F0]">
+                        {filteredCareers.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="p-12 text-center text-[#64748B]">
+                              Chưa có vị trí tuyển dụng nào phù hợp với bộ lọc.
+                            </td>
+                          </tr>
+                        ) : (
+                          filteredCareers.map((job) => (
+                            <tr key={job.id} className="hover:bg-[#F8FAFC] transition-colors">
+                              <td className="p-3.5">
+                                <div className="font-bold text-[#0F172A]">{job.title}</div>
+                                <div className="text-[10px] font-mono text-[#64748B] truncate max-w-xs">
+                                  /tuyen-dung/{job.slug}
+                                </div>
+                              </td>
+                              <td className="p-3.5">
+                                <span className="rounded-md bg-[#EFF6FF] border border-[#BFDBFE] px-2 py-0.5 text-[10px] font-bold text-[#0063FD]">
+                                  {job.department}
+                                </span>
+                              </td>
+                              <td className="p-3.5 font-bold text-[#16A34A]">{job.salary}</td>
+                              <td className="p-3.5 text-[#475569]">{job.location}</td>
+                              <td className="p-3.5 text-[#64748B]">{job.employment_type}</td>
+                              <td className="p-3.5">
+                                <span
+                                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase ${
+                                    job.is_active
+                                      ? "bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC]"
+                                      : "bg-[#F1F5F9] text-[#64748B] border border-[#CBD5E1]"
+                                  }`}
+                                >
+                                  <span
+                                    className={`h-1.5 w-1.5 rounded-full ${
+                                      job.is_active ? "bg-[#16A34A]" : "bg-[#94A3B8]"
+                                    }`}
+                                  />
+                                  {job.is_active ? "Đang Tuyển" : "Đã Đóng"}
+                                </span>
+                              </td>
+                              <td className="p-3.5 text-right">
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <button
+                                    onClick={() => handleToggleActiveCareer(job)}
+                                    className={`p-1.5 rounded text-xs font-bold transition-colors ${
+                                      job.is_active
+                                        ? "text-[#64748B] hover:text-[#0F172A] hover:bg-[#E2E8F0]"
+                                        : "text-[#16A34A] hover:bg-[#DCFCE7]"
+                                    }`}
+                                    title={job.is_active ? "Tạm đóng nhận hồ sơ" : "Mở lại tuyển dụng"}
+                                  >
+                                    {job.is_active ? (
+                                      <EyeOff className="h-3.5 w-3.5" />
+                                    ) : (
+                                      <Eye className="h-3.5 w-3.5" />
+                                    )}
+                                  </button>
+
+                                  <button
+                                    onClick={() => {
+                                      setEditingCareerId(job.id);
+                                      setEditCareerForm({
+                                        title: job.title,
+                                        slug: job.slug,
+                                        department: job.department,
+                                        location: job.location,
+                                        employment_type: job.employment_type,
+                                        salary: job.salary,
+                                        experience: job.experience,
+                                        description: job.description,
+                                        requirements: job.requirements,
+                                        benefits: job.benefits,
+                                        contact_email: job.contact_email,
+                                        is_active: job.is_active,
+                                      });
+                                      setIsEditCareerOpen(true);
+                                    }}
+                                    className="p-1.5 rounded text-[#0063FD] hover:bg-[#EFF6FF] transition-colors"
+                                    title="Chỉnh sửa vị trí"
+                                  >
+                                    <Pencil className="h-3.5 w-3.5" />
+                                  </button>
+
+                                  <button
+                                    onClick={() => handleDeleteCareer(job.id)}
+                                    className="p-1.5 rounded text-rose-600 hover:bg-rose-50 transition-colors"
+                                    title="Xóa vị trí này"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Sub-tab 2: Applications Review List */}
+              {careerSubTab === "applications" && (
+                <div className="space-y-4">
+                  {/* Top Controls Bar for Applications */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl border border-[#E2E8F0] bg-white p-4 shadow-xs">
+                    <div className="flex flex-wrap items-center gap-3 flex-1 w-full">
+                      <div className="relative flex-1 min-w-[240px]">
+                        <Search className="absolute left-3.5 top-3 h-4 w-4 text-[#64748B]" />
+                        <input
+                          type="text"
+                          placeholder="Tìm theo tên ứng viên, email, số điện thoại, vị trí..."
+                          value={applicationSearch}
+                          onChange={(e) => setApplicationSearch(e.target.value)}
+                          className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2 pl-10 pr-4 text-xs text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none"
+                        />
+                      </div>
+
+                      <select
+                        value={applicationStatusFilter}
+                        onChange={(e) => setApplicationStatusFilter(e.target.value)}
+                        className="rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3 py-2 text-xs font-bold text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                      >
+                        <option value="all">Tất cả trạng thái hồ sơ</option>
+                        <option value="pending">Chờ duyệt (Mới nộp)</option>
+                        <option value="reviewed">Đã xem qua CV</option>
+                        <option value="contacted">Đã liên hệ ứng viên</option>
+                        <option value="interview">Hẹn phỏng vấn</option>
+                        <option value="accepted">Trúng tuyển / Tiếp nhận</option>
+                        <option value="rejected">Chưa phù hợp / Từ chối</option>
+                      </select>
+
+                      <select
+                        value={applicationJobFilter}
+                        onChange={(e) => setApplicationJobFilter(e.target.value)}
+                        className="rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3 py-2 text-xs font-bold text-[#0F172A] focus:border-[#0063FD] focus:outline-none max-w-xs truncate"
+                      >
+                        <option value="all">Tất cả vị trí ứng tuyển</option>
+                        {careers.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.title}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Button
+                        onClick={() => loadAllData()}
+                        variant="outline"
+                        size="sm"
+                        disabled={isRefreshing}
+                        className="flex items-center gap-1.5 shadow-2xs text-xs font-bold"
+                      >
+                        <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
+                        <span>Làm mới danh sách</span>
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Applications Table */}
+                  <div className="overflow-x-auto rounded-xl border border-[#E2E8F0] bg-white shadow-xs">
+                    <table className="w-full text-left text-xs">
+                      <thead className="border-b border-[#E2E8F0] bg-[#F8FAFC] text-[11px] font-black uppercase text-[#475569]">
+                        <tr>
+                          <th className="p-3.5">Ứng viên & Ngày nộp</th>
+                          <th className="p-3.5">Vị trí ứng tuyển</th>
+                          <th className="p-3.5">Thông tin liên hệ</th>
+                          <th className="p-3.5">Hồ sơ CV đính kèm (PDF)</th>
+                          <th className="p-3.5">Trạng thái duyệt</th>
+                          <th className="p-3.5 text-right">Thao tác</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#E2E8F0]">
+                        {filteredApplications.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="p-12 text-center text-[#64748B]">
+                              Chưa có hồ sơ ứng tuyển nào phù hợp với bộ lọc hiện tại.
+                            </td>
+                          </tr>
+                        ) : (
+                          filteredApplications.map((app) => {
+                            const badge = getAppStatusBadge(app.status);
+                            return (
+                              <tr key={app.id} className="hover:bg-[#F8FAFC] transition-colors">
+                                <td className="p-3.5">
+                                  <div className="font-bold text-[#0F172A] text-sm">
+                                    {app.full_name}
+                                  </div>
+                                  <div className="text-[10px] text-[#64748B] flex items-center gap-1 mt-0.5">
+                                    <Clock className="h-3 w-3" />
+                                    <span>
+                                      {new Date(app.created_at).toLocaleString("vi-VN", {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                        day: "2-digit",
+                                        month: "2-digit",
+                                        year: "numeric",
+                                      })}
+                                    </span>
+                                  </div>
+                                </td>
+
+                                <td className="p-3.5">
+                                  <div className="font-bold text-[#0063FD]">
+                                    {app.job_title}
+                                  </div>
+                                  {app.experience && (
+                                    <div className="text-[11px] text-[#64748B] line-clamp-1 mt-0.5">
+                                      KN: {app.experience}
+                                    </div>
+                                  )}
+                                </td>
+
+                                <td className="p-3.5">
+                                  <div className="flex flex-col gap-0.5">
+                                    <a
+                                      href={`tel:${app.phone}`}
+                                      className="font-mono font-bold text-[#0F172A] hover:text-[#0063FD] flex items-center gap-1"
+                                    >
+                                      <Phone className="h-3 w-3 text-[#64748B]" />
+                                      <span>{app.phone}</span>
+                                    </a>
+                                    <a
+                                      href={`mailto:${app.email}`}
+                                      className="text-[#64748B] hover:text-[#0063FD] flex items-center gap-1 truncate max-w-[180px]"
+                                      title={app.email}
+                                    >
+                                      <Mail className="h-3 w-3 text-[#94A3B8]" />
+                                      <span className="truncate">{app.email}</span>
+                                    </a>
+                                  </div>
+                                </td>
+
+                                <td className="p-3.5">
+                                  <div className="flex items-center gap-2">
+                                    <a
+                                      href={app.resume_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#BFDBFE] bg-[#EFF6FF] text-[#0063FD] font-bold hover:bg-[#DBEAFE] transition-colors shadow-2xs"
+                                      title="Bấm để mở và xem trực tiếp file PDF"
+                                    >
+                                      <FileText className="h-3.5 w-3.5" />
+                                      <span>Xem PDF</span>
+                                    </a>
+
+                                    <a
+                                      href={app.resume_url}
+                                      download={app.resume_filename || "CV_UngVien.pdf"}
+                                      className="p-1.5 rounded-lg border border-[#E2E8F0] bg-white text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] transition-colors shadow-2xs"
+                                      title={`Tải xuống: ${app.resume_filename} (${formatAppFileSize(app.resume_file_size)})`}
+                                    >
+                                      <Download className="h-3.5 w-3.5" />
+                                    </a>
+
+                                    <div className="text-[10px] text-[#94A3B8] font-mono hidden md:block">
+                                      {formatAppFileSize(app.resume_file_size)}
+                                    </div>
+                                  </div>
+                                </td>
+
+                                <td className="p-3.5">
+                                  <select
+                                    value={app.status}
+                                    onChange={(e) =>
+                                      handleUpdateApplicationStatus(
+                                        app.id,
+                                        e.target.value as ApplicationStatus,
+                                        app.notes || undefined
+                                      )
+                                    }
+                                    className={`rounded-lg border px-2.5 py-1 text-[11px] font-bold focus:outline-none transition-colors cursor-pointer ${badge.bg}`}
+                                  >
+                                    <option value="pending">Chờ duyệt</option>
+                                    <option value="reviewed">Đã xem qua</option>
+                                    <option value="contacted">Đã liên hệ</option>
+                                    <option value="interview">Phỏng vấn</option>
+                                    <option value="accepted">Tuyển dụng</option>
+                                    <option value="rejected">Từ chối</option>
+                                  </select>
+                                </td>
+
+                                <td className="p-3.5 text-right">
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    <button
+                                      onClick={() => {
+                                        setSelectedApplication(app);
+                                        setEditingAppStatus(app.status);
+                                        setEditingAppNotes(app.notes || "");
+                                        setIsAppDetailOpen(true);
+                                      }}
+                                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#F8FAFC] border border-[#E2E8F0] text-[#0063FD] hover:bg-[#EFF6FF] font-bold transition-colors text-xs"
+                                      title="Xem chi tiết hồ sơ và cập nhật ghi chú"
+                                    >
+                                      <Eye className="h-3.5 w-3.5" />
+                                      <span>Chi tiết</span>
+                                    </button>
+
+                                    <button
+                                      onClick={() => handleDeleteApplication(app.id)}
+                                      className="p-1.5 rounded text-rose-600 hover:bg-rose-50 transition-colors"
+                                      title="Xóa hồ sơ ứng viên này"
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -5516,6 +5915,204 @@ export default function AdminDashboardPage() {
           </div>
         </form>
       </Modal>
+
+      {/* ========================================================================= */}
+      {/* CANDIDATE APPLICATION REVIEW MODAL                                        */}
+      {/* ========================================================================= */}
+      {selectedApplication && (
+        <Modal
+          isOpen={isAppDetailOpen}
+          onClose={() => {
+            setIsAppDetailOpen(false);
+            setSelectedApplication(null);
+          }}
+          title="CHI TIẾT HỒ SƠ ỨNG VIÊN"
+          description={`Hồ sơ ứng tuyển vị trí ${selectedApplication.job_title}`}
+          maxWidth="4xl"
+        >
+          <div className="space-y-5 text-xs">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Left Column: Candidate Information & CV */}
+              <div className="space-y-4">
+                <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 space-y-3">
+                  <h4 className="text-xs font-black uppercase text-[#0F172A] tracking-wider border-b border-[#E2E8F0] pb-2 flex items-center justify-between">
+                    <span>Thông Tin Ứng Viên</span>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${getAppStatusBadge(selectedApplication.status).bg}`}>
+                      {getAppStatusBadge(selectedApplication.status).label}
+                    </span>
+                  </h4>
+
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div>
+                      <div className="text-[10px] font-bold text-[#64748B] uppercase">Họ và tên</div>
+                      <div className="font-bold text-[#0F172A] text-sm">{selectedApplication.full_name}</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-bold text-[#64748B] uppercase">Vị trí ứng tuyển</div>
+                      <div className="font-bold text-[#0063FD]">{selectedApplication.job_title}</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-bold text-[#64748B] uppercase">Số điện thoại</div>
+                      <a href={`tel:${selectedApplication.phone}`} className="font-mono font-bold text-[#0F172A] hover:underline flex items-center gap-1">
+                        <Phone className="h-3 w-3 text-[#64748B]" />
+                        {selectedApplication.phone}
+                      </a>
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-bold text-[#64748B] uppercase">Email liên hệ</div>
+                      <a href={`mailto:${selectedApplication.email}`} className="font-mono text-[#0F172A] hover:underline flex items-center gap-1 truncate">
+                        <Mail className="h-3 w-3 text-[#64748B]" />
+                        {selectedApplication.email}
+                      </a>
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-bold text-[#64748B] uppercase">Ngày nộp hồ sơ</div>
+                      <div className="text-[#475569]">
+                        {new Date(selectedApplication.created_at).toLocaleString("vi-VN")}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-bold text-[#64748B] uppercase">Kinh nghiệm khai báo</div>
+                      <div className="text-[#0F172A] font-semibold">{selectedApplication.experience || "Chưa có thông tin"}</div>
+                    </div>
+                  </div>
+
+                  {selectedApplication.introduction && (
+                    <div className="pt-2 border-t border-[#E2E8F0]">
+                      <div className="text-[10px] font-bold text-[#64748B] uppercase mb-1">Giới thiệu bản thân & nguyện vọng</div>
+                      <p className="text-xs text-[#334155] leading-relaxed bg-white p-2.5 rounded-lg border border-[#CBD5E1] whitespace-pre-line">
+                        {selectedApplication.introduction}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* PDF Resume Attachment Viewer Box */}
+                <div className="rounded-xl border border-[#BFDBFE] bg-[#EFF6FF]/60 p-4 space-y-3">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5 overflow-hidden">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0063FD] text-white shadow-xs">
+                        <FileText className="h-5 w-5" />
+                      </div>
+                      <div className="truncate">
+                        <div className="font-bold text-[#0F172A] text-xs truncate">
+                          {selectedApplication.resume_filename || "CV_UngVien.pdf"}
+                        </div>
+                        <div className="text-[10px] text-[#64748B] font-mono">
+                          {formatAppFileSize(selectedApplication.resume_file_size)} • File đính kèm PDF
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <a
+                        href={selectedApplication.resume_url}
+                        download={selectedApplication.resume_filename || "CV_UngVien.pdf"}
+                        className="inline-flex items-center gap-1 rounded-lg border border-[#CBD5E1] bg-white px-3 py-1.5 text-xs font-bold text-[#334155] hover:bg-[#F8FAFC] shadow-2xs transition-colors"
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                        <span>Tải CV</span>
+                      </a>
+
+                      <a
+                        href={selectedApplication.resume_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 rounded-lg bg-[#0063FD] px-3.5 py-1.5 text-xs font-bold text-white hover:bg-blue-600 shadow-xs transition-colors"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                        <span>Xem PDF</span>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Admin Review & Status Notes */}
+              <div className="space-y-4 flex flex-col justify-between rounded-xl border border-[#E2E8F0] bg-white p-4">
+                <div className="space-y-3">
+                  <h4 className="text-xs font-black uppercase text-[#0F172A] tracking-wider border-b border-[#E2E8F0] pb-2">
+                    Đánh Giá & Trạng Thái Tuyển Dụng
+                  </h4>
+
+                  <div>
+                    <label className="block font-bold text-[#1E293B] mb-1.5">
+                      Trạng thái xử lý hồ sơ:
+                    </label>
+                    <select
+                      value={editingAppStatus}
+                      onChange={(e) => setEditingAppStatus(e.target.value as ApplicationStatus)}
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] p-2.5 text-xs font-bold text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none"
+                    >
+                      <option value="pending">Chờ duyệt (Mới nộp)</option>
+                      <option value="reviewed">Đã xem qua CV</option>
+                      <option value="contacted">Đã liên hệ ứng viên</option>
+                      <option value="interview">Hẹn phỏng vấn trực tiếp / online</option>
+                      <option value="accepted">Trúng tuyển / Tiếp nhận thử việc</option>
+                      <option value="rejected">Chưa phù hợp / Từ chối</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-[#1E293B] mb-1.5">
+                      Ghi chú nội bộ tuyển dụng:
+                    </label>
+                    <textarea
+                      rows={5}
+                      value={editingAppNotes}
+                      onChange={(e) => setEditingAppNotes(e.target.value)}
+                      placeholder="Ghi nhận đánh giá sau khi xem CV, kết quả liên hệ, lịch phỏng vấn hoặc lý do từ chối..."
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] p-2.5 text-xs text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none leading-relaxed"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-[#E2E8F0] flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteApplication(selectedApplication.id)}
+                    className="inline-flex items-center gap-1 text-xs font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 px-2.5 py-1.5 rounded-lg transition-colors"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    <span>Xóa hồ sơ</span>
+                  </button>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setIsAppDetailOpen(false);
+                        setSelectedApplication(null);
+                      }}
+                    >
+                      Đóng
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="primary"
+                      size="sm"
+                      disabled={isUpdatingApp}
+                      onClick={() =>
+                        handleUpdateApplicationStatus(
+                          selectedApplication.id,
+                          editingAppStatus,
+                          editingAppNotes
+                        )
+                      }
+                      className="font-bold shadow-xs flex items-center gap-1.5"
+                    >
+                      <Save className="h-3.5 w-3.5" />
+                      <span>{isUpdatingApp ? "Đang lưu..." : "Lưu Thay Đổi"}</span>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
