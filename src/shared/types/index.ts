@@ -283,4 +283,13 @@ export interface SiteSettings {
   updated_at?: string;
 }
 
-export type { CareerJob, CreateCareerInput, UpdateCareerInput } from "@/modules/careers/types";
+export type {
+  CareerJob,
+  CreateCareerInput,
+  UpdateCareerInput,
+  ApplicationStatus,
+  CareerApplication,
+  SubmitApplicationInput,
+  UpdateApplicationStatusInput,
+} from "@/modules/careers/types";
+

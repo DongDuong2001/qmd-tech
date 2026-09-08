@@ -32,3 +32,47 @@ export interface CreateCareerInput {
 }
 
 export type UpdateCareerInput = Partial<CreateCareerInput>;
+
+export type ApplicationStatus =
+  | "pending"     // Chờ duyệt
+  | "reviewed"    // Đã xem qua
+  | "contacted"   // Đã liên hệ
+  | "interview"   // Phỏng vấn
+  | "accepted"    // Tuyển dụng
+  | "rejected";   // Từ chối / Chưa phù hợp
+
+export interface CareerApplication {
+  id: string;
+  career_id?: string | null;
+  job_title: string;
+  full_name: string;
+  email: string;
+  phone: string;
+  experience?: string | null;
+  introduction?: string | null;
+  resume_url: string;
+  resume_filename: string;
+  resume_file_size: number;
+  status: ApplicationStatus;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SubmitApplicationInput {
+  career_id?: string | null;
+  job_title: string;
+  full_name: string;
+  email: string;
+  phone: string;
+  experience?: string;
+  introduction?: string;
+  resume_url: string;
+  resume_filename: string;
+  resume_file_size: number;
+}
+
+export interface UpdateApplicationStatusInput {
+  status: ApplicationStatus;
+  notes?: string;
+}
