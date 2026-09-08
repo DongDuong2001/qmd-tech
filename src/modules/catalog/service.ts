@@ -101,7 +101,10 @@ export class CatalogService {
       }
 
       if (filter.search) {
-        query = query.or(`name_vi.ilike.%${filter.search}%,name_en.ilike.%${filter.search}%,sku.ilike.%${filter.search}%,brand.ilike.%${filter.search}%`);
+        const cleanSearch = filter.search.trim().replace(/[,()]/g, " ");
+        query = query.or(
+          `name_vi.ilike.%${cleanSearch}%,name_en.ilike.%${cleanSearch}%,sku.ilike.%${cleanSearch}%,brand.ilike.%${cleanSearch}%,slug.ilike.%${cleanSearch}%`
+        );
       }
 
       const page = filter.page || 1;
