@@ -3,6 +3,7 @@ import { getServiceSupabase } from "@/shared/db/supabase";
 import { requireAdmin } from "@/shared/security/adminAuth";
 import { Category } from "@/shared/types";
 import { DEFAULT_HARDWARE_CATEGORIES } from "@/modules/admin/service";
+import { slugifyVietnamese } from "@/shared/lib/sanitize";
 
 export async function GET(req: NextRequest) {
   try {
@@ -65,11 +66,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Vui lòng nhập tên danh mục." }, { status: 400 });
     }
 
-    if (!slug || typeof slug !== "string" || slug.trim().length === 0) {
-      return NextResponse.json({ success: false, error: "Vui lòng nhập mã slug danh mục." }, { status: 400 });
-    }
-
-    const cleanSlug = slug.toLowerCase().trim().replace(/[^a-z0-9-]+/g, "-");
+    const cleanSlug = slugifyVietnamese(slug || name_vi, "category");
     const newCategoryPayload = {
       slug: cleanSlug,
       name_vi: name_vi.trim(),
@@ -114,7 +111,7 @@ export async function PUT(req: NextRequest) {
     const { data, error } = await db
       .from("categories")
       .update({
-        slug: slug?.toLowerCase().trim(),
+        slug: slug ? slugifyVietnamese(slug, "category") : undefined,
         name_vi: name_vi?.trim(),
         name_en: name_en?.trim(),
         icon: icon?.trim(),
