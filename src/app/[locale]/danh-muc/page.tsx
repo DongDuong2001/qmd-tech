@@ -11,10 +11,24 @@ export const metadata = {
   description: "Kho linh kiện PC chính hãng: CPU, VGA, Bo mạch chủ, RAM, SSD, Nguồn máy tính, Vỏ Case và Tản nhiệt.",
 };
 
-export default async function CategoriesPage() {
+interface CategoriesPageProps {
+  searchParams?: Promise<{ q?: string; brand?: string; sort?: string }>;
+}
+
+export default async function CategoriesPage({
+  searchParams,
+}: CategoriesPageProps) {
+  const queryParams = searchParams ? await searchParams : {};
+  const query = queryParams.q?.trim() || "";
+  const brand = queryParams.brand?.trim() || "";
+
   const t = await getTranslations();
   const categories = await catalogService.getCategories();
-  const { products } = await catalogService.getProducts({ limit: 40 });
+  const { products } = await catalogService.getProducts({
+    search: query || undefined,
+    brand: brand || undefined,
+    limit: 60,
+  });
 
   const getCategoryIcon = (slug: string) => {
     switch (slug) {
@@ -64,17 +78,46 @@ export default async function CategoriesPage() {
         })}
       </div>
 
+      {/* Search Result Banner */}
+      {(query || brand) && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#BFDBFE] bg-[#EFF6FF] px-4 py-3 shadow-xs">
+          <div className="flex items-center gap-2 flex-wrap text-xs">
+            <span className="font-bold text-[#1E3A8A]">
+              Kết quả tìm kiếm cho:
+            </span>
+            <span className="rounded-md bg-white border border-[#93C5FD] px-2.5 py-1 text-xs font-black text-[#0063FD]">
+              &quot;{query || brand}&quot;
+            </span>
+            <span className="text-[#3B82F6] font-semibold">
+              (Tìm thấy {products.length} sản phẩm phù hợp)
+            </span>
+          </div>
+          <Link
+            href="/danh-muc"
+            className="rounded-lg bg-white border border-[#CBD5E1] px-3 py-1 text-xs font-bold text-[#DC2626] hover:bg-[#FEE2E2] hover:border-[#F87171] transition-colors"
+          >
+            Xóa bộ lọc tìm kiếm
+          </Link>
+        </div>
+      )}
+
       {/* Products Grid / Empty State */}
       {products.length === 0 ? (
         <div className="rounded-2xl border border-[#E2E8F0] bg-[#FFFFFF] p-12 text-center space-y-4 shadow-xs">
           <Boxes className="mx-auto h-12 w-12 text-[#CBD5E1]" />
-          <h3 className="text-lg font-bold text-[#0F172A]">Chưa có sản phẩm nào trong danh mục</h3>
+          <h3 className="text-lg font-bold text-[#0F172A]">
+            {query || brand
+              ? `Không tìm thấy linh kiện nào phù hợp với "${query || brand}"`
+              : "Chưa có sản phẩm nào trong danh mục"}
+          </h3>
           <p className="text-xs text-[#64748B] max-w-md mx-auto">
-            Hiện tại các sản phẩm đang được cập nhật thêm. Quý khách vui lòng quay lại sau hoặc liên hệ Hotline để được tư vấn.
+            {query || brand
+              ? "Quý khách vui lòng thử tìm kiếm với từ khóa khác hoặc bấm bên dưới để xem toàn bộ linh kiện hiện có."
+              : "Hiện tại các sản phẩm đang được cập nhật thêm. Quý khách vui lòng quay lại sau hoặc liên hệ Hotline để được tư vấn."}
           </p>
-          <Link href="/">
+          <Link href="/danh-muc">
             <Button variant="primary" size="sm" className="font-bold text-xs">
-              Về Trang Chủ
+              Xem Tất Cả Linh Kiện
             </Button>
           </Link>
         </div>
