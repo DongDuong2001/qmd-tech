@@ -112,6 +112,8 @@ export function CategoryMegaMenu({
                     <div
                       key={cat.id}
                       onMouseEnter={() => setActiveCategoryId(cat.id)}
+                      onClick={() => setActiveCategoryId(cat.id)}
+                      onFocus={() => setActiveCategoryId(cat.id)}
                       className={`group flex items-center justify-between rounded-xl px-3 py-2.2 text-xs font-semibold cursor-pointer transition-all ${
                         isActive
                           ? "bg-white text-[#0063FD] font-bold shadow-xs border-l-3 border-[#0063FD]"
