@@ -456,13 +456,32 @@ export class CareerService {
         let results = res.data as CareerApplication[];
         if (filters?.search) {
           const s = filters.search.toLowerCase().trim();
-          results = results.filter(
-            (a) =>
+          const sNorm = s
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[đĐ]/g, "d");
+          const sNoSpace = sNorm.replace(/\s+/g, "");
+          results = results.filter((a) => {
+            const nameNorm = a.full_name
+              .toLowerCase()
+              .normalize("NFD")
+              .replace(/[\u0300-\u036f]/g, "")
+              .replace(/[đĐ]/g, "d");
+            const titleNorm = a.job_title
+              .toLowerCase()
+              .normalize("NFD")
+              .replace(/[\u0300-\u036f]/g, "")
+              .replace(/[đĐ]/g, "d");
+            return (
               a.full_name.toLowerCase().includes(s) ||
+              nameNorm.includes(sNorm) ||
+              nameNorm.replace(/\s+/g, "").includes(sNoSpace) ||
               a.email.toLowerCase().includes(s) ||
               a.phone.toLowerCase().includes(s) ||
-              a.job_title.toLowerCase().includes(s)
-          );
+              a.job_title.toLowerCase().includes(s) ||
+              titleNorm.includes(sNorm)
+            );
+          });
         }
         return results;
       }
@@ -479,13 +498,32 @@ export class CareerService {
     }
     if (filters?.search) {
       const s = filters.search.toLowerCase().trim();
-      list = list.filter(
-        (a) =>
+      const sNorm = s
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[đĐ]/g, "d");
+      const sNoSpace = sNorm.replace(/\s+/g, "");
+      list = list.filter((a) => {
+        const nameNorm = a.full_name
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[đĐ]/g, "d");
+        const titleNorm = a.job_title
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[đĐ]/g, "d");
+        return (
           a.full_name.toLowerCase().includes(s) ||
+          nameNorm.includes(sNorm) ||
+          nameNorm.replace(/\s+/g, "").includes(sNoSpace) ||
           a.email.toLowerCase().includes(s) ||
           a.phone.toLowerCase().includes(s) ||
-          a.job_title.toLowerCase().includes(s)
-      );
+          a.job_title.toLowerCase().includes(s) ||
+          titleNorm.includes(sNorm)
+        );
+      });
     }
     return list;
   }
