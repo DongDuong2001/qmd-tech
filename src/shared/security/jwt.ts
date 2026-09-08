@@ -17,18 +17,27 @@ export interface JWTPayload {
 export function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET || process.env.SUPABASE_JWT_SECRET;
   if (!secret) {
-    if (process.env.NODE_ENV === "production") {
+    if (
+      process.env.NODE_ENV === "production" &&
+      process.env.NEXT_PHASE !== "phase-production-build" &&
+      !process.env.CI
+    ) {
       throw new Error("CRITICAL SECURITY ERROR: JWT_SECRET must be configured in production environment.");
     }
     return "qmdtech_dev_local_jwt_secret_min_32_characters_long";
   }
-  if (process.env.NODE_ENV === "production" && secret.length < 32) {
+  if (
+    process.env.NODE_ENV === "production" &&
+    process.env.NEXT_PHASE !== "phase-production-build" &&
+    !process.env.CI &&
+    secret.length < 32
+  ) {
     throw new Error("CRITICAL SECURITY ERROR: JWT_SECRET must be at least 32 characters in production.");
   }
   return secret;
 }
 
-export const DEFAULT_JWT_SECRET = getJwtSecret();
+export const DEFAULT_JWT_SECRET = "qmdtech_dev_local_jwt_secret_min_32_characters_long";
 
 /**
  * Universal Base64URL encoding
@@ -81,9 +90,10 @@ async function getCryptoKey(secret: string): Promise<CryptoKey> {
  */
 export async function signJWT(
   payload: JWTPayload,
-  secret: string = DEFAULT_JWT_SECRET,
+  secret?: string,
   expiresInSeconds: number = 12 * 60 * 60
 ): Promise<string> {
+  const effectiveSecret = secret || getJwtSecret();
   const header = { alg: "HS256", typ: "JWT" };
   const now = Math.floor(Date.now() / 1000);
 
@@ -98,7 +108,7 @@ export async function signJWT(
   const payloadB64 = toBase64Url(stringToUint8Array(JSON.stringify(fullPayload)));
   const dataToSign = `${headerB64}.${payloadB64}`;
 
-  const key = await getCryptoKey(secret);
+  const key = await getCryptoKey(effectiveSecret);
   const signatureBuffer = await crypto.subtle.sign(
     "HMAC",
     key,
@@ -114,7 +124,7 @@ export async function signJWT(
  */
 export async function verifyJWT<T extends JWTPayload = JWTPayload>(
   token: string,
-  secret: string = DEFAULT_JWT_SECRET
+  secret?: string
 ): Promise<{ valid: boolean; payload?: T; error?: string }> {
   try {
     if (!token || typeof token !== "string") {
@@ -126,11 +136,13 @@ export async function verifyJWT<T extends JWTPayload = JWTPayload>(
       return { valid: false, error: "Cấu trúc JWT không hợp lệ." };
     }
 
+    const effectiveSecret = secret || getJwtSecret();
+
     const [headerB64, payloadB64, signatureB64] = parts;
     const dataToVerify = `${headerB64}.${payloadB64}`;
     const signatureBytes = fromBase64Url(signatureB64);
 
-    const key = await getCryptoKey(secret);
+    const key = await getCryptoKey(effectiveSecret);
     const isValid = await crypto.subtle.verify(
       "HMAC",
       key,
@@ -174,7 +186,7 @@ export async function createAdminToken(username: string): Promise<string> {
       role: "admin",
       user: username,
     },
-    DEFAULT_JWT_SECRET,
+    undefined,
     12 * 60 * 60 // 12 hours
   );
 }
@@ -185,7 +197,7 @@ export async function createAdminToken(username: string): Promise<string> {
 export async function verifyAdminToken(
   token: string
 ): Promise<{ valid: boolean; user?: string; error?: string }> {
-  const result = await verifyJWT(token, DEFAULT_JWT_SECRET);
+  const result = await verifyJWT(token);
   if (!result.valid || !result.payload) {
     return { valid: false, error: result.error };
   }
