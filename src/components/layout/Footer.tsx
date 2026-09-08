@@ -99,7 +99,7 @@ export function Footer() {
             <div className="space-y-3 text-xs">
               <div>
                 <strong className="text-[#0F172A]">Mô hình kinh doanh:</strong>
-                <p className="text-[#64748B]">Bán hàng & Ráp PC Online giao tận nơi 63 tỉnh thành</p>
+                <p className="text-[#64748B]">Bán hàng & Ráp PC Online giao tận nơi 34 tỉnh thành</p>
               </div>
               <div>
                 <strong className="text-[#0F172A]">Trụ sở chính & Kho hàng:</strong>
