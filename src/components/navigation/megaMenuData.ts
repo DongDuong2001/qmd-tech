@@ -11,6 +11,12 @@ import {
   Gamepad2,
   Keyboard,
   Headphones,
+  Mouse,
+  Tv,
+  Speaker,
+  Package,
+  Server,
+  Activity,
   type LucideIcon,
 } from "lucide-react";
 
@@ -30,11 +36,43 @@ export interface MegaCategoryItem {
   id: string;
   slug: string;
   name: string;
-  icon: LucideIcon;
+  icon?: LucideIcon;
+  iconName?: string;
   badge?: string;
   badgeColor?: "red" | "blue" | "green";
   allUrl: string;
   subGroups: MegaSubGroup[];
+}
+
+export const MEGA_MENU_ICONS: Record<string, LucideIcon> = {
+  Layers,
+  Cpu,
+  CircuitBoard,
+  MemoryStick,
+  HardDrive,
+  Zap,
+  Box,
+  Fan,
+  Monitor,
+  Gamepad2,
+  Keyboard,
+  Headphones,
+  Mouse,
+  Tv,
+  Speaker,
+  Package,
+  Server,
+  Activity,
+};
+
+export const AVAILABLE_ICON_NAMES = Object.keys(MEGA_MENU_ICONS);
+
+export function resolveMegaCategoryIcon(iconNameOrIcon?: string | LucideIcon): LucideIcon {
+  if (typeof iconNameOrIcon === "function") return iconNameOrIcon;
+  if (typeof iconNameOrIcon === "string" && MEGA_MENU_ICONS[iconNameOrIcon]) {
+    return MEGA_MENU_ICONS[iconNameOrIcon];
+  }
+  return Layers;
 }
 
 export const MEGA_MENU_CATEGORIES: MegaCategoryItem[] = [
@@ -43,6 +81,7 @@ export const MEGA_MENU_CATEGORIES: MegaCategoryItem[] = [
     slug: "vga",
     name: "VGA - Card Màn Hình",
     icon: Layers,
+    iconName: "Layers",
     badge: "HOT",
     badgeColor: "red",
     allUrl: "/danh-muc/vga",
@@ -99,6 +138,7 @@ export const MEGA_MENU_CATEGORIES: MegaCategoryItem[] = [
     slug: "cpu",
     name: "CPU - Vi Xử Lý",
     icon: Cpu,
+    iconName: "Cpu",
     badge: "HOT",
     badgeColor: "blue",
     allUrl: "/danh-muc/cpu",
@@ -150,6 +190,7 @@ export const MEGA_MENU_CATEGORIES: MegaCategoryItem[] = [
     slug: "mainboard",
     name: "Bo Mạch Chủ (Mainboard)",
     icon: CircuitBoard,
+    iconName: "CircuitBoard",
     allUrl: "/danh-muc/mainboard",
     subGroups: [
       {
@@ -194,6 +235,7 @@ export const MEGA_MENU_CATEGORIES: MegaCategoryItem[] = [
     slug: "ram",
     name: "RAM - Bộ Nhớ Trong",
     icon: MemoryStick,
+    iconName: "MemoryStick",
     allUrl: "/danh-muc/ram",
     subGroups: [
       {
@@ -237,6 +279,7 @@ export const MEGA_MENU_CATEGORIES: MegaCategoryItem[] = [
     slug: "ssd",
     name: "Ổ Cứng SSD / HDD",
     icon: HardDrive,
+    iconName: "HardDrive",
     allUrl: "/danh-muc/ssd",
     subGroups: [
       {
@@ -282,6 +325,7 @@ export const MEGA_MENU_CATEGORIES: MegaCategoryItem[] = [
     slug: "psu",
     name: "Nguồn Máy Tính (PSU)",
     icon: Zap,
+    iconName: "Zap",
     allUrl: "/danh-muc/psu",
     subGroups: [
       {
@@ -324,6 +368,7 @@ export const MEGA_MENU_CATEGORIES: MegaCategoryItem[] = [
     slug: "case",
     name: "Vỏ Case Máy Tính",
     icon: Box,
+    iconName: "Box",
     allUrl: "/danh-muc/case",
     subGroups: [
       {
@@ -367,6 +412,7 @@ export const MEGA_MENU_CATEGORIES: MegaCategoryItem[] = [
     slug: "cooling",
     name: "Tản Nhiệt CPU & Fan",
     icon: Fan,
+    iconName: "Fan",
     allUrl: "/danh-muc/cooling",
     subGroups: [
       {
@@ -410,6 +456,7 @@ export const MEGA_MENU_CATEGORIES: MegaCategoryItem[] = [
     slug: "vga",
     name: "PC QMD Ráp Sẵn",
     icon: Gamepad2,
+    iconName: "Gamepad2",
     badge: "HOT",
     badgeColor: "red",
     allUrl: "/build-pc",
@@ -456,6 +503,7 @@ export const MEGA_MENU_CATEGORIES: MegaCategoryItem[] = [
     slug: "monitor",
     name: "Màn Hình Gaming",
     icon: Monitor,
+    iconName: "Monitor",
     allUrl: "/danh-muc/monitor",
     subGroups: [
       {
@@ -499,6 +547,7 @@ export const MEGA_MENU_CATEGORIES: MegaCategoryItem[] = [
     slug: "gear",
     name: "Bàn Phím & Chuột Gear",
     icon: Keyboard,
+    iconName: "Keyboard",
     allUrl: "/danh-muc/gear",
     subGroups: [
       {
@@ -543,6 +592,7 @@ export const MEGA_MENU_CATEGORIES: MegaCategoryItem[] = [
     slug: "gear",
     name: "Tai Nghe & Ghế Gaming",
     icon: Headphones,
+    iconName: "Headphones",
     allUrl: "/danh-muc/gear",
     subGroups: [
       {
@@ -580,3 +630,5 @@ export const MEGA_MENU_CATEGORIES: MegaCategoryItem[] = [
     ],
   },
 ];
+
+export const DEFAULT_MEGA_MENU_CATEGORIES = [...MEGA_MENU_CATEGORIES];
