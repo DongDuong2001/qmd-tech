@@ -2,32 +2,48 @@ import { supabase, getServiceSupabase } from "@/shared/db/supabase";
 import { CareerJob, CreateCareerInput, UpdateCareerInput } from "./types";
 
 export function sanitizeCareerSlug(rawSlug?: string, fallbackTitle?: string): string {
-  let text = (rawSlug && rawSlug.trim().length > 0) ? rawSlug : (fallbackTitle || "vi-tri-tuyen-dung");
+  let text = (rawSlug || "").trim();
 
-  try {
-    text = decodeURIComponent(text);
-  } catch {
-    // Ignore decode error
+  // If empty, use fallback title
+  if (!text && fallbackTitle) {
+    text = fallbackTitle.trim();
   }
 
-  // Remove URLs or protocols
-  text = text.replace(/^https?:\/\/[^/]+/i, "").replace(/^\/+/, "");
-  text = text.split("?")[0].split("#")[0];
+  // If text is a full URL
+  if (text.startsWith("http://") || text.startsWith("https://") || text.includes("://")) {
+    try {
+      const url = new URL(text);
+      const segments = url.pathname.split("/").filter(Boolean);
+      text = segments.pop() || fallbackTitle || "vi-tri-tuyen-dung";
+    } catch {
+      text = text.replace(/^https?:\/\/[^/]+/i, "").replace(/^\/+/, "");
+      text = text.split("?")[0].split("#")[0];
+    }
+  } else if (text.includes("?")) {
+    text = text.split("?")[0];
+  }
 
-  // Vietnamese diacritic normalization
+  // Vietnamese diacritic transliteration
   const normalized = text
+    .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/đ/g, "d")
-    .replace(/Đ/g, "D");
-
-  let slug = normalized
-    .toLowerCase()
+    .replace(/[đĐ]/g, "d")
+    .replace(/[^a-z0-9\s-]/g, "")
     .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+    .replace(/[\s_]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 
-  return slug || `career-${Date.now()}`;
+  return normalized || `career-${Date.now()}`;
+}
+
+async function withTimeout<T>(promise: PromiseLike<T>, ms = 1200): Promise<T> {
+  let timer: NodeJS.Timeout;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error("Supabase query timeout")), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
 export const DEFAULT_CAREERS: CareerJob[] = [
@@ -106,14 +122,16 @@ export class CareerService {
 
   async getPublicCareers(): Promise<CareerJob[]> {
     try {
-      const { data, error } = await supabase
-        .from("careers")
-        .select("*")
-        .eq("is_active", true)
-        .order("created_at", { ascending: false });
+      const res = await withTimeout(
+        supabase
+          .from("careers")
+          .select("*")
+          .eq("is_active", true)
+          .order("created_at", { ascending: false })
+      );
 
-      if (!error && Array.isArray(data) && data.length > 0) {
-        return data as CareerJob[];
+      if (!res.error && Array.isArray(res.data) && res.data.length > 0) {
+        return res.data as CareerJob[];
       }
     } catch {
       // Fallback to local
@@ -124,13 +142,15 @@ export class CareerService {
   async getAllCareersAdmin(): Promise<CareerJob[]> {
     try {
       const client = typeof window === "undefined" ? getServiceSupabase() : supabase;
-      const { data, error } = await client
-        .from("careers")
-        .select("*")
-        .order("created_at", { ascending: false });
+      const res = await withTimeout(
+        client
+          .from("careers")
+          .select("*")
+          .order("created_at", { ascending: false })
+      );
 
-      if (!error && Array.isArray(data) && data.length > 0) {
-        return data as CareerJob[];
+      if (!res.error && Array.isArray(res.data) && res.data.length > 0) {
+        return res.data as CareerJob[];
       }
     } catch {
       // Fallback to local
@@ -142,14 +162,16 @@ export class CareerService {
     const clean = sanitizeCareerSlug(slug);
 
     try {
-      const { data, error } = await supabase
-        .from("careers")
-        .select("*")
-        .or(`slug.eq.${slug},slug.eq.${clean},id.eq.${slug}`)
-        .single();
+      const res = await withTimeout(
+        supabase
+          .from("careers")
+          .select("*")
+          .or(`slug.eq.${slug},slug.eq.${clean},id.eq.${slug}`)
+          .single()
+      );
 
-      if (!error && data) {
-        return data as CareerJob;
+      if (!res.error && res.data) {
+        return res.data as CareerJob;
       }
     } catch {
       // Fallback
@@ -196,14 +218,16 @@ export class CareerService {
 
     try {
       const client = typeof window === "undefined" ? getServiceSupabase() : supabase;
-      const { data, error } = await client
-        .from("careers")
-        .insert([newJob])
-        .select()
-        .single();
+      const res = await withTimeout(
+        client
+          .from("careers")
+          .insert([newJob])
+          .select()
+          .single()
+      );
 
-      if (!error && data) {
-        return data as CareerJob;
+      if (!res.error && res.data) {
+        return res.data as CareerJob;
       }
     } catch {
       // Fallback to local
@@ -223,15 +247,17 @@ export class CareerService {
 
     try {
       const client = typeof window === "undefined" ? getServiceSupabase() : supabase;
-      const { data, error } = await client
-        .from("careers")
-        .update(patch)
-        .eq("id", id)
-        .select()
-        .single();
+      const res = await withTimeout(
+        client
+          .from("careers")
+          .update(patch)
+          .eq("id", id)
+          .select()
+          .single()
+      );
 
-      if (!error && data) {
-        return data as CareerJob;
+      if (!res.error && res.data) {
+        return res.data as CareerJob;
       }
     } catch {
       // Fallback to local
@@ -248,7 +274,7 @@ export class CareerService {
   async deleteCareer(id: string): Promise<boolean> {
     try {
       const client = typeof window === "undefined" ? getServiceSupabase() : supabase;
-      await client.from("careers").delete().eq("id", id);
+      await withTimeout(client.from("careers").delete().eq("id", id));
     } catch {
       // ignore
     }
