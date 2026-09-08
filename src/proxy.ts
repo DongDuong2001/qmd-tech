@@ -6,8 +6,14 @@ import { verifyAdminToken } from "./shared/security/jwt";
 
 const intlMiddleware = createMiddleware(routing);
 
-export default async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // 0. Redirect legacy English routes to Vietnamese
+  if (pathname.startsWith("/en")) {
+    const newPath = pathname.replace(/^\/en/, "/vi");
+    return NextResponse.redirect(new URL(newPath, request.url));
+  }
 
   // 1. Admin Route Guard with Cryptographic JWT Verification
   const isAdminRoute =
@@ -18,10 +24,7 @@ export default async function middleware(request: NextRequest) {
     const verification = adminToken ? await verifyAdminToken(adminToken) : { valid: false };
 
     if (!verification.valid) {
-      // Determine target locale (default to 'vi')
-      const segments = pathname.split("/").filter(Boolean);
-      const locale = segments[0] === "en" ? "en" : "vi";
-      const loginUrl = new URL(`/${locale}/admin/login`, request.url);
+      const loginUrl = new URL("/vi/admin/login", request.url);
       loginUrl.searchParams.set("redirect", pathname);
       return NextResponse.redirect(loginUrl);
     }
@@ -50,3 +53,6 @@ export default async function middleware(request: NextRequest) {
 export const config = {
   matcher: ["/", "/(vi|en)/:path*", "/((?!api|_next|_vercel|.*\\..*).*)"],
 };
+
+export default proxy;
+

@@ -124,22 +124,35 @@ export function BlogListClient({ initialPosts }: BlogListClientProps) {
       {featuredPost && (
         <div className="group overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white shadow-xs hover:border-[#0063FD] hover:shadow-md transition-all">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-0">
-            {/* Image Container */}
-            <div className="relative h-64 sm:h-80 lg:h-auto lg:col-span-7 bg-[#0F172A] overflow-hidden">
+            {/* Image Container with Ambient Backdrop */}
+            <div className="relative min-h-[260px] sm:min-h-[320px] lg:min-h-[380px] lg:col-span-7 bg-[#0F172A] overflow-hidden flex items-center justify-center">
               {featuredPost.cover_image ? (
-                <Image
-                  src={featuredPost.cover_image}
-                  alt={featuredPost.title_vi}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 60vw"
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                />
+                <>
+                  {/* Ambient background blur */}
+                  <Image
+                    src={featuredPost.cover_image}
+                    alt=""
+                    fill
+                    className="object-cover blur-2xl opacity-40 scale-110 pointer-events-none"
+                    aria-hidden="true"
+                  />
+                  {/* Sharp unclipped foreground image */}
+                  <div className="relative z-10 w-full h-full p-3 sm:p-5 flex items-center justify-center">
+                    <Image
+                      src={featuredPost.cover_image}
+                      alt={featuredPost.title_vi}
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 60vw"
+                      className="object-contain group-hover:scale-[1.02] transition-transform duration-500 drop-shadow-md"
+                    />
+                  </div>
+                </>
               ) : (
                 <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#0063FD] to-[#0F172A] text-white">
                   <BookOpen className="h-16 w-16 opacity-30" />
                 </div>
               )}
-              <div className="absolute top-4 left-4">
+              <div className="absolute top-4 left-4 z-20">
                 <span className="rounded-md bg-[#0063FD] px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow-xs">
                   {featuredPost.category}
                 </span>
@@ -227,22 +240,33 @@ export function BlogListClient({ initialPosts }: BlogListClientProps) {
               >
                 <div>
                   {/* Article Card Image */}
-                  <div className="relative h-48 w-full bg-[#0F172A] overflow-hidden">
+                  <div className="relative h-48 w-full bg-[#0F172A] overflow-hidden flex items-center justify-center">
                     {post.cover_image ? (
-                      <Image
-                        src={post.cover_image}
-                        alt={post.title_vi}
-                        fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
+                      <>
+                        <Image
+                          src={post.cover_image}
+                          alt=""
+                          fill
+                          className="object-cover blur-xl opacity-35 scale-110 pointer-events-none"
+                          aria-hidden="true"
+                        />
+                        <div className="relative z-10 w-full h-full p-2 flex items-center justify-center">
+                          <Image
+                            src={post.cover_image}
+                            alt={post.title_vi}
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            className="object-contain group-hover:scale-105 transition-transform duration-500"
+                          />
+                        </div>
+                      </>
                     ) : (
                       <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#0063FD] to-[#0F172A] text-white">
                         <BookOpen className="h-10 w-10 opacity-30" />
                       </div>
                     )}
-                    <div className="absolute top-3 left-3">
-                      <span className="rounded bg-[#0063FD] px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-white">
+                    <div className="absolute top-3 left-3 z-20">
+                      <span className="rounded bg-[#0063FD] px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-white shadow-2xs">
                         {post.category}
                       </span>
                     </div>

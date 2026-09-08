@@ -126,13 +126,7 @@ export class SePayAdapter {
 
     // SePay sends: "Apikey <YOUR_SEPAY_API_KEY>"
     const expected = `Apikey ${this.config.apiKey}`;
-    const tokenOnly = this.config.apiKey;
-
-    return (
-      authHeader === expected ||
-      authHeader === tokenOnly ||
-      authHeader === `Bearer ${tokenOnly}`
-    );
+    return authHeader === expected;
   }
 }
 

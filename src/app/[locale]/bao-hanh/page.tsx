@@ -53,7 +53,7 @@ export default function WarrantyPage() {
             3. Dịch Vụ Bảo Hành Tận Nơi Cho Dàn PC Custom
           </h3>
           <p className="text-xs">
-            Khách hàng đặt mua trọn bộ Custom PC tại QMD-Tech được hưởng gói bảo hành kỹ thuật tận nơi miễn phí 12 tháng tại khu vực nội thành Hà Nội và TP. Hồ Chí Minh.
+            Khách hàng đặt mua trọn bộ Custom PC tại QMD-Tech được hưởng gói bảo hành kỹ thuật tận nơi miễn phí 12 tháng tại khu vực nội thành Hà Nội. Đối với 33 tỉnh thành khác trên toàn quốc, QMD-Tech hỗ trợ nhận và gửi bảo hành hỏa tốc qua chuyển phát nhanh từ 1 - 3 ngày.
           </p>
         </div>
       </div>

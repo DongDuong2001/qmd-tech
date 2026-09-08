@@ -4,7 +4,7 @@ import crypto from "crypto";
 import { supabase } from "@/shared/db/supabase";
 import { ADMIN_COOKIE_NAME, AUTH_COOKIE_NAME } from "@/shared/security/cookies";
 import { verifyAdminToken } from "@/shared/security/jwt";
-import { checkRateLimit } from "@/shared/security/rateLimiter";
+import { checkRateLimit, getClientIp } from "@/shared/security/rateLimiter";
 
 const ALLOWED_MIME_TYPES = [
   "image/jpeg",
@@ -12,15 +12,46 @@ const ALLOWED_MIME_TYPES = [
   "image/webp",
   "image/avif",
   "image/gif",
-  "image/svg+xml",
 ];
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
+function validateImageMagicBytes(buffer: ArrayBuffer): boolean {
+  const bytes = new Uint8Array(buffer.slice(0, 16));
+  if (bytes.length < 4) return false;
+
+  // JPEG: FF D8 FF
+  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
+    return true;
+  }
+  // PNG: 89 50 4E 47
+  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
+    return true;
+  }
+  // GIF: 47 49 46 38 ('GIF8')
+  if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x38) {
+    return true;
+  }
+  // WebP: RIFF (bytes 0-3) and WEBP (bytes 8-11)
+  if (
+    bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
+    bytes.length >= 12 &&
+    bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50
+  ) {
+    return true;
+  }
+  // AVIF: ftypavif or ftypmif1
+  if (bytes.length >= 12 && bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70) {
+    return true;
+  }
+
+  return false;
+}
+
 export async function POST(req: NextRequest) {
   try {
     // 1. Rate Limiting Check
-    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1";
+    const ip = getClientIp(req);
     const rateLimit = checkRateLimit(ip, "upload", 20, 60);
     if (!rateLimit.success) {
       return NextResponse.json(
@@ -63,7 +94,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 3. File Validation (Size and MIME type)
+    // 3. File Validation (Size, MIME type, and Magic Bytes signature)
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
         { success: false, error: "Kích thước ảnh vượt quá giới hạn cho phép (tối đa 5MB)." },
@@ -73,7 +104,15 @@ export async function POST(req: NextRequest) {
 
     if (file.type && !ALLOWED_MIME_TYPES.includes(file.type)) {
       return NextResponse.json(
-        { success: false, error: "Định dạng tệp không được hỗ trợ. Vui lòng tải ảnh định dạng JPG, PNG, WebP, AVIF hoặc SVG." },
+        { success: false, error: "Định dạng tệp không được hỗ trợ. Vui lòng tải ảnh định dạng JPG, PNG, WebP hoặc AVIF." },
+        { status: 400 }
+      );
+    }
+
+    const fileBuffer = await file.arrayBuffer();
+    if (!validateImageMagicBytes(fileBuffer)) {
+      return NextResponse.json(
+        { success: false, error: "Nội dung tệp không phải định dạng hình ảnh hợp lệ." },
         { status: 400 }
       );
     }

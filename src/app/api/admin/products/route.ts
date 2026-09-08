@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServiceSupabase } from "@/shared/db/supabase";
 import { requireAdmin } from "@/shared/security/adminAuth";
 import { Product } from "@/shared/types";
+import { slugifyVietnamese } from "@/shared/lib/sanitize";
 
 export async function GET(req: NextRequest) {
   try {
@@ -72,12 +73,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Số lượng tồn kho phải là số nguyên không âm." }, { status: 400 });
     }
 
-    const cleanSlug = slug
-      ? slug.trim()
-      : name_vi
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/^-|-$/g, "");
+    const cleanSlug = slugifyVietnamese(slug || name_vi, "product");
 
     const newProductPayload = {
       name_vi: name_vi.trim(),
@@ -127,6 +123,10 @@ export async function PUT(req: NextRequest) {
 
     if (!id || typeof id !== "string") {
       return NextResponse.json({ success: false, error: "Thiếu ID sản phẩm cần cập nhật." }, { status: 400 });
+    }
+
+    if (updates.slug) {
+      updates.slug = slugifyVietnamese(updates.slug, "product");
     }
 
     const db = getServiceSupabase();

@@ -11,6 +11,27 @@ import {
   CreateBlogPostInput,
 } from "@/shared/types";
 import { blogService } from "@/modules/blog/service";
+import { careerService } from "@/modules/careers/service";
+import {
+  CareerJob,
+  CreateCareerInput,
+  UpdateCareerInput,
+  CareerApplication,
+  ApplicationStatus,
+  UpdateApplicationStatusInput,
+} from "@/modules/careers/types";
+import {
+  MegaCategoryItem,
+  DEFAULT_MEGA_MENU_CATEGORIES,
+} from "@/components/navigation/megaMenuData";
+
+export type {
+  CreateCareerInput,
+  UpdateCareerInput,
+  CareerApplication,
+  ApplicationStatus,
+  UpdateApplicationStatusInput,
+};
 
 export interface CreateProductInput {
   name_vi: string;
@@ -760,6 +781,183 @@ export class AdminService {
 
   async deleteBlogPost(id: string): Promise<boolean> {
     return blogService.deletePost(id);
+  }
+
+  // ===================== MEGA MENU CUSTOMIZATION =====================
+  async getMegaMenu(): Promise<MegaCategoryItem[]> {
+    if (typeof window !== "undefined") {
+      try {
+        const res = await fetch("/api/admin/menu");
+        const json = await res.json();
+        if (json.success && Array.isArray(json.categories) && json.categories.length > 0) {
+          return json.categories;
+        }
+      } catch (err) {
+        console.warn("AdminService.getMegaMenu notice:", err);
+      }
+    }
+    return DEFAULT_MEGA_MENU_CATEGORIES;
+  }
+
+  async updateMegaMenu(categories: MegaCategoryItem[]): Promise<MegaCategoryItem[]> {
+    if (typeof window !== "undefined") {
+      const res = await fetch("/api/admin/menu", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ categories }),
+      });
+      const json = await res.json();
+      if (!json.success) {
+        throw new Error(json.error || "Lỗi cập nhật menu.");
+      }
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("qmd:menu_updated"));
+      }
+      return json.categories || categories;
+    }
+    return categories;
+  }
+
+  async resetMegaMenu(): Promise<MegaCategoryItem[]> {
+    if (typeof window !== "undefined") {
+      const res = await fetch("/api/admin/menu", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "reset" }),
+      });
+      const json = await res.json();
+      if (!json.success) {
+        throw new Error(json.error || "Lỗi khôi phục menu mặc định.");
+      }
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("qmd:menu_updated"));
+      }
+      return json.categories || DEFAULT_MEGA_MENU_CATEGORIES;
+    }
+    return DEFAULT_MEGA_MENU_CATEGORIES;
+  }
+
+  // ===================== CAREERS & RECRUITMENT =====================
+  async getCareers(): Promise<CareerJob[]> {
+    if (typeof window !== "undefined") {
+      try {
+        const res = await fetch("/api/admin/careers");
+        const json = await res.json();
+        if (json.success && Array.isArray(json.careers)) {
+          return json.careers;
+        }
+      } catch (err) {
+        console.warn("AdminService.getCareers notice:", err);
+      }
+    }
+    return careerService.getAllCareersAdmin();
+  }
+
+  async createCareer(input: CreateCareerInput): Promise<CareerJob> {
+    if (typeof window !== "undefined") {
+      const res = await fetch("/api/admin/careers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      });
+      const json = await res.json();
+      if (!json.success) {
+        throw new Error(json.error || "Lỗi thêm vị trí tuyển dụng.");
+      }
+      return json.career;
+    }
+    return careerService.createCareer(input);
+  }
+
+  async updateCareer(id: string, updates: UpdateCareerInput): Promise<CareerJob | null> {
+    if (typeof window !== "undefined") {
+      const res = await fetch("/api/admin/careers", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, ...updates }),
+      });
+      const json = await res.json();
+      if (!json.success) {
+        throw new Error(json.error || "Lỗi cập nhật vị trí tuyển dụng.");
+      }
+      return json.career;
+    }
+    return careerService.updateCareer(id, updates);
+  }
+
+  async deleteCareer(id: string): Promise<boolean> {
+    if (typeof window !== "undefined") {
+      const res = await fetch(`/api/admin/careers?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      const json = await res.json();
+      if (!json.success) {
+        throw new Error(json.error || "Lỗi xóa vị trí tuyển dụng.");
+      }
+      return true;
+    }
+    return careerService.deleteCareer(id);
+  }
+
+  // ===================== CAREER APPLICATIONS =====================
+  async getCareerApplications(filters?: {
+    status?: ApplicationStatus;
+    career_id?: string;
+    search?: string;
+  }): Promise<CareerApplication[]> {
+    if (typeof window !== "undefined") {
+      try {
+        const params = new URLSearchParams();
+        if (filters?.status) params.set("status", filters.status);
+        if (filters?.career_id) params.set("career_id", filters.career_id);
+        if (filters?.search) params.set("search", filters.search);
+
+        const res = await fetch(`/api/admin/careers/applications?${params.toString()}`);
+        const json = await res.json();
+        if (json.success && Array.isArray(json.applications)) {
+          return json.applications;
+        }
+      } catch (err) {
+        console.warn("AdminService.getCareerApplications notice:", err);
+      }
+    }
+    return careerService.getApplicationsAdmin(filters);
+  }
+
+  async updateApplicationStatus(
+    id: string,
+    updates: UpdateApplicationStatusInput
+  ): Promise<CareerApplication | null> {
+    if (typeof window !== "undefined") {
+      const res = await fetch("/api/admin/careers/applications", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, ...updates }),
+      });
+      const json = await res.json();
+      if (!json.success) {
+        throw new Error(json.error || "Lỗi cập nhật trạng thái hồ sơ ứng viên.");
+      }
+      return json.application;
+    }
+    return careerService.updateApplicationStatus(id, updates);
+  }
+
+  async deleteCareerApplication(id: string): Promise<boolean> {
+    if (typeof window !== "undefined") {
+      const res = await fetch(
+        `/api/admin/careers/applications?id=${encodeURIComponent(id)}`,
+        {
+          method: "DELETE",
+        }
+      );
+      const json = await res.json();
+      if (!json.success) {
+        throw new Error(json.error || "Lỗi xóa hồ sơ ứng viên.");
+      }
+      return true;
+    }
+    return careerService.deleteApplication(id);
   }
 }
 

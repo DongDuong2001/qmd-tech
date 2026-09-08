@@ -67,11 +67,32 @@ import {
   Sliders,
   Globe,
   Store,
+  LayoutGrid,
+  Save,
+  RotateCcw,
+  Briefcase,
+  Download,
 } from "lucide-react";
+import {
+  MegaCategoryItem,
+  MegaSubItem,
+  AVAILABLE_ICON_NAMES,
+  resolveMegaCategoryIcon,
+  DEFAULT_MEGA_MENU_CATEGORIES,
+} from "@/components/navigation/megaMenuData";
+import { sanitizeSlug } from "@/modules/blog/service";
+import {
+  CareerJob,
+  CreateCareerInput,
+  UpdateCareerInput,
+  CareerApplication,
+  ApplicationStatus,
+} from "@/modules/careers/types";
+import { sanitizeCareerSlug } from "@/modules/careers/service";
 
 export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState<
-    "overview" | "products" | "categories" | "banners" | "deals" | "suppliers" | "blogs" | "orders" | "reviews" | "settings" | "security"
+    "overview" | "products" | "categories" | "menu" | "banners" | "deals" | "suppliers" | "blogs" | "careers" | "orders" | "reviews" | "settings" | "security"
   >("overview");
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -82,6 +103,73 @@ export default function AdminDashboardPage() {
   const [deals, setDeals] = useState<PrebuiltDeal[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
+  const [careers, setCareers] = useState<CareerJob[]>([]);
+  const [isAddCareerOpen, setIsAddCareerOpen] = useState(false);
+  const [isEditCareerOpen, setIsEditCareerOpen] = useState(false);
+  const [editingCareerId, setEditingCareerId] = useState<string | null>(null);
+  const [careerSearchQuery, setCareerSearchQuery] = useState("");
+  const [careerDeptFilter, setCareerDeptFilter] = useState("all");
+
+  // Career Sub-tabs & Applications State
+  const [careerSubTab, setCareerSubTab] = useState<"jobs" | "applications">("jobs");
+  const [applications, setApplications] = useState<CareerApplication[]>([]);
+  const [applicationSearch, setApplicationSearch] = useState("");
+  const [applicationStatusFilter, setApplicationStatusFilter] = useState<string>("all");
+  const [applicationJobFilter, setApplicationJobFilter] = useState<string>("all");
+  const [selectedApplication, setSelectedApplication] = useState<CareerApplication | null>(null);
+  const [isAppDetailOpen, setIsAppDetailOpen] = useState(false);
+  const [editingAppNotes, setEditingAppNotes] = useState("");
+  const [editingAppStatus, setEditingAppStatus] = useState<ApplicationStatus>("pending");
+  const [isUpdatingApp, setIsUpdatingApp] = useState(false);
+
+  const [careerForm, setCareerForm] = useState<CreateCareerInput>({
+    title: "",
+    slug: "",
+    department: "Kỹ Thuật & Phần Cứng",
+    location: "Hà Nội",
+    employment_type: "Toàn thời gian",
+    salary: "12.000.000₫ - 18.000.000₫",
+    experience: "1 năm kinh nghiệm hoặc đam mê PC",
+    description: "",
+    requirements: "",
+    benefits: "Chế độ BHXH đầy đủ, thưởng hiệu suất, phụ cấp ăn trưa, ưu đãi mua linh kiện PC giá gốc.",
+    contact_email: "tuyendung@qmdtech.vn",
+    is_active: true,
+  });
+
+  const [editCareerForm, setEditCareerForm] = useState<CreateCareerInput>({
+    title: "",
+    slug: "",
+    department: "Kỹ Thuật & Phần Cứng",
+    location: "Hà Nội",
+    employment_type: "Toàn thời gian",
+    salary: "",
+    experience: "",
+    description: "",
+    requirements: "",
+    benefits: "",
+    contact_email: "tuyendung@qmdtech.vn",
+    is_active: true,
+  });
+
+  // Mega Menu Customization State
+  const [megaMenuCategories, setMegaMenuCategories] = useState<MegaCategoryItem[]>([]);
+  const [activeMenuCatId, setActiveMenuCatId] = useState<string>("vga");
+  const [isSavingMenu, setIsSavingMenu] = useState(false);
+  const [isAddMenuCategoryOpen, setIsAddMenuCategoryOpen] = useState(false);
+  const [newMenuCatForm, setNewMenuCatForm] = useState({
+    name: "",
+    slug: "",
+    iconName: "Layers",
+    allUrl: "/danh-muc",
+  });
+  const [newSubgroupTitle, setNewSubgroupTitle] = useState("");
+  const [addingToSubgroupIdx, setAddingToSubgroupIdx] = useState<number | null>(null);
+  const [newItemForm, setNewItemForm] = useState<MegaSubItem>({
+    name: "",
+    href: "/danh-muc",
+    isHighlight: false,
+  });
 
   // Site Settings State
   const [siteSettings, setSiteSettings] = useState<SiteSettings>({
@@ -129,6 +217,8 @@ export default function AdminDashboardPage() {
 
   // Modals state
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
+  const [isEditProductOpen, setIsEditProductOpen] = useState(false);
+  const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
   const [isEditCategoryOpen, setIsEditCategoryOpen] = useState(false);
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
@@ -210,6 +300,37 @@ export default function AdminDashboardPage() {
   const [tdpInput, setTdpInput] = useState("");
   const [vramInput, setVramInput] = useState("");
 
+  // Edit Product Form State
+  const [editProductForm, setEditProductForm] = useState<CreateProductInput>({
+    name_vi: "",
+    name_en: "",
+    slug: "",
+    sku: "",
+    brand: "ASUS",
+    category_id: "",
+    price_vnd: 0,
+    original_price_vnd: 0,
+    stock: 10,
+    images: ["https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?auto=format&fit=crop&w=600&q=80"],
+    specs: {},
+    warranty_months: 36,
+    is_featured: false,
+  });
+
+  const [editSocketInput, setEditSocketInput] = useState("");
+  const [editRamTypeInput, setEditRamTypeInput] = useState("");
+  const [editTdpInput, setEditTdpInput] = useState("");
+  const [editVramInput, setEditVramInput] = useState("");
+
+  const formatVndNumber = (num?: number | null) => {
+    return new Intl.NumberFormat("en-US").format(num || 0);
+  };
+
+  const parseVndNumber = (val: string) => {
+    const digits = val.replace(/[^0-9]/g, "");
+    return digits ? parseInt(digits, 10) : 0;
+  };
+
   // Category Form State
   const [categoryForm, setCategoryForm] = useState({
     slug: "",
@@ -276,7 +397,7 @@ export default function AdminDashboardPage() {
   const loadAllData = async () => {
     setIsRefreshing(true);
     try {
-      const [p, c, o, r, b, d, s, bl] = await Promise.all([
+      const [p, c, o, r, b, d, s, bl, m, cr, apps] = await Promise.all([
         adminService.getProducts(),
         adminService.getCategories(),
         adminService.getOrders(),
@@ -285,6 +406,9 @@ export default function AdminDashboardPage() {
         adminService.getPrebuiltDeals(),
         adminService.getSuppliers(),
         adminService.getBlogPosts(),
+        adminService.getMegaMenu(),
+        adminService.getCareers(),
+        adminService.getCareerApplications(),
       ]);
       setProducts(p);
       setCategories(c);
@@ -294,6 +418,12 @@ export default function AdminDashboardPage() {
       setDeals(d);
       setSuppliers(s);
       setBlogs(bl);
+      setMegaMenuCategories(m);
+      setCareers(cr);
+      setApplications(apps || []);
+      if (m.length > 0) {
+        setActiveMenuCatId((prev) => (m.some((cat) => cat.id === prev) ? prev : m[0].id));
+      }
 
       // Fetch dynamic site settings
       try {
@@ -437,6 +567,60 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const handleOpenEditProduct = (p: Product) => {
+    setEditingProductId(p.id);
+    setEditProductForm({
+      name_vi: p.name_vi || "",
+      name_en: p.name_en || "",
+      slug: p.slug || "",
+      sku: p.sku || "",
+      brand: p.brand || "ASUS",
+      category_id: p.category_id || categories[0]?.id || "",
+      price_vnd: p.price_vnd || 0,
+      original_price_vnd: p.original_price_vnd || 0,
+      stock: p.stock || 0,
+      images: p.images || [],
+      specs: p.specs || {},
+      warranty_months: p.warranty_months || 36,
+      is_featured: !!p.is_featured,
+    });
+    setEditSocketInput(p.specs?.socket ? String(p.specs.socket) : "");
+    setEditRamTypeInput(p.specs?.ram_type ? String(p.specs.ram_type) : "");
+    setEditTdpInput(p.specs?.tdp_watts ? String(p.specs.tdp_watts) : "");
+    setEditVramInput(p.specs?.vram_gb ? String(p.specs.vram_gb) : "");
+    setIsEditProductOpen(true);
+  };
+
+  const handleUpdateProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProductId) return;
+    try {
+      const specs: Record<string, unknown> = { ...(editProductForm.specs || {}) };
+      if (editSocketInput.trim()) specs.socket = editSocketInput.trim();
+      if (editRamTypeInput.trim()) specs.ram_type = editRamTypeInput.trim();
+      if (editTdpInput.trim()) specs.tdp_watts = parseInt(editTdpInput.trim(), 10);
+      if (editVramInput.trim()) specs.vram_gb = parseInt(editVramInput.trim(), 10);
+
+      const generatedSlug =
+        editProductForm.slug ||
+        editProductForm.name_vi.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+      await adminService.updateProduct(editingProductId, {
+        ...editProductForm,
+        slug: generatedSlug,
+        specs,
+      });
+
+      showNotification("success", "Đã cập nhật linh kiện thành công!");
+      setIsEditProductOpen(false);
+      setEditingProductId(null);
+      loadAllData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi cập nhật sản phẩm: " + msg);
+    }
+  };
+
   // Categories
   const handleCreateCategory = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -499,6 +683,239 @@ export default function AdminDashboardPage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       showNotification("error", "Lỗi xóa danh mục: " + msg);
+    }
+  };
+
+  // =========================================================================
+  // MEGA MENU HANDLERS
+  // =========================================================================
+  const activeMenuCategory =
+    megaMenuCategories.find((c) => c.id === activeMenuCatId) || megaMenuCategories[0];
+
+  const handleMoveMenuCategory = (index: number, direction: "up" | "down") => {
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= megaMenuCategories.length) return;
+    const copy = [...megaMenuCategories];
+    const temp = copy[index];
+    copy[index] = copy[targetIndex];
+    copy[targetIndex] = temp;
+    setMegaMenuCategories(copy);
+  };
+
+  const handleDeleteMenuCategory = (catId: string) => {
+    if (!confirm("Bạn có chắc chắn muốn xóa danh mục này khỏi Menu Dropdown?")) return;
+    const filtered = megaMenuCategories.filter((c) => c.id !== catId);
+    setMegaMenuCategories(filtered);
+    if (activeMenuCatId === catId && filtered.length > 0) {
+      setActiveMenuCatId(filtered[0].id);
+    }
+  };
+
+  const handleCreateMenuCategory = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMenuCatForm.name.trim()) {
+      showNotification("error", "Vui lòng nhập tên danh mục hiển thị.");
+      return;
+    }
+    const cleanSlug = (newMenuCatForm.slug || newMenuCatForm.name)
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9-]+/g, "-")
+      .replace(/^-|-$/g, "");
+
+    const newCat: MegaCategoryItem = {
+      id: cleanSlug || `cat-${Date.now()}`,
+      slug: cleanSlug || "danh-muc",
+      name: newMenuCatForm.name.trim(),
+      iconName: newMenuCatForm.iconName || "Layers",
+      allUrl: newMenuCatForm.allUrl.trim() || `/danh-muc/${cleanSlug}`,
+      subGroups: [],
+    };
+
+    const updated = [...megaMenuCategories, newCat];
+    setMegaMenuCategories(updated);
+    setActiveMenuCatId(newCat.id);
+    setIsAddMenuCategoryOpen(false);
+    setNewMenuCatForm({
+      name: "",
+      slug: "",
+      iconName: "Layers",
+      allUrl: "/danh-muc",
+    });
+    showNotification("success", `Đã thêm danh mục "${newCat.name}" vào Menu Dropdown!`);
+  };
+
+  const handleUpdateActiveCategoryField = (
+    field: "name" | "slug" | "iconName" | "allUrl",
+    value: string
+  ) => {
+    if (!activeMenuCategory) return;
+    const updated = megaMenuCategories.map((cat) => {
+      if (cat.id === activeMenuCategory.id) {
+        return { ...cat, [field]: value };
+      }
+      return cat;
+    });
+    setMegaMenuCategories(updated);
+  };
+
+  const handleAddSubgroup = (title: string) => {
+    if (!activeMenuCategory || !title.trim()) return;
+    const updated = megaMenuCategories.map((cat) => {
+      if (cat.id === activeMenuCategory.id) {
+        return {
+          ...cat,
+          subGroups: [...(cat.subGroups || []), { title: title.trim(), items: [] }],
+        };
+      }
+      return cat;
+    });
+    setMegaMenuCategories(updated);
+    showNotification("success", `Đã thêm nhóm "${title.trim()}"!`);
+  };
+
+  const handleDeleteSubgroup = (subgroupIdx: number) => {
+    if (!activeMenuCategory) return;
+    const updated = megaMenuCategories.map((cat) => {
+      if (cat.id === activeMenuCategory.id) {
+        const subGroups = [...cat.subGroups];
+        subGroups.splice(subgroupIdx, 1);
+        return { ...cat, subGroups };
+      }
+      return cat;
+    });
+    setMegaMenuCategories(updated);
+  };
+
+  const handleMoveSubgroup = (subgroupIdx: number, direction: "up" | "down") => {
+    if (!activeMenuCategory) return;
+    const targetIdx = direction === "up" ? subgroupIdx - 1 : subgroupIdx + 1;
+    if (targetIdx < 0 || targetIdx >= activeMenuCategory.subGroups.length) return;
+    const updated = megaMenuCategories.map((cat) => {
+      if (cat.id === activeMenuCategory.id) {
+        const subGroups = [...cat.subGroups];
+        const temp = subGroups[subgroupIdx];
+        subGroups[subgroupIdx] = subGroups[targetIdx];
+        subGroups[targetIdx] = temp;
+        return { ...cat, subGroups };
+      }
+      return cat;
+    });
+    setMegaMenuCategories(updated);
+  };
+
+  const handleUpdateSubgroupTitle = (subgroupIdx: number, title: string) => {
+    if (!activeMenuCategory) return;
+    const updated = megaMenuCategories.map((cat) => {
+      if (cat.id === activeMenuCategory.id) {
+        const subGroups = [...cat.subGroups];
+        subGroups[subgroupIdx] = { ...subGroups[subgroupIdx], title };
+        return { ...cat, subGroups };
+      }
+      return cat;
+    });
+    setMegaMenuCategories(updated);
+  };
+
+  const handleCommitAddItem = (subgroupIdx: number) => {
+    if (!activeMenuCategory || !newItemForm.name.trim()) return;
+    const item: MegaSubItem = {
+      name: newItemForm.name.trim(),
+      href: newItemForm.href.trim() || activeMenuCategory.allUrl || "/danh-muc",
+      isHighlight: Boolean(newItemForm.isHighlight),
+    };
+    const updated = megaMenuCategories.map((cat) => {
+      if (cat.id === activeMenuCategory.id) {
+        const subGroups = [...cat.subGroups];
+        const targetGroup = { ...subGroups[subgroupIdx] };
+        targetGroup.items = [...targetGroup.items, item];
+        subGroups[subgroupIdx] = targetGroup;
+        return { ...cat, subGroups };
+      }
+      return cat;
+    });
+    setMegaMenuCategories(updated);
+    setAddingToSubgroupIdx(null);
+    setNewItemForm({
+      name: "",
+      href: activeMenuCategory.allUrl || "/danh-muc",
+      isHighlight: false,
+    });
+    showNotification("success", `Đã thêm liên kết "${item.name}"!`);
+  };
+
+  const handleUpdateItemField = (
+    subgroupIdx: number,
+    itemIdx: number,
+    field: "name" | "href" | "isHighlight",
+    value: unknown
+  ) => {
+    if (!activeMenuCategory) return;
+    const updated = megaMenuCategories.map((cat) => {
+      if (cat.id === activeMenuCategory.id) {
+        const subGroups = [...cat.subGroups];
+        const group = { ...subGroups[subgroupIdx] };
+        const items = [...group.items];
+        items[itemIdx] = { ...items[itemIdx], [field]: value };
+        group.items = items;
+        subGroups[subgroupIdx] = group;
+        return { ...cat, subGroups };
+      }
+      return cat;
+    });
+    setMegaMenuCategories(updated);
+  };
+
+  const handleDeleteItem = (subgroupIdx: number, itemIdx: number) => {
+    if (!activeMenuCategory) return;
+    const updated = megaMenuCategories.map((cat) => {
+      if (cat.id === activeMenuCategory.id) {
+        const subGroups = [...cat.subGroups];
+        const group = { ...subGroups[subgroupIdx] };
+        const items = [...group.items];
+        items.splice(itemIdx, 1);
+        group.items = items;
+        subGroups[subgroupIdx] = group;
+        return { ...cat, subGroups };
+      }
+      return cat;
+    });
+    setMegaMenuCategories(updated);
+  };
+
+  const handleSaveMenu = async () => {
+    setIsSavingMenu(true);
+    try {
+      await adminService.updateMegaMenu(megaMenuCategories);
+      showNotification("success", "Đã lưu và áp dụng cấu hình Menu Dropdown thành công!");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi lưu menu: " + msg);
+    } finally {
+      setIsSavingMenu(false);
+    }
+  };
+
+  const handleResetMenu = async () => {
+    if (
+      !confirm(
+        "Bạn có chắc chắn muốn khôi phục Menu Dropdown về 12 danh mục mặc định chuẩn của QMD-Tech?"
+      )
+    )
+      return;
+    setIsSavingMenu(true);
+    try {
+      const resetData = await adminService.resetMegaMenu();
+      setMegaMenuCategories(resetData);
+      if (resetData.length > 0) {
+        setActiveMenuCatId(resetData[0].id);
+      }
+      showNotification("success", "Đã khôi phục Menu Dropdown về 12 danh mục mặc định chuẩn!");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi khôi phục menu: " + msg);
+    } finally {
+      setIsSavingMenu(false);
     }
   };
 
@@ -703,7 +1120,8 @@ export default function AdminDashboardPage() {
   const handleCreateBlogPost = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await adminService.createBlogPost(blogForm);
+      const cleanSlug = sanitizeSlug(blogForm.slug, blogForm.title_vi);
+      await adminService.createBlogPost({ ...blogForm, slug: cleanSlug });
       showNotification("success", "Đã xuất bản bài viết công nghệ mới!");
       setIsAddBlogOpen(false);
       setBlogForm({
@@ -732,7 +1150,8 @@ export default function AdminDashboardPage() {
     e.preventDefault();
     if (!editingBlogId) return;
     try {
-      await adminService.updateBlogPost(editingBlogId, editBlogForm);
+      const cleanSlug = sanitizeSlug(editBlogForm.slug, editBlogForm.title_vi);
+      await adminService.updateBlogPost(editingBlogId, { ...editBlogForm, slug: cleanSlug });
       showNotification("success", "Đã lưu thay đổi bài viết thành công!");
       setIsEditBlogOpen(false);
       setEditingBlogId(null);
@@ -764,6 +1183,170 @@ export default function AdminDashboardPage() {
       const msg = err instanceof Error ? err.message : String(err);
       showNotification("error", "Lỗi xóa bài viết: " + msg);
     }
+  };
+
+  // Career / Recruitment Handlers
+  const handleCreateCareer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const cleanSlug = sanitizeCareerSlug(careerForm.slug, careerForm.title);
+      await adminService.createCareer({ ...careerForm, slug: cleanSlug });
+      showNotification("success", "Đã thêm vị trí tuyển dụng mới thành công!");
+      setIsAddCareerOpen(false);
+      setCareerForm({
+        title: "",
+        slug: "",
+        department: "Kỹ Thuật & Phần Cứng",
+        location: "Hà Nội",
+        employment_type: "Toàn thời gian",
+        salary: "12.000.000₫ - 18.000.000₫",
+        experience: "1 năm kinh nghiệm hoặc đam mê PC",
+        description: "",
+        requirements: "",
+        benefits: "Chế độ BHXH đầy đủ, thưởng hiệu suất, phụ cấp ăn trưa, ưu đãi mua linh kiện PC giá gốc.",
+        contact_email: "tuyendung@qmdtech.vn",
+        is_active: true,
+      });
+      loadAllData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi thêm vị trí: " + msg);
+    }
+  };
+
+  const handleUpdateCareer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCareerId) return;
+    try {
+      const cleanSlug = sanitizeCareerSlug(editCareerForm.slug, editCareerForm.title);
+      await adminService.updateCareer(editingCareerId, { ...editCareerForm, slug: cleanSlug });
+      showNotification("success", "Cập nhật vị trí tuyển dụng thành công!");
+      setIsEditCareerOpen(false);
+      setEditingCareerId(null);
+      loadAllData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi cập nhật vị trí: " + msg);
+    }
+  };
+
+  const handleToggleActiveCareer = async (job: CareerJob) => {
+    try {
+      await adminService.updateCareer(job.id, { is_active: !job.is_active });
+      showNotification(
+        "success",
+        job.is_active
+          ? "Đã tạm đóng nhận hồ sơ cho vị trí này."
+          : "Đã kích hoạt hiển thị tuyển dụng cho vị trí này!"
+      );
+      loadAllData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi chuyển trạng thái: " + msg);
+    }
+  };
+
+  const handleDeleteCareer = async (id: string) => {
+    if (!confirm("Bạn có chắc chắn muốn xóa vị trí tuyển dụng này?")) return;
+    try {
+      await adminService.deleteCareer(id);
+      showNotification("success", "Đã xóa vị trí tuyển dụng!");
+      loadAllData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi xóa vị trí: " + msg);
+    }
+  };
+
+  // Career Applications Handlers
+  const handleUpdateApplicationStatus = async (
+    id: string,
+    status: ApplicationStatus,
+    notes?: string
+  ) => {
+    setIsUpdatingApp(true);
+    try {
+      const updated = await adminService.updateApplicationStatus(id, {
+        status,
+        notes: notes !== undefined ? notes : undefined,
+      });
+      if (updated) {
+        setApplications((prev) =>
+          prev.map((app) => (app.id === id ? updated : app))
+        );
+        if (selectedApplication?.id === id) {
+          setSelectedApplication(updated);
+        }
+        showNotification("success", "Cập nhật trạng thái hồ sơ ứng viên thành công!");
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi cập nhật hồ sơ: " + msg);
+    } finally {
+      setIsUpdatingApp(false);
+    }
+  };
+
+  const handleDeleteApplication = async (id: string) => {
+    if (!confirm("Bạn có chắc chắn muốn xóa hồ sơ ứng tuyển này không?")) return;
+    try {
+      await adminService.deleteCareerApplication(id);
+      setApplications((prev) => prev.filter((a) => a.id !== id));
+      if (selectedApplication?.id === id) {
+        setIsAppDetailOpen(false);
+        setSelectedApplication(null);
+      }
+      showNotification("success", "Đã xóa hồ sơ ứng viên!");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi xóa hồ sơ: " + msg);
+    }
+  };
+
+  const filteredApplications = useMemo(() => {
+    return applications.filter((app) => {
+      const matchStatus =
+        applicationStatusFilter === "all" || app.status === applicationStatusFilter;
+      const matchJob =
+        applicationJobFilter === "all" ||
+        app.career_id === applicationJobFilter ||
+        app.job_title === applicationJobFilter;
+      const q = applicationSearch.trim().toLowerCase();
+      const matchSearch =
+        !q ||
+        app.full_name.toLowerCase().includes(q) ||
+        app.email.toLowerCase().includes(q) ||
+        app.phone.toLowerCase().includes(q) ||
+        app.job_title.toLowerCase().includes(q) ||
+        (app.notes && app.notes.toLowerCase().includes(q));
+      return matchStatus && matchJob && matchSearch;
+    });
+  }, [applications, applicationStatusFilter, applicationJobFilter, applicationSearch]);
+
+  const getAppStatusBadge = (status: ApplicationStatus) => {
+    switch (status) {
+      case "pending":
+        return { label: "Chờ duyệt", bg: "bg-[#FEF3C7] text-[#B45309] border-[#FDE68A]" };
+      case "reviewed":
+        return { label: "Đã xem qua", bg: "bg-[#EFF6FF] text-[#1D4ED8] border-[#BFDBFE]" };
+      case "contacted":
+        return { label: "Đã liên hệ", bg: "bg-[#ECFEFF] text-[#0E7490] border-[#A5F3FC]" };
+      case "interview":
+        return { label: "Phỏng vấn", bg: "bg-[#FAF5FF] text-[#7E22CE] border-[#E9D5FF]" };
+      case "accepted":
+        return { label: "Tuyển dụng", bg: "bg-[#DCFCE7] text-[#15803D] border-[#86EFAC]" };
+      case "rejected":
+        return { label: "Từ chối", bg: "bg-[#F1F5F9] text-[#64748B] border-[#CBD5E1]" };
+      default:
+        return { label: status, bg: "bg-[#F1F5F9] text-[#64748B] border-[#CBD5E1]" };
+    }
+  };
+
+  const formatAppFileSize = (bytes: number) => {
+    if (!bytes) return "0 B";
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   const handleAdminLogout = async () => {
@@ -807,6 +1390,20 @@ export default function AdminDashboardPage() {
       return matchCat && matchSearch;
     });
   }, [blogs, blogCategoryFilter, searchQuery]);
+
+  // Filtered Careers
+  const filteredCareers = useMemo(() => {
+    return careers.filter((job) => {
+      const matchDept =
+        careerDeptFilter === "all" || job.department === careerDeptFilter;
+      const matchSearch =
+        !careerSearchQuery.trim() ||
+        job.title.toLowerCase().includes(careerSearchQuery.toLowerCase()) ||
+        job.department.toLowerCase().includes(careerSearchQuery.toLowerCase()) ||
+        job.location.toLowerCase().includes(careerSearchQuery.toLowerCase());
+      return matchDept && matchSearch;
+    });
+  }, [careers, careerDeptFilter, careerSearchQuery]);
 
   // Filtered Categories
   const filteredCategories = useMemo(() => {
@@ -922,6 +1519,28 @@ export default function AdminDashboardPage() {
               </span>
             </button>
 
+            {/* MEGA MENU DROPDOWN TAB */}
+            <button
+              onClick={() => setActiveTab("menu")}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
+                activeTab === "menu"
+                  ? "bg-[#0063FD] text-white shadow-xs font-black"
+                  : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <LayoutGrid className="h-4 w-4" />
+                <span>Menu Dropdown</span>
+              </div>
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-mono ${
+                activeTab === "menu"
+                  ? "bg-white/20 text-white font-bold"
+                  : "bg-[#EFF6FF] text-[#0063FD] font-black border border-[#BFDBFE]"
+              }`}>
+                {megaMenuCategories.length}
+              </span>
+            </button>
+
             {/* BANNERS TAB */}
             <button
               onClick={() => setActiveTab("banners")}
@@ -1008,6 +1627,39 @@ export default function AdminDashboardPage() {
               }`}>
                 {blogs.length}
               </span>
+            </button>
+
+            {/* CAREERS / RECRUITMENT TAB */}
+            <button
+              onClick={() => setActiveTab("careers")}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
+                activeTab === "careers"
+                  ? "bg-[#0063FD] text-white shadow-xs font-black"
+                  : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <Briefcase className="h-4 w-4" />
+                <span>Tuyển dụng & Career</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className={`rounded-full px-2 py-0.5 text-[10px] font-mono ${
+                  activeTab === "careers"
+                    ? "bg-white/20 text-white font-bold"
+                    : "bg-[#EFF6FF] text-[#0063FD] font-black border border-[#BFDBFE]"
+                }`}>
+                  {careers.length} VT
+                </span>
+                {applications.length > 0 && (
+                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-mono font-bold ${
+                    activeTab === "careers"
+                      ? "bg-white/30 text-white"
+                      : "bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A]"
+                  }`}>
+                    {applications.length} HS
+                  </span>
+                )}
+              </div>
             </button>
 
             <button
@@ -1130,6 +1782,7 @@ export default function AdminDashboardPage() {
               {activeTab === "overview" && "Bảng Điều Khiển Tổng Quan"}
               {activeTab === "products" && "Quản Lý Danh Mục Sản Phẩm"}
               {activeTab === "categories" && "Phân Loại Linh Kiện Phần Cứng"}
+              {activeTab === "menu" && "Tùy Chỉnh Menu Dropdown Khách Hàng"}
               {activeTab === "banners" && "Quản Lý Banner & Poster Sự Kiện"}
               {activeTab === "deals" && "Cấu Hình PC Ráp Sẵn & Bố Trí Trang Chủ"}
               {activeTab === "suppliers" && "Danh Sách Nguồn Hàng & Nhà Phân Phối"}
@@ -1192,6 +1845,39 @@ export default function AdminDashboardPage() {
                 >
                   <Plus className="h-4 w-4" />
                   Thêm Danh Mục
+                </Button>
+              </div>
+            )}
+            {activeTab === "menu" && (
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={handleResetMenu}
+                  variant="outline"
+                  size="sm"
+                  className="gap-1 text-xs font-bold text-[#64748B] border-[#CBD5E1] hover:bg-[#F1F5F9]"
+                  title="Khôi phục về 12 danh mục mặc định chuẩn"
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Khôi Phục Gốc</span>
+                </Button>
+                <Button
+                  onClick={() => setIsAddMenuCategoryOpen(true)}
+                  variant="outline"
+                  size="sm"
+                  className="gap-1 text-xs font-bold text-[#0063FD] border-[#BFDBFE] hover:bg-[#EFF6FF]"
+                >
+                  <Plus className="h-3.5 w-3.5 text-[#0063FD]" />
+                  <span className="hidden sm:inline">Thêm Danh Mục</span>
+                </Button>
+                <Button
+                  onClick={handleSaveMenu}
+                  disabled={isSavingMenu}
+                  variant="primary"
+                  size="sm"
+                  className="gap-1.5 text-xs font-black shadow-xs uppercase"
+                >
+                  <Save className="h-4 w-4" />
+                  <span>{isSavingMenu ? "Đang lưu..." : "LƯU MENU"}</span>
                 </Button>
               </div>
             )}
@@ -1539,13 +2225,22 @@ export default function AdminDashboardPage() {
                             {p.specs?.vram_gb && <span>{String(p.specs.vram_gb)}GB</span>}
                           </td>
                           <td className="p-3.5 text-right">
-                            <button
-                              onClick={() => handleDeleteProduct(p.id)}
-                              className="rounded p-1.5 text-[#B91C1C] hover:bg-[#FEE2E2] transition-colors"
-                              title="Xóa linh kiện"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
+                            <div className="flex items-center justify-end gap-1">
+                              <button
+                                onClick={() => handleOpenEditProduct(p)}
+                                className="rounded p-1.5 text-[#0063FD] hover:bg-[#EFF6FF] transition-colors"
+                                title="Chỉnh sửa thông tin linh kiện"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteProduct(p.id)}
+                                className="rounded p-1.5 text-[#B91C1C] hover:bg-[#FEE2E2] transition-colors"
+                                title="Xóa linh kiện"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))
@@ -1557,10 +2252,30 @@ export default function AdminDashboardPage() {
           )}
 
           {/* ========================================================================= */}
-          {/* TAB 3: CATEGORIES MANAGEMENT */}
+          {/* TAB 3: CATEGORIES & COMPONENT TYPES */}
           {/* ========================================================================= */}
           {activeTab === "categories" && (
             <div className="space-y-4">
+              {/* Sub-tab Switcher */}
+              <div className="flex items-center gap-2 border-b border-[#E2E8F0] pb-3">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("categories")}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-black bg-[#0063FD] text-white shadow-xs"
+                >
+                  <Layers className="h-3.5 w-3.5" />
+                  <span>Kho Danh Mục Sản Phẩm ({categories.length})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("menu")}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] transition-colors"
+                >
+                  <LayoutGrid className="h-3.5 w-3.5 text-[#0063FD]" />
+                  <span>Tùy Chỉnh Menu Dropdown ({megaMenuCategories.length})</span>
+                </button>
+              </div>
+
               {/* Top Controls Bar */}
               <div className="rounded-xl border border-[#E2E8F0] bg-white p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="relative flex-1 max-w-sm">
@@ -1695,6 +2410,458 @@ export default function AdminDashboardPage() {
                   })}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* TAB: STOREFRONT MEGA MENU CUSTOMIZATION */}
+          {/* ========================================================================= */}
+          {activeTab === "menu" && (
+            <div className="space-y-6">
+              {/* Sub-tab Switcher */}
+              <div className="flex items-center gap-2 border-b border-[#E2E8F0] pb-3">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("categories")}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] transition-colors"
+                >
+                  <Layers className="h-3.5 w-3.5" />
+                  <span>Kho Danh Mục Sản Phẩm ({categories.length})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("menu")}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-black bg-[#0063FD] text-white shadow-xs"
+                >
+                  <LayoutGrid className="h-3.5 w-3.5" />
+                  <span>Tùy Chỉnh Menu Dropdown ({megaMenuCategories.length})</span>
+                </button>
+              </div>
+
+              {/* Info & Action Banner */}
+              <div className="rounded-xl border border-[#BFDBFE] bg-[#EFF6FF] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                <div className="space-y-1">
+                  <h3 className="text-xs font-black uppercase text-[#1D4ED8] tracking-wider flex items-center gap-1.5">
+                    <LayoutGrid className="h-4 w-4 text-[#0063FD]" />
+                    QUẢN LÝ DỮ LIỆU MENU DROPDOWN (MEGA MENU)
+                  </h3>
+                  <p className="text-xs text-[#1E40AF]">
+                    Tùy chỉnh các danh mục hiển thị trên dropdown header của Web Shop. Bạn có thể sắp xếp thứ tự, đổi biểu tượng, quản lý nhóm con và các đường dẫn linh kiện. Bấm <strong>LƯU MENU</strong> để áp dụng.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button
+                    onClick={handleResetMenu}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs font-bold text-[#64748B] border-[#CBD5E1] bg-white hover:bg-[#F8FAFC]"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                    Khôi Phục Gốc
+                  </Button>
+                  <Button
+                    onClick={handleSaveMenu}
+                    disabled={isSavingMenu}
+                    variant="primary"
+                    size="sm"
+                    className="text-xs font-black shadow-xs uppercase"
+                  >
+                    <Save className="h-4 w-4 mr-1" />
+                    {isSavingMenu ? "Đang lưu..." : "LƯU MENU"}
+                  </Button>
+                </div>
+              </div>
+
+              {/* 2-Column Split Workspace */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                {/* LEFT COLUMN: Danh mục cấp 1 (4 cols) */}
+                <div className="lg:col-span-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black uppercase tracking-wider text-[#64748B]">
+                      Danh mục Menu ({megaMenuCategories.length})
+                    </span>
+                    <Button
+                      onClick={() => setIsAddMenuCategoryOpen(true)}
+                      variant="outline"
+                      size="sm"
+                      className="text-[11px] font-bold text-[#0063FD] border-[#BFDBFE] h-7 px-2"
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      Thêm Mới
+                    </Button>
+                  </div>
+
+                  <div className="rounded-xl border border-[#E2E8F0] bg-white divide-y divide-[#F1F5F9] shadow-xs overflow-hidden max-h-[660px] overflow-y-auto no-scrollbar">
+                    {megaMenuCategories.map((cat, idx) => {
+                      const CatIcon = resolveMegaCategoryIcon(cat.iconName || cat.icon);
+                      const isSelected = cat.id === activeMenuCatId;
+                      return (
+                        <div
+                          key={cat.id || idx}
+                          onClick={() => setActiveMenuCatId(cat.id)}
+                          className={`p-3 flex items-center justify-between gap-2 cursor-pointer transition-all ${
+                            isSelected
+                              ? "bg-[#EFF6FF] border-l-4 border-[#0063FD]"
+                              : "hover:bg-[#F8FAFC]"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                            <div
+                              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                                isSelected
+                                  ? "bg-[#0063FD] text-white"
+                                  : "bg-[#F1F5F9] text-[#64748B]"
+                              }`}
+                            >
+                              <CatIcon className="h-4 w-4" />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="text-xs font-black text-[#0F172A] truncate">
+                                {cat.name}
+                              </div>
+                              <div className="text-[10px] text-[#64748B] truncate font-mono">
+                                /{cat.slug} • {cat.subGroups?.length || 0} nhóm con
+                              </div>
+                            </div>
+                          </div>
+
+                          <div
+                            className="flex items-center gap-1 shrink-0"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              onClick={() => handleMoveMenuCategory(idx, "up")}
+                              disabled={idx === 0}
+                              className="p-1 rounded hover:bg-[#E2E8F0] disabled:opacity-20 text-[#64748B]"
+                              title="Di chuyển lên"
+                            >
+                              <ArrowUp className="h-3 w-3" />
+                            </button>
+                            <button
+                              onClick={() => handleMoveMenuCategory(idx, "down")}
+                              disabled={idx === megaMenuCategories.length - 1}
+                              className="p-1 rounded hover:bg-[#E2E8F0] disabled:opacity-20 text-[#64748B]"
+                              title="Di chuyển xuống"
+                            >
+                              <ArrowDown className="h-3 w-3" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteMenuCategory(cat.id)}
+                              className="p-1 rounded text-[#DC2626] hover:bg-[#FEE2E2]"
+                              title="Xóa danh mục này"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* RIGHT COLUMN: Active Category Editor (8 cols) */}
+                <div className="lg:col-span-8 space-y-5">
+                  {activeMenuCategory ? (
+                    <div className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-xs space-y-5">
+                      {/* Active Header & Top Fields */}
+                      <div className="border-b border-[#E2E8F0] pb-4 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2.5">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#EFF6FF] text-[#0063FD]">
+                              {React.createElement(
+                                resolveMegaCategoryIcon(activeMenuCategory.iconName || activeMenuCategory.icon),
+                                { className: "h-5 w-5" }
+                              )}
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-black text-[#0F172A] uppercase">
+                                Chi Tiết: {activeMenuCategory.name}
+                              </h4>
+                              <span className="text-[11px] font-mono text-[#64748B]">
+                                ID: {activeMenuCategory.id}
+                              </span>
+                            </div>
+                          </div>
+
+                          <Link
+                            href={activeMenuCategory.allUrl || "/danh-muc"}
+                            target="_blank"
+                            className="inline-flex items-center gap-1 text-xs font-bold text-[#0063FD] hover:underline bg-[#EFF6FF] px-2.5 py-1 rounded-lg"
+                          >
+                            <span>Xem trang danh mục</span>
+                            <ExternalLink className="h-3 w-3" />
+                          </Link>
+                        </div>
+
+                        {/* Editable properties of active category */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div>
+                            <label className="text-[11px] font-bold text-[#475569] uppercase block mb-1">
+                              Tên hiển thị *
+                            </label>
+                            <input
+                              type="text"
+                              value={activeMenuCategory.name}
+                              onChange={(e) => handleUpdateActiveCategoryField("name", e.target.value)}
+                              className="w-full text-xs font-semibold px-3 py-2 rounded-lg border border-[#CBD5E1] focus:border-[#0063FD] focus:ring-1 focus:ring-[#0063FD] outline-none"
+                              placeholder="VD: VGA - Card Màn Hình"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[11px] font-bold text-[#475569] uppercase block mb-1">
+                              Biểu tượng (Icon)
+                            </label>
+                            <select
+                              value={activeMenuCategory.iconName || "Layers"}
+                              onChange={(e) => handleUpdateActiveCategoryField("iconName", e.target.value)}
+                              className="w-full text-xs font-semibold px-3 py-2 rounded-lg border border-[#CBD5E1] focus:border-[#0063FD] focus:ring-1 focus:ring-[#0063FD] outline-none bg-white"
+                            >
+                              {AVAILABLE_ICON_NAMES.map((name) => (
+                                <option key={name} value={name}>
+                                  {name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="text-[11px] font-bold text-[#475569] uppercase block mb-1">
+                              Link "Xem tất cả"
+                            </label>
+                            <input
+                              type="text"
+                              value={activeMenuCategory.allUrl}
+                              onChange={(e) => handleUpdateActiveCategoryField("allUrl", e.target.value)}
+                              className="w-full text-xs font-semibold px-3 py-2 rounded-lg border border-[#CBD5E1] focus:border-[#0063FD] focus:ring-1 focus:ring-[#0063FD] outline-none"
+                              placeholder="VD: /danh-muc/vga"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Sub-groups Manager */}
+                      <div className="space-y-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div>
+                            <h5 className="text-xs font-black uppercase tracking-wider text-[#0F172A]">
+                              Nhóm Con (Sub-Groups) & Danh Sách Liên Kết
+                            </h5>
+                            <p className="text-[11px] text-[#64748B]">
+                              Các nhóm con hiển thị theo dạng cột trong bảng dropdown bên phải.
+                            </p>
+                          </div>
+
+                          {/* Add Subgroup input / button */}
+                          <div className="flex items-center gap-1.5">
+                            <input
+                              type="text"
+                              value={newSubgroupTitle}
+                              onChange={(e) => setNewSubgroupTitle(e.target.value)}
+                              placeholder="Tiêu đề nhóm mới..."
+                              className="text-xs px-2.5 py-1.5 rounded-lg border border-[#CBD5E1] outline-none focus:border-[#0063FD] w-40"
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" && newSubgroupTitle.trim()) {
+                                  handleAddSubgroup(newSubgroupTitle.trim());
+                                  setNewSubgroupTitle("");
+                                }
+                              }}
+                            />
+                            <Button
+                              onClick={() => {
+                                if (newSubgroupTitle.trim()) {
+                                  handleAddSubgroup(newSubgroupTitle.trim());
+                                  setNewSubgroupTitle("");
+                                }
+                              }}
+                              variant="outline"
+                              size="sm"
+                              className="text-xs font-bold text-[#0063FD] border-[#BFDBFE] hover:bg-[#EFF6FF] h-8"
+                            >
+                              <Plus className="h-3.5 w-3.5 mr-1" />
+                              Thêm Nhóm
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Sub-groups list */}
+                        {activeMenuCategory.subGroups.length === 0 ? (
+                          <div className="p-8 border border-dashed border-[#CBD5E1] rounded-xl text-center text-xs text-[#64748B] space-y-2">
+                            <p>Chưa có nhóm con nào trong danh mục này.</p>
+                            <p className="text-[11px]">
+                              Nhập tiêu đề ở trên và bấm "Thêm Nhóm" để tạo nhóm đầu tiên.
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            {activeMenuCategory.subGroups.map((group, gIdx) => (
+                              <div
+                                key={gIdx}
+                                className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 space-y-3 shadow-2xs"
+                              >
+                                {/* Subgroup Header */}
+                                <div className="flex items-center justify-between gap-2 border-b border-[#E2E8F0] pb-2">
+                                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                                    <span className="h-2 w-2 rounded-full bg-[#0063FD] shrink-0" />
+                                    <input
+                                      type="text"
+                                      value={group.title}
+                                      onChange={(e) => handleUpdateSubgroupTitle(gIdx, e.target.value)}
+                                      className="text-xs font-black uppercase text-[#0F172A] bg-transparent border-b border-transparent hover:border-[#CBD5E1] focus:border-[#0063FD] focus:bg-white px-1.5 py-0.5 rounded outline-none flex-1 min-w-0"
+                                    />
+                                    <span className="text-[10px] text-[#64748B] font-mono">
+                                      ({group.items.length} link)
+                                    </span>
+                                  </div>
+
+                                  <div className="flex items-center gap-1 shrink-0">
+                                    <button
+                                      onClick={() => handleMoveSubgroup(gIdx, "up")}
+                                      disabled={gIdx === 0}
+                                      className="p-1 rounded hover:bg-[#E2E8F0] disabled:opacity-20 text-[#64748B]"
+                                      title="Di chuyển nhóm lên"
+                                    >
+                                      <ArrowUp className="h-3 w-3" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleMoveSubgroup(gIdx, "down")}
+                                      disabled={gIdx === activeMenuCategory.subGroups.length - 1}
+                                      className="p-1 rounded hover:bg-[#E2E8F0] disabled:opacity-20 text-[#64748B]"
+                                      title="Di chuyển nhóm xuống"
+                                    >
+                                      <ArrowDown className="h-3 w-3" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteSubgroup(gIdx)}
+                                      className="p-1 rounded text-[#DC2626] hover:bg-[#FEE2E2]"
+                                      title="Xóa nhóm này"
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                    </button>
+                                  </div>
+                                </div>
+
+                                {/* Items in this Subgroup */}
+                                <div className="space-y-1.5">
+                                  {group.items.map((item, iIdx) => (
+                                    <div
+                                      key={iIdx}
+                                      className="flex items-center justify-between gap-2 bg-white p-2 rounded-lg border border-[#E2E8F0] text-xs shadow-2xs"
+                                    >
+                                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                                        <input
+                                          type="text"
+                                          value={item.name}
+                                          onChange={(e) => handleUpdateItemField(gIdx, iIdx, "name", e.target.value)}
+                                          className="font-semibold text-[#0F172A] border-b border-transparent hover:border-[#CBD5E1] focus:border-[#0063FD] px-1 py-0.5 rounded outline-none w-1/3 min-w-[110px]"
+                                          placeholder="Tên liên kết"
+                                        />
+                                        <input
+                                          type="text"
+                                          value={item.href}
+                                          onChange={(e) => handleUpdateItemField(gIdx, iIdx, "href", e.target.value)}
+                                          className="font-mono text-[11px] text-[#475569] border-b border-transparent hover:border-[#CBD5E1] focus:border-[#0063FD] px-1 py-0.5 rounded outline-none flex-1 min-w-[140px]"
+                                          placeholder="/danh-muc/..."
+                                        />
+                                        <label className="flex items-center gap-1 text-[11px] font-bold text-[#0063FD] cursor-pointer shrink-0 ml-1 select-none">
+                                          <input
+                                            type="checkbox"
+                                            checked={Boolean(item.isHighlight)}
+                                            onChange={(e) => handleUpdateItemField(gIdx, iIdx, "isHighlight", e.target.checked)}
+                                            className="rounded text-[#0063FD]"
+                                          />
+                                          <span>Nổi bật</span>
+                                        </label>
+                                      </div>
+
+                                      <button
+                                        onClick={() => handleDeleteItem(gIdx, iIdx)}
+                                        className="p-1 rounded text-[#DC2626] hover:bg-[#FEE2E2] shrink-0"
+                                        title="Xóa liên kết này"
+                                      >
+                                        <X className="h-3.5 w-3.5" />
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+
+                                {/* Add Item input form */}
+                                {addingToSubgroupIdx === gIdx ? (
+                                  <div className="p-2.5 rounded-lg border border-[#BFDBFE] bg-[#EFF6FF] space-y-2">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                      <input
+                                        type="text"
+                                        value={newItemForm.name}
+                                        onChange={(e) => setNewItemForm({ ...newItemForm, name: e.target.value })}
+                                        placeholder="Tên mục (VD: RTX 5090)"
+                                        className="text-xs px-2.5 py-1.5 rounded-lg border border-[#CBD5E1] bg-white outline-none focus:border-[#0063FD]"
+                                      />
+                                      <input
+                                        type="text"
+                                        value={newItemForm.href}
+                                        onChange={(e) => setNewItemForm({ ...newItemForm, href: e.target.value })}
+                                        placeholder="URL (VD: /danh-muc/vga?q=5090)"
+                                        className="text-xs px-2.5 py-1.5 rounded-lg border border-[#CBD5E1] bg-white outline-none focus:border-[#0063FD]"
+                                      />
+                                      <div className="flex items-center justify-between">
+                                        <label className="flex items-center gap-1 text-xs font-bold text-[#0063FD] cursor-pointer">
+                                          <input
+                                            type="checkbox"
+                                            checked={Boolean(newItemForm.isHighlight)}
+                                            onChange={(e) => setNewItemForm({ ...newItemForm, isHighlight: e.target.checked })}
+                                          />
+                                          <span>Nổi bật</span>
+                                        </label>
+                                        <div className="flex items-center gap-1">
+                                          <Button
+                                            onClick={() => setAddingToSubgroupIdx(null)}
+                                            variant="outline"
+                                            size="sm"
+                                            className="text-[11px] h-7 px-2"
+                                          >
+                                            Hủy
+                                          </Button>
+                                          <Button
+                                            onClick={() => handleCommitAddItem(gIdx)}
+                                            variant="primary"
+                                            size="sm"
+                                            className="text-[11px] h-7 px-2"
+                                          >
+                                            Thêm
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <button
+                                    onClick={() => {
+                                      setAddingToSubgroupIdx(gIdx);
+                                      setNewItemForm({
+                                        name: "",
+                                        href: activeMenuCategory.allUrl || "/danh-muc",
+                                        isHighlight: false,
+                                      });
+                                    }}
+                                    className="w-full py-1.5 rounded-lg border border-dashed border-[#CBD5E1] text-[11px] font-bold text-[#0063FD] hover:bg-white hover:border-[#0063FD] transition-all flex items-center justify-center gap-1"
+                                  >
+                                    <Plus className="h-3 w-3" />
+                                    Thêm liên kết vào nhóm "{group.title}"
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-[#E2E8F0] bg-white p-12 text-center text-xs text-[#64748B]">
+                      Chọn một danh mục ở cột bên trái để chỉnh sửa thông tin và liên kết.
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 
@@ -2166,6 +3333,452 @@ export default function AdminDashboardPage() {
                       </div>
                     </article>
                   ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* TAB: CAREERS & RECRUITMENT MANAGEMENT                                     */}
+          {/* ========================================================================= */}
+          {activeTab === "careers" && (
+            <div className="space-y-6">
+              {/* Sub-tab Navigation Bar */}
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E2E8F0] pb-3">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCareerSubTab("jobs")}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                      careerSubTab === "jobs"
+                        ? "bg-[#0063FD] text-white shadow-xs font-black"
+                        : "bg-white border border-[#CBD5E1] text-[#475569] hover:text-[#0F172A] hover:bg-[#F8FAFC]"
+                    }`}
+                  >
+                    <Briefcase className="h-4 w-4" />
+                    <span>Vị Trí Tuyển Dụng</span>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-mono font-bold ${
+                        careerSubTab === "jobs"
+                          ? "bg-white/20 text-white"
+                          : "bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0]"
+                      }`}
+                    >
+                      {careers.length}
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={() => setCareerSubTab("applications")}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                      careerSubTab === "applications"
+                        ? "bg-[#0063FD] text-white shadow-xs font-black"
+                        : "bg-white border border-[#CBD5E1] text-[#475569] hover:text-[#0F172A] hover:bg-[#F8FAFC]"
+                    }`}
+                  >
+                    <FileText className="h-4 w-4" />
+                    <span>Hồ Sơ Ứng Viên</span>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-mono font-bold ${
+                        careerSubTab === "applications"
+                          ? "bg-white/20 text-white"
+                          : "bg-[#EFF6FF] text-[#0063FD] border border-[#BFDBFE]"
+                      }`}
+                    >
+                      {applications.length}
+                    </span>
+                    {applications.filter((a) => a.status === "pending").length > 0 && (
+                      <span className="rounded-full bg-amber-500 text-white px-2 py-0.5 text-[9px] font-black uppercase tracking-wider animate-pulse">
+                        {applications.filter((a) => a.status === "pending").length} Mới
+                      </span>
+                    )}
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Link
+                    href="/tuyen-dung"
+                    target="_blank"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-[#CBD5E1] bg-white px-3.5 py-2 text-xs font-bold text-[#334155] hover:bg-[#F8FAFC] hover:text-[#0063FD] transition-all shadow-2xs"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    <span>Xem Trang Tuyển Dụng</span>
+                  </Link>
+
+                  {careerSubTab === "jobs" && (
+                    <Button
+                      onClick={() => setIsAddCareerOpen(true)}
+                      variant="primary"
+                      size="sm"
+                      className="flex items-center gap-1.5 shadow-xs font-black uppercase text-xs tracking-wider"
+                    >
+                      <Plus className="h-4 w-4" />
+                      <span>Thêm Vị Trí Tuyển Dụng</span>
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* Sub-tab 1: Jobs Postings List */}
+              {careerSubTab === "jobs" && (
+                <div className="space-y-4">
+                  {/* Top Controls Bar for Jobs */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl border border-[#E2E8F0] bg-white p-4 shadow-xs">
+                    <div className="flex flex-wrap items-center gap-3 flex-1 w-full">
+                      <div className="relative flex-1 min-w-[240px]">
+                        <Search className="absolute left-3.5 top-3 h-4 w-4 text-[#64748B]" />
+                        <input
+                          type="text"
+                          placeholder="Tìm theo vị trí, phòng ban, địa điểm..."
+                          value={careerSearchQuery}
+                          onChange={(e) => setCareerSearchQuery(e.target.value)}
+                          className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2 pl-10 pr-4 text-xs text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none"
+                        />
+                      </div>
+
+                      <select
+                        value={careerDeptFilter}
+                        onChange={(e) => setCareerDeptFilter(e.target.value)}
+                        className="rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3 py-2 text-xs font-bold text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                      >
+                        <option value="all">Tất cả phòng ban</option>
+                        <option value="Kỹ Thuật & Phần Cứng">Kỹ Thuật & Phần Cứng</option>
+                        <option value="Kinh Doanh & Chăm Sóc Khách Hàng">Kinh Doanh & Chăm Sóc Khách Hàng</option>
+                        <option value="Bảo Hành & Kiểm Soát Chất Lượng">Bảo Hành & Kiểm Soát Chất Lượng</option>
+                        <option value="Marketing & Truyền Thông">Marketing & Truyền Thông</option>
+                        <option value="Kho Vận & Logistics">Kho Vận & Logistics</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Careers Table */}
+                  <div className="overflow-x-auto rounded-xl border border-[#E2E8F0] bg-white shadow-xs">
+                    <table className="w-full text-left text-xs">
+                      <thead className="border-b border-[#E2E8F0] bg-[#F8FAFC] text-[11px] font-black uppercase text-[#475569]">
+                        <tr>
+                          <th className="p-3.5">Vị trí & Đường dẫn</th>
+                          <th className="p-3.5">Phòng ban</th>
+                          <th className="p-3.5">Mức lương</th>
+                          <th className="p-3.5">Địa điểm</th>
+                          <th className="p-3.5">Hình thức</th>
+                          <th className="p-3.5">Trạng thái</th>
+                          <th className="p-3.5 text-right">Thao tác</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#E2E8F0]">
+                        {filteredCareers.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="p-12 text-center text-[#64748B]">
+                              Chưa có vị trí tuyển dụng nào phù hợp với bộ lọc.
+                            </td>
+                          </tr>
+                        ) : (
+                          filteredCareers.map((job) => (
+                            <tr key={job.id} className="hover:bg-[#F8FAFC] transition-colors">
+                              <td className="p-3.5">
+                                <div className="font-bold text-[#0F172A]">{job.title}</div>
+                                <div className="text-[10px] font-mono text-[#64748B] truncate max-w-xs">
+                                  /tuyen-dung/{job.slug}
+                                </div>
+                              </td>
+                              <td className="p-3.5">
+                                <span className="rounded-md bg-[#EFF6FF] border border-[#BFDBFE] px-2 py-0.5 text-[10px] font-bold text-[#0063FD]">
+                                  {job.department}
+                                </span>
+                              </td>
+                              <td className="p-3.5 font-bold text-[#16A34A]">{job.salary}</td>
+                              <td className="p-3.5 text-[#475569]">{job.location}</td>
+                              <td className="p-3.5 text-[#64748B]">{job.employment_type}</td>
+                              <td className="p-3.5">
+                                <span
+                                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase ${
+                                    job.is_active
+                                      ? "bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC]"
+                                      : "bg-[#F1F5F9] text-[#64748B] border border-[#CBD5E1]"
+                                  }`}
+                                >
+                                  <span
+                                    className={`h-1.5 w-1.5 rounded-full ${
+                                      job.is_active ? "bg-[#16A34A]" : "bg-[#94A3B8]"
+                                    }`}
+                                  />
+                                  {job.is_active ? "Đang Tuyển" : "Đã Đóng"}
+                                </span>
+                              </td>
+                              <td className="p-3.5 text-right">
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <button
+                                    onClick={() => handleToggleActiveCareer(job)}
+                                    className={`p-1.5 rounded text-xs font-bold transition-colors ${
+                                      job.is_active
+                                        ? "text-[#64748B] hover:text-[#0F172A] hover:bg-[#E2E8F0]"
+                                        : "text-[#16A34A] hover:bg-[#DCFCE7]"
+                                    }`}
+                                    title={job.is_active ? "Tạm đóng nhận hồ sơ" : "Mở lại tuyển dụng"}
+                                  >
+                                    {job.is_active ? (
+                                      <EyeOff className="h-3.5 w-3.5" />
+                                    ) : (
+                                      <Eye className="h-3.5 w-3.5" />
+                                    )}
+                                  </button>
+
+                                  <button
+                                    onClick={() => {
+                                      setEditingCareerId(job.id);
+                                      setEditCareerForm({
+                                        title: job.title,
+                                        slug: job.slug,
+                                        department: job.department,
+                                        location: job.location,
+                                        employment_type: job.employment_type,
+                                        salary: job.salary,
+                                        experience: job.experience,
+                                        description: job.description,
+                                        requirements: job.requirements,
+                                        benefits: job.benefits,
+                                        contact_email: job.contact_email,
+                                        is_active: job.is_active,
+                                      });
+                                      setIsEditCareerOpen(true);
+                                    }}
+                                    className="p-1.5 rounded text-[#0063FD] hover:bg-[#EFF6FF] transition-colors"
+                                    title="Chỉnh sửa vị trí"
+                                  >
+                                    <Pencil className="h-3.5 w-3.5" />
+                                  </button>
+
+                                  <button
+                                    onClick={() => handleDeleteCareer(job.id)}
+                                    className="p-1.5 rounded text-rose-600 hover:bg-rose-50 transition-colors"
+                                    title="Xóa vị trí này"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Sub-tab 2: Applications Review List */}
+              {careerSubTab === "applications" && (
+                <div className="space-y-4">
+                  {/* Top Controls Bar for Applications */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl border border-[#E2E8F0] bg-white p-4 shadow-xs">
+                    <div className="flex flex-wrap items-center gap-3 flex-1 w-full">
+                      <div className="relative flex-1 min-w-[240px]">
+                        <Search className="absolute left-3.5 top-3 h-4 w-4 text-[#64748B]" />
+                        <input
+                          type="text"
+                          placeholder="Tìm theo tên ứng viên, email, số điện thoại, vị trí..."
+                          value={applicationSearch}
+                          onChange={(e) => setApplicationSearch(e.target.value)}
+                          className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2 pl-10 pr-4 text-xs text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none"
+                        />
+                      </div>
+
+                      <select
+                        value={applicationStatusFilter}
+                        onChange={(e) => setApplicationStatusFilter(e.target.value)}
+                        className="rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3 py-2 text-xs font-bold text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                      >
+                        <option value="all">Tất cả trạng thái hồ sơ</option>
+                        <option value="pending">Chờ duyệt (Mới nộp)</option>
+                        <option value="reviewed">Đã xem qua CV</option>
+                        <option value="contacted">Đã liên hệ ứng viên</option>
+                        <option value="interview">Hẹn phỏng vấn</option>
+                        <option value="accepted">Trúng tuyển / Tiếp nhận</option>
+                        <option value="rejected">Chưa phù hợp / Từ chối</option>
+                      </select>
+
+                      <select
+                        value={applicationJobFilter}
+                        onChange={(e) => setApplicationJobFilter(e.target.value)}
+                        className="rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3 py-2 text-xs font-bold text-[#0F172A] focus:border-[#0063FD] focus:outline-none max-w-xs truncate"
+                      >
+                        <option value="all">Tất cả vị trí ứng tuyển</option>
+                        {careers.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.title}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Button
+                        onClick={() => loadAllData()}
+                        variant="outline"
+                        size="sm"
+                        disabled={isRefreshing}
+                        className="flex items-center gap-1.5 shadow-2xs text-xs font-bold"
+                      >
+                        <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
+                        <span>Làm mới danh sách</span>
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Applications Table */}
+                  <div className="overflow-x-auto rounded-xl border border-[#E2E8F0] bg-white shadow-xs">
+                    <table className="w-full text-left text-xs">
+                      <thead className="border-b border-[#E2E8F0] bg-[#F8FAFC] text-[11px] font-black uppercase text-[#475569]">
+                        <tr>
+                          <th className="p-3.5">Ứng viên & Ngày nộp</th>
+                          <th className="p-3.5">Vị trí ứng tuyển</th>
+                          <th className="p-3.5">Thông tin liên hệ</th>
+                          <th className="p-3.5">Hồ sơ CV đính kèm (PDF)</th>
+                          <th className="p-3.5">Trạng thái duyệt</th>
+                          <th className="p-3.5 text-right">Thao tác</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#E2E8F0]">
+                        {filteredApplications.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="p-12 text-center text-[#64748B]">
+                              Chưa có hồ sơ ứng tuyển nào phù hợp với bộ lọc hiện tại.
+                            </td>
+                          </tr>
+                        ) : (
+                          filteredApplications.map((app) => {
+                            const badge = getAppStatusBadge(app.status);
+                            return (
+                              <tr key={app.id} className="hover:bg-[#F8FAFC] transition-colors">
+                                <td className="p-3.5">
+                                  <div className="font-bold text-[#0F172A] text-sm">
+                                    {app.full_name}
+                                  </div>
+                                  <div className="text-[10px] text-[#64748B] flex items-center gap-1 mt-0.5">
+                                    <Clock className="h-3 w-3" />
+                                    <span>
+                                      {new Date(app.created_at).toLocaleString("vi-VN", {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                        day: "2-digit",
+                                        month: "2-digit",
+                                        year: "numeric",
+                                      })}
+                                    </span>
+                                  </div>
+                                </td>
+
+                                <td className="p-3.5">
+                                  <div className="font-bold text-[#0063FD]">
+                                    {app.job_title}
+                                  </div>
+                                  {app.experience && (
+                                    <div className="text-[11px] text-[#64748B] line-clamp-1 mt-0.5">
+                                      KN: {app.experience}
+                                    </div>
+                                  )}
+                                </td>
+
+                                <td className="p-3.5">
+                                  <div className="flex flex-col gap-0.5">
+                                    <a
+                                      href={`tel:${app.phone}`}
+                                      className="font-mono font-bold text-[#0F172A] hover:text-[#0063FD] flex items-center gap-1"
+                                    >
+                                      <Phone className="h-3 w-3 text-[#64748B]" />
+                                      <span>{app.phone}</span>
+                                    </a>
+                                    <a
+                                      href={`mailto:${app.email}`}
+                                      className="text-[#64748B] hover:text-[#0063FD] flex items-center gap-1 truncate max-w-[180px]"
+                                      title={app.email}
+                                    >
+                                      <Mail className="h-3 w-3 text-[#94A3B8]" />
+                                      <span className="truncate">{app.email}</span>
+                                    </a>
+                                  </div>
+                                </td>
+
+                                <td className="p-3.5">
+                                  <div className="flex items-center gap-2">
+                                    <a
+                                      href={app.resume_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#BFDBFE] bg-[#EFF6FF] text-[#0063FD] font-bold hover:bg-[#DBEAFE] transition-colors shadow-2xs"
+                                      title="Bấm để mở và xem trực tiếp file PDF"
+                                    >
+                                      <FileText className="h-3.5 w-3.5" />
+                                      <span>Xem PDF</span>
+                                    </a>
+
+                                    <a
+                                      href={app.resume_url}
+                                      download={app.resume_filename || "CV_UngVien.pdf"}
+                                      className="p-1.5 rounded-lg border border-[#E2E8F0] bg-white text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] transition-colors shadow-2xs"
+                                      title={`Tải xuống: ${app.resume_filename} (${formatAppFileSize(app.resume_file_size)})`}
+                                    >
+                                      <Download className="h-3.5 w-3.5" />
+                                    </a>
+
+                                    <div className="text-[10px] text-[#94A3B8] font-mono hidden md:block">
+                                      {formatAppFileSize(app.resume_file_size)}
+                                    </div>
+                                  </div>
+                                </td>
+
+                                <td className="p-3.5">
+                                  <select
+                                    value={app.status}
+                                    onChange={(e) =>
+                                      handleUpdateApplicationStatus(
+                                        app.id,
+                                        e.target.value as ApplicationStatus,
+                                        app.notes || undefined
+                                      )
+                                    }
+                                    className={`rounded-lg border px-2.5 py-1 text-[11px] font-bold focus:outline-none transition-colors cursor-pointer ${badge.bg}`}
+                                  >
+                                    <option value="pending">Chờ duyệt</option>
+                                    <option value="reviewed">Đã xem qua</option>
+                                    <option value="contacted">Đã liên hệ</option>
+                                    <option value="interview">Phỏng vấn</option>
+                                    <option value="accepted">Tuyển dụng</option>
+                                    <option value="rejected">Từ chối</option>
+                                  </select>
+                                </td>
+
+                                <td className="p-3.5 text-right">
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    <button
+                                      onClick={() => {
+                                        setSelectedApplication(app);
+                                        setEditingAppStatus(app.status);
+                                        setEditingAppNotes(app.notes || "");
+                                        setIsAppDetailOpen(true);
+                                      }}
+                                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#F8FAFC] border border-[#E2E8F0] text-[#0063FD] hover:bg-[#EFF6FF] font-bold transition-colors text-xs"
+                                      title="Xem chi tiết hồ sơ và cập nhật ghi chú"
+                                    >
+                                      <Eye className="h-3.5 w-3.5" />
+                                      <span>Chi tiết</span>
+                                    </button>
+
+                                    <button
+                                      onClick={() => handleDeleteApplication(app.id)}
+                                      className="p-1.5 rounded text-rose-600 hover:bg-rose-50 transition-colors"
+                                      title="Xóa hồ sơ ứng viên này"
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
             </div>
@@ -2828,21 +4441,31 @@ export default function AdminDashboardPage() {
               <label className="block font-bold text-[#1E293B] mb-1">Giá bán (VND) *</label>
               <input
                 required
-                type="number"
-                value={productForm.price_vnd}
-                onChange={(e) => setProductForm({ ...productForm, price_vnd: parseInt(e.target.value || "0", 10) })}
+                type="text"
+                placeholder="VD: 15,000,000"
+                value={productForm.price_vnd ? formatVndNumber(productForm.price_vnd) : ""}
+                onChange={(e) => setProductForm({ ...productForm, price_vnd: parseVndNumber(e.target.value) })}
                 className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs font-bold"
               />
+              <span className="text-[10px] font-mono font-bold text-[#0063FD] mt-1 block">
+                = {formatVndNumber(productForm.price_vnd)} VNĐ
+              </span>
             </div>
 
             <div>
               <label className="block font-bold text-[#1E293B] mb-1">Giá niêm yết cũ (VND)</label>
               <input
-                type="number"
-                value={productForm.original_price_vnd}
-                onChange={(e) => setProductForm({ ...productForm, original_price_vnd: parseInt(e.target.value || "0", 10) })}
+                type="text"
+                placeholder="VD: 18,000,000"
+                value={productForm.original_price_vnd ? formatVndNumber(productForm.original_price_vnd) : ""}
+                onChange={(e) => setProductForm({ ...productForm, original_price_vnd: parseVndNumber(e.target.value) })}
                 className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
               />
+              {productForm.original_price_vnd ? (
+                <span className="text-[10px] font-mono text-[#64748B] mt-1 block">
+                  = {formatVndNumber(productForm.original_price_vnd)} VNĐ
+                </span>
+              ) : null}
             </div>
 
             <div>
@@ -2920,6 +4543,217 @@ export default function AdminDashboardPage() {
           <div className="pt-3 border-t border-[#E2E8F0]">
             <Button type="submit" variant="primary" size="md" className="w-full font-black uppercase text-xs">
               Lưu Sản Phẩm Vào Kho
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* ========================================================================= */}
+      {/* EDIT PRODUCT MODAL */}
+      {/* ========================================================================= */}
+      <Modal
+        isOpen={isEditProductOpen}
+        onClose={() => {
+          setIsEditProductOpen(false);
+          setEditingProductId(null);
+        }}
+        title="CHỈNH SỬA THÔNG TIN LINH KIỆN"
+        description="Cập nhật thông số kỹ thuật, giá bán VNĐ và tồn kho linh kiện trong hệ thống"
+        maxWidth="2xl"
+      >
+        <form onSubmit={handleUpdateProduct} className="space-y-4 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Tên tiếng Việt *</label>
+              <input
+                required
+                type="text"
+                placeholder="VD: Card màn hình ASUS ROG Strix RTX 4070 Ti Super 16GB"
+                value={editProductForm.name_vi}
+                onChange={(e) => setEditProductForm({ ...editProductForm, name_vi: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Tên tiếng Anh</label>
+              <input
+                type="text"
+                placeholder="VD: ASUS ROG Strix GeForce RTX 4070 Ti Super 16GB"
+                value={editProductForm.name_en}
+                onChange={(e) => setEditProductForm({ ...editProductForm, name_en: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Mã SKU *</label>
+              <input
+                required
+                type="text"
+                placeholder="VD: GPU-ASUS-4070TIS"
+                value={editProductForm.sku}
+                onChange={(e) => setEditProductForm({ ...editProductForm, sku: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs font-mono"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Thương hiệu *</label>
+              <select
+                value={editProductForm.brand}
+                onChange={(e) => setEditProductForm({ ...editProductForm, brand: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs font-bold"
+              >
+                <option value="ASUS">ASUS</option>
+                <option value="MSI">MSI</option>
+                <option value="Intel">Intel</option>
+                <option value="AMD">AMD</option>
+                <option value="GIGABYTE">GIGABYTE</option>
+                <option value="Corsair">Corsair</option>
+                <option value="Samsung">Samsung</option>
+                <option value="Kingston">Kingston</option>
+                <option value="NZXT">NZXT</option>
+                <option value="Lian Li">Lian Li</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Danh mục *</label>
+              <select
+                value={editProductForm.category_id}
+                onChange={(e) => setEditProductForm({ ...editProductForm, category_id: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs font-bold"
+              >
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name_vi}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Giá bán (VND) *</label>
+              <input
+                required
+                type="text"
+                placeholder="VD: 15,000,000"
+                value={editProductForm.price_vnd ? formatVndNumber(editProductForm.price_vnd) : ""}
+                onChange={(e) => setEditProductForm({ ...editProductForm, price_vnd: parseVndNumber(e.target.value) })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs font-bold"
+              />
+              <span className="text-[10px] font-mono font-bold text-[#0063FD] mt-1 block">
+                = {formatVndNumber(editProductForm.price_vnd)} VNĐ
+              </span>
+            </div>
+
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Giá niêm yết cũ (VND)</label>
+              <input
+                type="text"
+                placeholder="VD: 18,000,000"
+                value={editProductForm.original_price_vnd ? formatVndNumber(editProductForm.original_price_vnd) : ""}
+                onChange={(e) => setEditProductForm({ ...editProductForm, original_price_vnd: parseVndNumber(e.target.value) })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
+              />
+              {editProductForm.original_price_vnd ? (
+                <span className="text-[10px] font-mono text-[#64748B] mt-1 block">
+                  = {formatVndNumber(editProductForm.original_price_vnd)} VNĐ
+                </span>
+              ) : null}
+            </div>
+
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Số lượng tồn kho *</label>
+              <input
+                required
+                type="number"
+                value={editProductForm.stock}
+                onChange={(e) => setEditProductForm({ ...editProductForm, stock: parseInt(e.target.value || "0", 10) })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs font-bold"
+              />
+            </div>
+          </div>
+
+          {/* PC Builder Compatibility Specs */}
+          <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-3.5 space-y-2">
+            <div className="font-black text-[#0F172A] uppercase text-[11px] flex items-center gap-1.5">
+              <Activity className="h-3.5 w-3.5 text-[#0063FD]" />
+              Thông số tương thích công cụ Custom PC Builder
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <div>
+                <label className="block text-[10px] font-bold text-[#475569]">Socket (VD: LGA1700, AM5)</label>
+                <input
+                  type="text"
+                  placeholder="LGA1700"
+                  value={editSocketInput}
+                  onChange={(e) => setEditSocketInput(e.target.value)}
+                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-[#475569]">RAM Type (VD: DDR5, DDR4)</label>
+                <input
+                  type="text"
+                  placeholder="DDR5"
+                  value={editRamTypeInput}
+                  onChange={(e) => setEditRamTypeInput(e.target.value)}
+                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-[#475569]">Công suất TDP (W)</label>
+                <input
+                  type="number"
+                  placeholder="250"
+                  value={editTdpInput}
+                  onChange={(e) => setEditTdpInput(e.target.value)}
+                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs font-mono"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-[#475569]">VRAM (GB)</label>
+                <input
+                  type="number"
+                  placeholder="16"
+                  value={editVramInput}
+                  onChange={(e) => setEditVramInput(e.target.value)}
+                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs font-mono"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <CloudinaryImageUpload
+              value={editProductForm.images[0] || ""}
+              onChange={(url) => setEditProductForm({ ...editProductForm, images: url ? [url] : [] })}
+              folder="qmdtech/products"
+              label="Ảnh sản phẩm chính"
+              description="Tự động nén WebP và tải lên Cloudinary để tối ưu hóa hiệu năng và quota."
+            />
+          </div>
+
+          <div className="pt-3 border-t border-[#E2E8F0] flex items-center justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setIsEditProductOpen(false);
+                setEditingProductId(null);
+              }}
+            >
+              Hủy
+            </Button>
+            <Button type="submit" variant="primary" size="sm" className="font-black uppercase text-xs">
+              Cập Nhật Sản Phẩm
             </Button>
           </div>
         </form>
@@ -3037,6 +4871,94 @@ export default function AdminDashboardPage() {
       </Modal>
 
       {/* ========================================================================= */}
+      {/* ADD MEGA MENU CATEGORY MODAL */}
+      {/* ========================================================================= */}
+      <Modal
+        isOpen={isAddMenuCategoryOpen}
+        onClose={() => setIsAddMenuCategoryOpen(false)}
+        title="THÊM MỤC MỚI VÀO MENU DROPDOWN"
+        description="Thêm danh mục cha cấp 1 vào Menu Mega Dropdown của cửa hàng"
+        maxWidth="md"
+      >
+        <form onSubmit={handleCreateMenuCategory} className="space-y-3 text-xs">
+          <div>
+            <label className="block font-bold text-[#1E293B] mb-1">Tên danh mục hiển thị *</label>
+            <input
+              required
+              type="text"
+              placeholder="VD: Gaming Gear, Màn Hình Máy Tính"
+              value={newMenuCatForm.name}
+              onChange={(e) => {
+                const name = e.target.value;
+                const autoSlug = name
+                  .toLowerCase()
+                  .trim()
+                  .replace(/[^a-z0-9-]+/g, "-")
+                  .replace(/^-|-$/g, "");
+                setNewMenuCatForm((prev) => ({
+                  ...prev,
+                  name,
+                  slug: prev.slug || autoSlug,
+                  allUrl: prev.allUrl === "/danh-muc" || !prev.allUrl ? `/danh-muc/${autoSlug}` : prev.allUrl,
+                }));
+              }}
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Mã định danh (Slug ID)</label>
+              <input
+                type="text"
+                placeholder="VD: gear, monitor"
+                value={newMenuCatForm.slug}
+                onChange={(e) => setNewMenuCatForm({ ...newMenuCatForm, slug: e.target.value.toLowerCase().trim() })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
+              />
+            </div>
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Icon hiển thị</label>
+              <select
+                value={newMenuCatForm.iconName}
+                onChange={(e) => setNewMenuCatForm({ ...newMenuCatForm, iconName: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
+              >
+                {AVAILABLE_ICON_NAMES.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-bold text-[#1E293B] mb-1">Đường dẫn xem tất cả (All URL)</label>
+            <input
+              type="text"
+              placeholder="VD: /danh-muc/monitor"
+              value={newMenuCatForm.allUrl}
+              onChange={(e) => setNewMenuCatForm({ ...newMenuCatForm, allUrl: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
+            />
+          </div>
+
+          <div className="pt-2 flex items-center justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsAddMenuCategoryOpen(false)}
+            >
+              Hủy
+            </Button>
+            <Button type="submit" variant="primary" size="sm" className="font-black uppercase text-xs">
+              Thêm Vào Menu
+            </Button>
+          </div>
+        </form>
+      </Modal>
       {/* ADD BANNER MODAL */}
       {/* ========================================================================= */}
       <Modal
@@ -3244,20 +5166,30 @@ export default function AdminDashboardPage() {
               <label className="block font-bold text-[#1E293B] mb-1">Giá bán (VND) *</label>
               <input
                 required
-                type="number"
-                value={dealForm.price_vnd}
-                onChange={(e) => setDealForm({ ...dealForm, price_vnd: parseInt(e.target.value || "0", 10) })}
+                type="text"
+                placeholder="VD: 25,000,000"
+                value={dealForm.price_vnd ? formatVndNumber(dealForm.price_vnd) : ""}
+                onChange={(e) => setDealForm({ ...dealForm, price_vnd: parseVndNumber(e.target.value) })}
                 className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs font-bold"
               />
+              <span className="text-[10px] font-mono font-bold text-[#0063FD] mt-1 block">
+                = {formatVndNumber(dealForm.price_vnd)} VNĐ
+              </span>
             </div>
             <div>
               <label className="block font-bold text-[#1E293B] mb-1">Giá niêm yết cũ (VND)</label>
               <input
-                type="number"
-                value={dealForm.original_price_vnd ?? 0}
-                onChange={(e) => setDealForm({ ...dealForm, original_price_vnd: parseInt(e.target.value || "0", 10) })}
+                type="text"
+                placeholder="VD: 28,000,000"
+                value={dealForm.original_price_vnd ? formatVndNumber(dealForm.original_price_vnd) : ""}
+                onChange={(e) => setDealForm({ ...dealForm, original_price_vnd: parseVndNumber(e.target.value) })}
                 className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
               />
+              {dealForm.original_price_vnd ? (
+                <span className="text-[10px] font-mono text-[#64748B] mt-1 block">
+                  = {formatVndNumber(dealForm.original_price_vnd)} VNĐ
+                </span>
+              ) : null}
             </div>
             <div>
               <label className="block font-bold text-[#1E293B] mb-1">Nhãn Tag (Badge)</label>
@@ -3447,14 +5379,7 @@ export default function AdminDashboardPage() {
               value={blogForm.title_vi}
               onChange={(e) => {
                 const title = e.target.value;
-                const autoSlug = title
-                  .toLowerCase()
-                  .normalize("NFD")
-                  .replace(/[\u0300-\u036f]/g, "")
-                  .replace(/[đĐ]/g, "d")
-                  .replace(/[^a-z0-9\s-]/g, "")
-                  .trim()
-                  .replace(/\s+/g, "-");
+                const autoSlug = sanitizeSlug(title);
                 setBlogForm({ ...blogForm, title_vi: title, slug: blogForm.slug || autoSlug });
               }}
               className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none text-sm font-bold shadow-2xs"
@@ -3469,9 +5394,12 @@ export default function AdminDashboardPage() {
                 type="text"
                 placeholder="huong-dan-chon-nguon-psu"
                 value={blogForm.slug}
-                onChange={(e) => setBlogForm({ ...blogForm, slug: e.target.value.toLowerCase().trim() })}
+                onChange={(e) => setBlogForm({ ...blogForm, slug: sanitizeSlug(e.target.value) })}
                 className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
               />
+              <span className="text-[10px] text-[#64748B] mt-1 block">
+                Tự động chuẩn hóa khi dán link ngoài hoặc nhập văn bản.
+              </span>
             </div>
             <div>
               <label className="block font-bold text-[#1E293B] mb-1">Chuyên mục bài viết *</label>
@@ -3590,9 +5518,12 @@ export default function AdminDashboardPage() {
                 required
                 type="text"
                 value={editBlogForm.slug}
-                onChange={(e) => setEditBlogForm({ ...editBlogForm, slug: e.target.value.toLowerCase().trim() })}
+                onChange={(e) => setEditBlogForm({ ...editBlogForm, slug: sanitizeSlug(e.target.value) })}
                 className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
               />
+              <span className="text-[10px] text-[#64748B] mt-1 block">
+                Tự động chuẩn hóa khi dán link ngoài hoặc nhập văn bản.
+              </span>
             </div>
             <div>
               <label className="block font-bold text-[#1E293B] mb-1">Chuyên mục bài viết *</label>
@@ -3680,6 +5611,508 @@ export default function AdminDashboardPage() {
           </div>
         </form>
       </Modal>
+
+      {/* ========================================================================= */}
+      {/* ADD CAREER JOB MODAL                                                      */}
+      {/* ========================================================================= */}
+      <Modal
+        isOpen={isAddCareerOpen}
+        onClose={() => setIsAddCareerOpen(false)}
+        title="THÊM VỊ TRÍ TUYỂN DỤNG MỚI"
+        description="Đăng tin tuyển dụng nhân sự mới cho hệ thống QMD-Tech"
+        maxWidth="4xl"
+      >
+        <form onSubmit={handleCreateCareer} className="space-y-4 text-xs">
+          <div>
+            <label className="block font-bold text-[#1E293B] mb-1">
+              Tên vị trí tuyển dụng *
+            </label>
+            <input
+              required
+              type="text"
+              placeholder="VD: Kỹ Thuật Viên Lắp Ráp & Cài Đặt PC"
+              value={careerForm.title}
+              onChange={(e) => setCareerForm({ ...careerForm, title: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:outline-none text-sm font-bold shadow-2xs"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">
+                Slug URL (Để trống để tự động tạo)
+              </label>
+              <input
+                type="text"
+                placeholder="VD: ky-thuat-vien-lap-rap-pc"
+                value={careerForm.slug}
+                onChange={(e) => setCareerForm({ ...careerForm, slug: sanitizeCareerSlug(e.target.value) })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:outline-none font-mono shadow-2xs"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Phòng ban *</label>
+              <select
+                value={careerForm.department}
+                onChange={(e) => setCareerForm({ ...careerForm, department: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none font-bold shadow-2xs"
+              >
+                <option value="Kỹ Thuật & Phần Cứng">Kỹ Thuật & Phần Cứng</option>
+                <option value="Kinh Doanh & Chăm Sóc Khách Hàng">Kinh Doanh & Chăm Sóc Khách Hàng</option>
+                <option value="Bảo Hành & Kiểm Soát Chất Lượng">Bảo Hành & Kiểm Soát Chất Lượng</option>
+                <option value="Marketing & Truyền Thông">Marketing & Truyền Thông</option>
+                <option value="Kho Vận & Logistics">Kho Vận & Logistics</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Mức lương *</label>
+              <input
+                required
+                type="text"
+                placeholder="VD: 12.000.000₫ - 18.000.000₫"
+                value={careerForm.salary}
+                onChange={(e) => setCareerForm({ ...careerForm, salary: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#16A34A] font-bold focus:border-[#0063FD] focus:outline-none shadow-2xs"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Địa điểm làm việc</label>
+              <input
+                type="text"
+                placeholder="Hà Nội"
+                value={careerForm.location}
+                onChange={(e) => setCareerForm({ ...careerForm, location: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Hình thức làm việc</label>
+              <select
+                value={careerForm.employment_type}
+                onChange={(e) => setCareerForm({ ...careerForm, employment_type: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+              >
+                <option value="Toàn thời gian">Toàn thời gian</option>
+                <option value="Bán thời gian">Bán thời gian</option>
+                <option value="Thực tập sinh">Thực tập sinh</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Yêu cầu kinh nghiệm</label>
+              <input
+                type="text"
+                placeholder="1 năm kinh nghiệm hoặc đam mê PC"
+                value={careerForm.experience}
+                onChange={(e) => setCareerForm({ ...careerForm, experience: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-bold text-[#1E293B] mb-1">Mô tả công việc *</label>
+            <textarea
+              required
+              rows={3}
+              placeholder="Chi tiết công việc hằng ngày của vị trí..."
+              value={careerForm.description}
+              onChange={(e) => setCareerForm({ ...careerForm, description: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:outline-none leading-relaxed shadow-2xs"
+            />
+          </div>
+
+          <div>
+            <label className="block font-bold text-[#1E293B] mb-1">Yêu cầu ứng viên *</label>
+            <textarea
+              required
+              rows={3}
+              placeholder="Kỹ năng, thái độ hoặc phẩm chất cần có..."
+              value={careerForm.requirements}
+              onChange={(e) => setCareerForm({ ...careerForm, requirements: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:outline-none leading-relaxed shadow-2xs"
+            />
+          </div>
+
+          <div>
+            <label className="block font-bold text-[#1E293B] mb-1">Quyền lợi & Chế độ đãi ngộ</label>
+            <textarea
+              rows={2}
+              placeholder="BHXH, thưởng KPI, phụ cấp ăn trưa, ưu đãi linh kiện..."
+              value={careerForm.benefits}
+              onChange={(e) => setCareerForm({ ...careerForm, benefits: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:outline-none leading-relaxed shadow-2xs"
+            />
+          </div>
+
+          <div className="flex items-center justify-between pt-3 border-t border-[#E2E8F0]">
+            <label className="flex items-center gap-2 cursor-pointer font-bold text-[#0F172A]">
+              <input
+                type="checkbox"
+                checked={careerForm.is_active}
+                onChange={(e) => setCareerForm({ ...careerForm, is_active: e.target.checked })}
+                className="rounded border-[#CBD5E1] text-[#0063FD] focus:ring-[#0063FD] h-4 w-4"
+              />
+              <span>Mở tuyển dụng công khai ngay</span>
+            </label>
+
+            <Button type="submit" variant="primary" size="md" className="font-black uppercase text-xs shadow-md">
+              Đăng Tuyển Vị Trí
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* ========================================================================= */}
+      {/* EDIT CAREER JOB MODAL                                                     */}
+      {/* ========================================================================= */}
+      <Modal
+        isOpen={isEditCareerOpen}
+        onClose={() => setIsEditCareerOpen(false)}
+        title="CHỈNH SỬA VỊ TRÍ TUYỂN DỤNG"
+        description="Cập nhật thông tin mô tả, mức lương hoặc trạng thái tuyển dụng"
+        maxWidth="4xl"
+      >
+        <form onSubmit={handleUpdateCareer} className="space-y-4 text-xs">
+          <div>
+            <label className="block font-bold text-[#1E293B] mb-1">
+              Tên vị trí tuyển dụng *
+            </label>
+            <input
+              required
+              type="text"
+              value={editCareerForm.title}
+              onChange={(e) => setEditCareerForm({ ...editCareerForm, title: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none text-sm font-bold shadow-2xs"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Slug URL</label>
+              <input
+                type="text"
+                value={editCareerForm.slug}
+                onChange={(e) => setEditCareerForm({ ...editCareerForm, slug: sanitizeCareerSlug(e.target.value) })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Phòng ban *</label>
+              <select
+                value={editCareerForm.department}
+                onChange={(e) => setEditCareerForm({ ...editCareerForm, department: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none font-bold shadow-2xs"
+              >
+                <option value="Kỹ Thuật & Phần Cứng">Kỹ Thuật & Phần Cứng</option>
+                <option value="Kinh Doanh & Chăm Sóc Khách Hàng">Kinh Doanh & Chăm Sóc Khách Hàng</option>
+                <option value="Bảo Hành & Kiểm Soát Chất Lượng">Bảo Hành & Kiểm Soát Chất Lượng</option>
+                <option value="Marketing & Truyền Thông">Marketing & Truyền Thông</option>
+                <option value="Kho Vận & Logistics">Kho Vận & Logistics</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Mức lương *</label>
+              <input
+                required
+                type="text"
+                value={editCareerForm.salary}
+                onChange={(e) => setEditCareerForm({ ...editCareerForm, salary: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#16A34A] font-bold focus:border-[#0063FD] focus:outline-none shadow-2xs"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Địa điểm làm việc</label>
+              <input
+                type="text"
+                value={editCareerForm.location}
+                onChange={(e) => setEditCareerForm({ ...editCareerForm, location: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Hình thức làm việc</label>
+              <select
+                value={editCareerForm.employment_type}
+                onChange={(e) => setEditCareerForm({ ...editCareerForm, employment_type: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+              >
+                <option value="Toàn thời gian">Toàn thời gian</option>
+                <option value="Bán thời gian">Bán thời gian</option>
+                <option value="Thực tập sinh">Thực tập sinh</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Yêu cầu kinh nghiệm</label>
+              <input
+                type="text"
+                value={editCareerForm.experience}
+                onChange={(e) => setEditCareerForm({ ...editCareerForm, experience: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-bold text-[#1E293B] mb-1">Mô tả công việc *</label>
+            <textarea
+              required
+              rows={3}
+              value={editCareerForm.description}
+              onChange={(e) => setEditCareerForm({ ...editCareerForm, description: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:outline-none leading-relaxed shadow-2xs"
+            />
+          </div>
+
+          <div>
+            <label className="block font-bold text-[#1E293B] mb-1">Yêu cầu ứng viên *</label>
+            <textarea
+              required
+              rows={3}
+              value={editCareerForm.requirements}
+              onChange={(e) => setEditCareerForm({ ...editCareerForm, requirements: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:outline-none leading-relaxed shadow-2xs"
+            />
+          </div>
+
+          <div>
+            <label className="block font-bold text-[#1E293B] mb-1">Quyền lợi & Chế độ đãi ngộ</label>
+            <textarea
+              rows={2}
+              value={editCareerForm.benefits}
+              onChange={(e) => setEditCareerForm({ ...editCareerForm, benefits: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:outline-none leading-relaxed shadow-2xs"
+            />
+          </div>
+
+          <div className="flex items-center justify-between pt-3 border-t border-[#E2E8F0]">
+            <label className="flex items-center gap-2 cursor-pointer font-bold text-[#0F172A]">
+              <input
+                type="checkbox"
+                checked={editCareerForm.is_active}
+                onChange={(e) => setEditCareerForm({ ...editCareerForm, is_active: e.target.checked })}
+                className="rounded border-[#CBD5E1] text-[#0063FD] focus:ring-[#0063FD] h-4 w-4"
+              />
+              <span>Mở nhận hồ sơ ứng tuyển</span>
+            </label>
+
+            <Button type="submit" variant="primary" size="md" className="font-black uppercase text-xs shadow-md">
+              Lưu Thay Đổi
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* ========================================================================= */}
+      {/* CANDIDATE APPLICATION REVIEW MODAL                                        */}
+      {/* ========================================================================= */}
+      {selectedApplication && (
+        <Modal
+          isOpen={isAppDetailOpen}
+          onClose={() => {
+            setIsAppDetailOpen(false);
+            setSelectedApplication(null);
+          }}
+          title="CHI TIẾT HỒ SƠ ỨNG VIÊN"
+          description={`Hồ sơ ứng tuyển vị trí ${selectedApplication.job_title}`}
+          maxWidth="4xl"
+        >
+          <div className="space-y-5 text-xs">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Left Column: Candidate Information & CV */}
+              <div className="space-y-4">
+                <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 space-y-3">
+                  <h4 className="text-xs font-black uppercase text-[#0F172A] tracking-wider border-b border-[#E2E8F0] pb-2 flex items-center justify-between">
+                    <span>Thông Tin Ứng Viên</span>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${getAppStatusBadge(selectedApplication.status).bg}`}>
+                      {getAppStatusBadge(selectedApplication.status).label}
+                    </span>
+                  </h4>
+
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div>
+                      <div className="text-[10px] font-bold text-[#64748B] uppercase">Họ và tên</div>
+                      <div className="font-bold text-[#0F172A] text-sm">{selectedApplication.full_name}</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-bold text-[#64748B] uppercase">Vị trí ứng tuyển</div>
+                      <div className="font-bold text-[#0063FD]">{selectedApplication.job_title}</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-bold text-[#64748B] uppercase">Số điện thoại</div>
+                      <a href={`tel:${selectedApplication.phone}`} className="font-mono font-bold text-[#0F172A] hover:underline flex items-center gap-1">
+                        <Phone className="h-3 w-3 text-[#64748B]" />
+                        {selectedApplication.phone}
+                      </a>
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-bold text-[#64748B] uppercase">Email liên hệ</div>
+                      <a href={`mailto:${selectedApplication.email}`} className="font-mono text-[#0F172A] hover:underline flex items-center gap-1 truncate">
+                        <Mail className="h-3 w-3 text-[#64748B]" />
+                        {selectedApplication.email}
+                      </a>
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-bold text-[#64748B] uppercase">Ngày nộp hồ sơ</div>
+                      <div className="text-[#475569]">
+                        {new Date(selectedApplication.created_at).toLocaleString("vi-VN")}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-bold text-[#64748B] uppercase">Kinh nghiệm khai báo</div>
+                      <div className="text-[#0F172A] font-semibold">{selectedApplication.experience || "Chưa có thông tin"}</div>
+                    </div>
+                  </div>
+
+                  {selectedApplication.introduction && (
+                    <div className="pt-2 border-t border-[#E2E8F0]">
+                      <div className="text-[10px] font-bold text-[#64748B] uppercase mb-1">Giới thiệu bản thân & nguyện vọng</div>
+                      <p className="text-xs text-[#334155] leading-relaxed bg-white p-2.5 rounded-lg border border-[#CBD5E1] whitespace-pre-line">
+                        {selectedApplication.introduction}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* PDF Resume Attachment Viewer Box */}
+                <div className="rounded-xl border border-[#BFDBFE] bg-[#EFF6FF]/60 p-4 space-y-3">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5 overflow-hidden">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0063FD] text-white shadow-xs">
+                        <FileText className="h-5 w-5" />
+                      </div>
+                      <div className="truncate">
+                        <div className="font-bold text-[#0F172A] text-xs truncate">
+                          {selectedApplication.resume_filename || "CV_UngVien.pdf"}
+                        </div>
+                        <div className="text-[10px] text-[#64748B] font-mono">
+                          {formatAppFileSize(selectedApplication.resume_file_size)} • File đính kèm PDF
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <a
+                        href={selectedApplication.resume_url}
+                        download={selectedApplication.resume_filename || "CV_UngVien.pdf"}
+                        className="inline-flex items-center gap-1 rounded-lg border border-[#CBD5E1] bg-white px-3 py-1.5 text-xs font-bold text-[#334155] hover:bg-[#F8FAFC] shadow-2xs transition-colors"
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                        <span>Tải CV</span>
+                      </a>
+
+                      <a
+                        href={selectedApplication.resume_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 rounded-lg bg-[#0063FD] px-3.5 py-1.5 text-xs font-bold text-white hover:bg-blue-600 shadow-xs transition-colors"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                        <span>Xem PDF</span>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Admin Review & Status Notes */}
+              <div className="space-y-4 flex flex-col justify-between rounded-xl border border-[#E2E8F0] bg-white p-4">
+                <div className="space-y-3">
+                  <h4 className="text-xs font-black uppercase text-[#0F172A] tracking-wider border-b border-[#E2E8F0] pb-2">
+                    Đánh Giá & Trạng Thái Tuyển Dụng
+                  </h4>
+
+                  <div>
+                    <label className="block font-bold text-[#1E293B] mb-1.5">
+                      Trạng thái xử lý hồ sơ:
+                    </label>
+                    <select
+                      value={editingAppStatus}
+                      onChange={(e) => setEditingAppStatus(e.target.value as ApplicationStatus)}
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] p-2.5 text-xs font-bold text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none"
+                    >
+                      <option value="pending">Chờ duyệt (Mới nộp)</option>
+                      <option value="reviewed">Đã xem qua CV</option>
+                      <option value="contacted">Đã liên hệ ứng viên</option>
+                      <option value="interview">Hẹn phỏng vấn trực tiếp / online</option>
+                      <option value="accepted">Trúng tuyển / Tiếp nhận thử việc</option>
+                      <option value="rejected">Chưa phù hợp / Từ chối</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-[#1E293B] mb-1.5">
+                      Ghi chú nội bộ tuyển dụng:
+                    </label>
+                    <textarea
+                      rows={5}
+                      value={editingAppNotes}
+                      onChange={(e) => setEditingAppNotes(e.target.value)}
+                      placeholder="Ghi nhận đánh giá sau khi xem CV, kết quả liên hệ, lịch phỏng vấn hoặc lý do từ chối..."
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] p-2.5 text-xs text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none leading-relaxed"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-[#E2E8F0] flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteApplication(selectedApplication.id)}
+                    className="inline-flex items-center gap-1 text-xs font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 px-2.5 py-1.5 rounded-lg transition-colors"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    <span>Xóa hồ sơ</span>
+                  </button>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setIsAppDetailOpen(false);
+                        setSelectedApplication(null);
+                      }}
+                    >
+                      Đóng
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="primary"
+                      size="sm"
+                      disabled={isUpdatingApp}
+                      onClick={() =>
+                        handleUpdateApplicationStatus(
+                          selectedApplication.id,
+                          editingAppStatus,
+                          editingAppNotes
+                        )
+                      }
+                      className="font-bold shadow-xs flex items-center gap-1.5"
+                    >
+                      <Save className="h-3.5 w-3.5" />
+                      <span>{isUpdatingApp ? "Đang lưu..." : "Lưu Thay Đổi"}</span>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

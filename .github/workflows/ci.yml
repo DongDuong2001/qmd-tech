@@ -43,3 +43,7 @@ jobs:
           NEXT_PUBLIC_DEFAULT_LOCALE: vi
           NEXT_PUBLIC_SUPABASE_URL: https://mock-project.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: mock-anon-key
+          JWT_SECRET: mock-ci-jwt-secret-at-least-32-chars-long
+          SUPABASE_SERVICE_ROLE_KEY: mock-ci-service-role-key-long-enough
+          QMD_ADMIN_USER: admin@qmd.tech
+          QMD_ADMIN_PASSWORD: mock_ci_admin_password_123

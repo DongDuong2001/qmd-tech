@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "@/i18n/routing";
 import { useLocale, useTranslations } from "next-intl";
 import { i18nService } from "@/modules/i18n/service";
@@ -8,13 +8,15 @@ import { orderService } from "@/modules/orders/service";
 import { useCart } from "@/shared/context/CartContext";
 import { Button } from "@/components/ui/button";
 import { SePayVietQRModal } from "@/components/checkout/SePayVietQRModal";
+import { Province34, WardItem } from "@/modules/location/service";
 import {
   CheckCircle2,
   ShieldCheck,
-  CreditCard,
   Banknote,
-  Smartphone,
   QrCode,
+  ChevronDown,
+  MapPin,
+  Truck,
 } from "lucide-react";
 
 export default function CheckoutPage() {
@@ -27,12 +29,90 @@ export default function CheckoutPage() {
     phone: "0988889999",
     email: "dongduong@example.com",
     address: "Số 18, Đường Cầu Giấy",
-    city: "Hà Nội",
-    district: "Cầu Giấy",
+    city: "Thành phố Hà Nội",
+    district: "Phường Dịch Vọng Hậu",
     notes: "",
   });
 
-  const [paymentMethod, setPaymentMethod] = useState<"sepay" | "cod" | "vnpay" | "momo">("sepay");
+  const [provinces, setProvinces] = useState<Province34[]>([]);
+  const [wards, setWards] = useState<WardItem[]>([]);
+  const [selectedProvinceCode, setSelectedProvinceCode] = useState<number | null>(1);
+  const [loadingProvinces, setLoadingProvinces] = useState(true);
+  const [loadingWards, setLoadingWards] = useState(false);
+
+  const loadWardsForProvince = async (provinceCode: number) => {
+    setLoadingWards(true);
+    try {
+      const res = await fetch(`/api/location/wards?province_code=${provinceCode}`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.wards) && data.wards.length > 0) {
+        setWards(data.wards);
+        // Default select first ward or keep match
+        setForm((prev) => {
+          const matched = data.wards.find(
+            (w: WardItem) =>
+              w.name.toLowerCase().includes(prev.district.toLowerCase()) ||
+              prev.district.toLowerCase().includes(w.name.toLowerCase())
+          );
+          return {
+            ...prev,
+            district: matched ? matched.name : data.wards[0].name,
+          };
+        });
+      } else {
+        setWards([]);
+      }
+    } catch (err) {
+      console.warn("Error loading wards:", err);
+      setWards([]);
+    } finally {
+      setLoadingWards(false);
+    }
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+    async function initLocations() {
+      try {
+        const res = await fetch("/api/location/provinces");
+        const data = await res.json();
+        if (isMounted && data.success && Array.isArray(data.provinces)) {
+          setProvinces(data.provinces);
+          const initial = data.provinces.find((p: Province34) => p.code === 1) || data.provinces[0];
+          if (initial) {
+            setSelectedProvinceCode(initial.code);
+            setForm((prev) => ({ ...prev, city: initial.name }));
+            loadWardsForProvince(initial.code);
+          }
+        }
+      } catch (err) {
+        console.warn("Error loading provinces:", err);
+      } finally {
+        if (isMounted) setLoadingProvinces(false);
+      }
+    }
+
+    initLocations();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleProvinceSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const code = Number(e.target.value);
+    setSelectedProvinceCode(code);
+    const selected = provinces.find((p) => p.code === code);
+    if (selected) {
+      setForm((prev) => ({ ...prev, city: selected.name, district: "" }));
+      loadWardsForProvince(code);
+    }
+  };
+
+  const handleWardSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setForm((prev) => ({ ...prev, district: e.target.value }));
+  };
+
+  const [paymentMethod, setPaymentMethod] = useState<"sepay" | "cod">("sepay");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createdOrderCode, setCreatedOrderCode] = useState<string | null>(null);
 
@@ -191,27 +271,67 @@ export default function CheckoutPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-[#64748B] mb-1">
-                  {t("checkout.city")} *
+                  Tỉnh / Thành phố (34 Tỉnh Thành) *
                 </label>
-                <input
-                  required
-                  type="text"
-                  value={form.city}
-                  onChange={(e) => setForm({ ...form, city: e.target.value })}
-                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3.5 py-2 text-sm text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
-                />
+                <div className="relative">
+                  <select
+                    required
+                    value={selectedProvinceCode ?? ""}
+                    onChange={handleProvinceSelect}
+                    className="w-full appearance-none rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3.5 py-2.5 pr-8 text-sm text-[#0F172A] font-medium focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
+                  >
+                    {loadingProvinces ? (
+                      <option value="">Đang tải 34 tỉnh thành...</option>
+                    ) : (
+                      provinces.map((p) => (
+                        <option key={p.code} value={p.code}>
+                          {p.name}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-3 h-4 w-4 text-[#64748B] pointer-events-none" />
+                </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#64748B] mb-1">
-                  {t("checkout.district")}
+                <label className="block text-xs font-semibold text-[#64748B] mb-1 flex items-center justify-between">
+                  <span>Phường / Xã *</span>
+                  <span className="text-[10px] text-[#0063FD] font-normal">Mô hình 2 cấp</span>
                 </label>
-                <input
-                  type="text"
-                  value={form.district}
-                  onChange={(e) => setForm({ ...form, district: e.target.value })}
-                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3.5 py-2 text-sm text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
-                />
+                <div className="relative">
+                  {wards.length > 0 ? (
+                    <>
+                      <select
+                        required
+                        value={form.district}
+                        onChange={handleWardSelect}
+                        disabled={loadingWards}
+                        className="w-full appearance-none rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3.5 py-2.5 pr-8 text-sm text-[#0F172A] font-medium focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs disabled:opacity-60"
+                      >
+                        {loadingWards ? (
+                          <option value="">Đang tải phường/xã...</option>
+                        ) : (
+                          wards.map((w) => (
+                            <option key={w.code} value={w.name}>
+                              {w.name}
+                            </option>
+                          ))
+                        )}
+                      </select>
+                      <ChevronDown className="absolute right-3 top-3 h-4 w-4 text-[#64748B] pointer-events-none" />
+                    </>
+                  ) : (
+                    <input
+                      required
+                      type="text"
+                      placeholder="Nhập tên Phường / Xã"
+                      value={form.district}
+                      onChange={(e) => setForm({ ...form, district: e.target.value })}
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3.5 py-2 text-sm text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                    />
+                  )}
+                </div>
               </div>
             </div>
 
@@ -238,6 +358,35 @@ export default function CheckoutPage() {
                 onChange={(e) => setForm({ ...form, notes: e.target.value })}
                 className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3.5 py-2 text-sm text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
               />
+            </div>
+
+            {/* Dynamic Delivery Time Policy Notice */}
+            <div
+              className={`rounded-xl border p-3.5 text-xs flex items-start gap-3 transition-colors ${
+                selectedProvinceCode === 1 ||
+                form.city.toLowerCase().includes("hà nội") ||
+                form.city.toLowerCase().includes("ha noi")
+                  ? "border-[#86EFAC] bg-[#F0FDF4] text-[#166534]"
+                  : "border-[#BFDBFE] bg-[#EFF6FF] text-[#1E40AF]"
+              }`}
+            >
+              <Truck className="h-4 w-4 shrink-0 mt-0.5" />
+              <div className="space-y-0.5">
+                <div className="font-bold uppercase text-[11px] tracking-wider">
+                  {selectedProvinceCode === 1 ||
+                  form.city.toLowerCase().includes("hà nội") ||
+                  form.city.toLowerCase().includes("ha noi")
+                    ? "Giao Hỏa Tốc Hà Nội (Nhanh Nhất Có Thể)"
+                    : "Giao Hàng Toàn Quốc (Từ 1 - 3 Ngày Làm Việc)"}
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  {selectedProvinceCode === 1 ||
+                  form.city.toLowerCase().includes("hà nội") ||
+                  form.city.toLowerCase().includes("ha noi")
+                    ? "Đơn hàng nội thành Hà Nội được điều phối xuất kho và bàn giao shipper giao ngay nhanh nhất có thể."
+                    : "Đơn hàng tại các tỉnh thành khác được đóng gói chống sốc 3 lớp, bảo hiểm 100% và giao tận nơi trong vòng 1 - 3 ngày."}
+                </p>
+              </div>
             </div>
           </div>
 
@@ -275,7 +424,7 @@ export default function CheckoutPage() {
                       </span>
                     </div>
                     <p className="text-[11px] text-[#64748B] leading-relaxed">
-                      Quét mã QR tự động điền số tiền và nội dung qua MBBank, Vietcombank, Techcombank, MoMo... Khớp lệnh tự động 24/7 trong 30 giây.
+                      Quét mã QR tự động điền số tiền và nội dung qua MBBank, Vietcombank, Techcombank, ACB... Khớp lệnh tự động 24/7 trong 30 giây.
                     </p>
                   </div>
                 </div>
@@ -308,62 +457,6 @@ export default function CheckoutPage() {
                   </div>
                 </div>
                 <span className="text-[10px] text-[#64748B]">Kiểm tra trước khi trả</span>
-              </label>
-
-              {/* Option 3: VNPAY */}
-              <label
-                className={`flex items-center justify-between rounded-xl border p-4 cursor-pointer transition-all ${
-                  paymentMethod === "vnpay"
-                    ? "border-[#2563EB] bg-[#EFF6FF]"
-                    : "border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#2563EB]/50"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    checked={paymentMethod === "vnpay"}
-                    onChange={() => setPaymentMethod("vnpay")}
-                    className="text-[#2563EB]"
-                  />
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="h-4 w-4 text-[#2563EB]" />
-                    <span className="text-xs font-semibold text-[#0F172A]">
-                      Cổng VNPAY / Thẻ Quốc Tế (Visa / Master)
-                    </span>
-                  </div>
-                </div>
-                <span className="rounded bg-[#FFFFFF] px-2 py-0.5 text-[10px] font-bold text-[#0F172A] border border-[#E2E8F0]">
-                  VNPAY-QR
-                </span>
-              </label>
-
-              {/* Option 4: MoMo */}
-              <label
-                className={`flex items-center justify-between rounded-xl border p-4 cursor-pointer transition-all ${
-                  paymentMethod === "momo"
-                    ? "border-[#DB2777] bg-[#FDF2F8]"
-                    : "border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#DB2777]/50"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    checked={paymentMethod === "momo"}
-                    onChange={() => setPaymentMethod("momo")}
-                    className="text-[#DB2777]"
-                  />
-                  <div className="flex items-center gap-2">
-                    <Smartphone className="h-4 w-4 text-[#DB2777]" />
-                    <span className="text-xs font-semibold text-[#0F172A]">
-                      Ví Điện Tử MoMo
-                    </span>
-                  </div>
-                </div>
-                <span className="rounded bg-[#FFFFFF] px-2 py-0.5 text-[10px] font-bold text-[#DB2777] border border-[#FBCFE8]">
-                  MoMo Wallet
-                </span>
               </label>
             </div>
           </div>

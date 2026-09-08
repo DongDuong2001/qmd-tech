@@ -154,7 +154,7 @@ export function SePayVietQRModal({
               Thanh Toán Tự Động Qua SePay VietQR
             </h2>
             <p className="text-xs text-[#64748B]">
-              Mở app ngân hàng bất kỳ (MB, VCB, Techcombank, MoMo...) và quét mã bên dưới
+              Mở app ngân hàng bất kỳ (MB, VCB, Techcombank, ACB...) và quét mã bên dưới
             </p>
           </div>
         </div>

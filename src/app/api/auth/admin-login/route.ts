@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import crypto from "crypto";
 import { checkRateLimit, getClientIp } from "@/shared/security/rateLimiter";
 import {
   ADMIN_COOKIE_NAME,
@@ -7,6 +8,12 @@ import {
   getClearCookieOptions,
 } from "@/shared/security/cookies";
 import { createAdminToken } from "@/shared/security/jwt";
+
+function timingSafeStringEqual(a: string, b: string): boolean {
+  const hashA = crypto.createHash("sha256").update(a).digest();
+  const hashB = crypto.createHash("sha256").update(b).digest();
+  return crypto.timingSafeEqual(hashA, hashB);
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -29,26 +36,26 @@ export async function POST(req: NextRequest) {
     const configuredPassword = process.env.QMD_ADMIN_PASSWORD || process.env.ADMIN_SECRET_PASSCODE;
 
     if (!configuredUser || !configuredPassword) {
-      if (process.env.NODE_ENV === "production") {
-        console.error("CRITICAL: Admin credentials are not configured in production environment.");
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Hệ thống quản trị chưa được thiết lập tài khoản bảo mật trong biến môi trường máy chủ.",
-          },
-          { status: 500 }
-        );
-      }
+      console.error("CRITICAL: Admin credentials (QMD_ADMIN_USER / QMD_ADMIN_PASSWORD) are not configured.");
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Hệ thống quản trị chưa được thiết lập tài khoản bảo mật trong biến môi trường máy chủ.",
+        },
+        { status: 500 }
+      );
     }
 
-    const validUsername = configuredUser || "admin@qmd.tech";
-    const validPasscode = configuredPassword || "qmd@135";
+    const isUserMatch = timingSafeStringEqual(
+      (username || "").trim().toLowerCase(),
+      configuredUser.toLowerCase()
+    );
+    const isPassMatch = timingSafeStringEqual(
+      passcode || "",
+      configuredPassword
+    );
 
-    const isMatch =
-      username?.trim().toLowerCase() === validUsername.toLowerCase() &&
-      passcode === validPasscode;
-
-    if (!isMatch) {
+    if (!isUserMatch || !isPassMatch) {
       return NextResponse.json(
         {
           success: false,
@@ -59,7 +66,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Generate Cryptographically Signed Admin JWT Token
-    const adminToken = await createAdminToken(validUsername);
+    const adminToken = await createAdminToken(configuredUser);
 
     const cookieStore = await cookies();
     cookieStore.set(ADMIN_COOKIE_NAME, adminToken, getAdminCookieOptions());

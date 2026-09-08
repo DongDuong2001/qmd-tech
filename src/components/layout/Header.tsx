@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Link, useRouter } from "@/i18n/routing";
-import { LanguageSwitcher } from "@/components/common/LanguageSwitcher";
 import { useCart } from "@/shared/context/CartContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +22,10 @@ import {
   Tag,
   BookOpen,
 } from "lucide-react";
+import {
+  CategoryMegaMenu,
+  MobileCategoryAccordion,
+} from "@/components/navigation/CategoryMegaMenu";
 
 export function Header() {
   const pathname = usePathname();
@@ -52,7 +55,7 @@ export function Header() {
             <span className="flex items-center gap-1.5 truncate text-[11px] sm:text-xs text-[#334155]">
               <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 shrink-0 rounded-full bg-[#16A34A] animate-pulse" />
               <span className="truncate">
-                <strong className="text-[#0F172A]">Bán Hàng & Ráp PC Online Toàn Quốc</strong> • Giao tận nơi 63 tỉnh thành
+                <strong className="text-[#0F172A]">Giao hỏa tốc tại Hà Nội</strong> • Toàn quốc 34 tỉnh thành từ 1 - 3 ngày
               </span>
             </span>
             <span className="hidden md:inline-block text-[#CBD5E1]">|</span>
@@ -93,8 +96,6 @@ export function Header() {
               <UserPlus className="h-3 w-3" />
               Đăng ký
             </Link>
-            <span className="hidden sm:inline-block text-[#CBD5E1]">|</span>
-            <LanguageSwitcher />
           </div>
         </div>
       </div>
@@ -114,23 +115,23 @@ export function Header() {
                 className="object-cover"
               />
             </div>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-1">
-                <span className="text-lg sm:text-2xl font-black tracking-wider text-[#0F172A]">
-                  QMD<span className="text-[#0063FD]">-TECH</span>
-                </span>
-                <span className="rounded bg-[#0F172A] px-1 py-0.2 text-[8px] sm:text-[9px] font-black text-white uppercase tracking-wider">
-                  GAMING
-                </span>
-              </div>
-              <span className="hidden xs:block text-[9px] sm:text-[10px] font-extrabold tracking-widest text-[#0063FD] uppercase">
+            <div className="flex flex-col justify-center">
+              <span className="text-lg sm:text-2xl font-black tracking-wider text-[#0F172A] leading-none">
+                QMD<span className="text-[#0063FD]">-TECH</span>
+              </span>
+              <span className="hidden xs:block text-[9px] sm:text-[10px] font-bold tracking-widest text-[#0063FD] uppercase mt-1">
                 PC & Hardware Systems
               </span>
             </div>
           </Link>
 
+          {/* Category Mega Dropdown (Desktop - GearVN Style) */}
+          <div className="hidden lg:block shrink-0 ml-1">
+            <CategoryMegaMenu buttonVariant="header" />
+          </div>
+
           {/* Search Bar (Desktop) */}
-          <div className="hidden lg:flex flex-1 max-w-xl mx-4">
+          <div className="hidden lg:flex flex-1 max-w-lg xl:max-w-xl mx-2 xl:mx-4">
             <form onSubmit={handleSearch} className="relative w-full">
               <input
                 type="text"
@@ -242,6 +243,9 @@ export function Header() {
               </Link>
             </div>
           </div>
+
+          {/* Mobile Category Mega Accordion */}
+          <MobileCategoryAccordion onSelect={() => setMobileMenuOpen(false)} />
 
           {/* Core Feature Shortcuts */}
           <div className="grid grid-cols-2 gap-2 text-xs font-bold">

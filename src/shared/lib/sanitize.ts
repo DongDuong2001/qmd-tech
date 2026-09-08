@@ -58,3 +58,42 @@ export function escapeJsonLd(jsonString: string): string {
   }
   return jsonString.replace(/<\/script/gi, "\\u003c/script");
 }
+
+/**
+ * Universal Vietnamese slug generator.
+ * Normalizes unicode diacritics (NFD), maps đ/Đ to d, removes non-alphanumeric chars,
+ * and collapses multiple hyphens into a clean SEO-friendly slug.
+ */
+export function slugifyVietnamese(text?: string | null, fallback: string = "item"): string {
+  if (!text || typeof text !== "string") {
+    return fallback;
+  }
+
+  // If text is a full URL, extract the pathname segment
+  let cleaned = text.trim();
+  if (cleaned.startsWith("http://") || cleaned.startsWith("https://") || cleaned.includes("://")) {
+    try {
+      const url = new URL(cleaned);
+      const segments = url.pathname.split("/").filter(Boolean);
+      cleaned = segments.pop() || fallback;
+    } catch {
+      cleaned = cleaned.replace(/^https?:\/\/[^/]+/i, "").replace(/^\/+/, "");
+      cleaned = cleaned.split("?")[0].split("#")[0];
+    }
+  } else if (cleaned.includes("?")) {
+    cleaned = cleaned.split("?")[0];
+  }
+
+  const slug = cleaned
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[đĐ]/g, "d")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/[\s_]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  return slug || fallback;
+}
