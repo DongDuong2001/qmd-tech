@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Link, useRouter } from "@/i18n/routing";
-import { LanguageSwitcher } from "@/components/common/LanguageSwitcher";
 import { useCart } from "@/shared/context/CartContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -97,8 +96,6 @@ export function Header() {
               <UserPlus className="h-3 w-3" />
               Đăng ký
             </Link>
-            <span className="hidden sm:inline-block text-[#CBD5E1]">|</span>
-            <LanguageSwitcher />
           </div>
         </div>
       </div>
