@@ -21,24 +21,17 @@ import {
   WdBlackLogo,
 } from "@/components/common/BrandLogos";
 import {
-  Cpu,
   CircuitBoard,
-  MemoryStick,
-  Layers,
-  HardDrive,
-  Zap,
-  Box,
-  Fan,
-  Monitor,
-  Gamepad2,
-  Keyboard,
-  Headphones,
   ArrowRight,
   Wrench,
   Award,
   Gift,
   CheckCircle2,
   Tag,
+  ShieldCheck,
+  BookOpen,
+  Truck,
+  Phone,
 } from "lucide-react";
 
 export default async function HomePage() {
@@ -48,65 +41,61 @@ export default async function HomePage() {
   const banners = await adminService.getBanners();
   const prebuiltDeals = await adminService.getPrebuiltDeals();
 
-  // Dynamic real count calculator per category
-  const getCategoryProductCount = (slug: string) => {
-    const cat = categories.find((c) => c.slug === slug);
-    if (!cat) return 0;
-    return allProducts.filter((p) => p.category_id === cat.id).length;
-  };
-
-  // 12 Category Nav Items (Swipeable on Mobile, Grid on Tablet/Desktop)
-  const categoryNavItems = [
-    { slug: "cpu", name: "CPU - Vi Xử Lý", icon: Cpu },
-    { slug: "gpu", name: "VGA - Card Đồ Họa", icon: Layers, hot: true },
-    { slug: "motherboard", name: "Mainboard", icon: CircuitBoard },
-    { slug: "ram", name: "RAM DDR4/DDR5", icon: MemoryStick },
-    { slug: "storage", name: "SSD / HDD", icon: HardDrive },
-    { slug: "psu", name: "Nguồn Máy Tính", icon: Zap },
-    { slug: "case", name: "Vỏ Case Gaming", icon: Box },
-    { slug: "cooling", name: "Tản Nhiệt AIO", icon: Fan },
-    { slug: "monitor", name: "Màn Hình 240Hz", icon: Monitor, hot: true },
-    { slug: "prebuilt", name: "PC Ráp Sẵn", icon: Gamepad2, hot: true },
-    { slug: "gear", name: "Bàn Phím & Chuột", icon: Keyboard },
-    { slug: "audio", name: "Tai Nghe & Ghế", icon: Headphones },
-  ];
-
   return (
     <div className="space-y-6 sm:space-y-10 pb-16">
       {/* ========================================================================= */}
-      {/* 1. HORIZONTAL CATEGORY NAV (Swipeable on Mobile, 12-Grid on Desktop)       */}
+      {/* 1. TOP UTILITY STRIP (GearVN & Modern Tech Retailer Navigation Strip)      */}
       {/* ========================================================================= */}
-      <section className="border-b border-[#E2E8F0] bg-[#FFFFFF] py-3 sm:py-4">
+      <section className="border-b border-[#E2E8F0] bg-[#FFFFFF] py-2.5 shadow-2xs">
         <div className="mx-auto max-w-7xl px-3 sm:px-6">
-          <div className="flex gap-2 overflow-x-auto no-scrollbar py-0.5 sm:grid sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-12">
-            {categoryNavItems.map((item) => {
-              const IconComponent = item.icon;
-              const count = getCategoryProductCount(item.slug);
-              return (
-                <Link
-                  key={item.slug}
-                  href={`/danh-muc/${item.slug === "prebuilt" || item.slug === "monitor" || item.slug === "gear" || item.slug === "audio" ? "cpu" : item.slug}`}
-                  className="group relative shrink-0 w-23 sm:w-auto flex flex-col items-center justify-center rounded-xl border border-[#E2E8F0] bg-[#FFFFFF] p-2 sm:p-2.5 text-center transition-all duration-200 hover:border-[#0063FD] hover:bg-[#EFF6FF] shadow-xs"
-                >
-                  {item.hot && (
-                    <span className="absolute -top-1.5 -right-1 rounded bg-[#0063FD] px-1 py-0.2 text-[7.5px] sm:text-[8px] font-black text-white uppercase">
-                      HOT
-                    </span>
-                  )}
-                  <div className="mb-1 sm:mb-1.5 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg bg-[#F8FAFC] text-[#0063FD] group-hover:bg-[#0063FD] group-hover:text-white transition-colors border border-[#E2E8F0]">
-                    <IconComponent className="h-4 w-4 sm:h-5 sm:w-5" />
-                  </div>
-                  <span className="text-[10px] sm:text-[11px] font-bold text-[#0F172A] line-clamp-1 group-hover:text-[#0063FD] transition-colors">
-                    {item.name}
-                  </span>
-                  {count > 0 && (
-                    <span className="text-[8.5px] sm:text-[9px] font-mono text-[#0063FD] font-semibold">
-                      {count} SP
-                    </span>
-                  )}
-                </Link>
-              );
-            })}
+          <div className="flex items-center justify-between gap-2 overflow-x-auto no-scrollbar py-0.5 text-xs">
+            <Link
+              href="/khuyen-mai"
+              className="flex items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-lg text-[#0F172A] font-bold hover:text-[#0063FD] hover:bg-[#EFF6FF] transition-colors"
+            >
+              <Tag className="h-4 w-4 text-[#EF4444]" />
+              <span>Tất Cả Khuyến Mãi</span>
+            </Link>
+            <span className="text-[#E2E8F0] hidden sm:inline">•</span>
+            <Link
+              href="/build-pc"
+              className="flex items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-lg text-[#0F172A] font-bold hover:text-[#0063FD] hover:bg-[#EFF6FF] transition-colors"
+            >
+              <Wrench className="h-4 w-4 text-[#0063FD]" />
+              <span>Xây Dựng Cấu Hình PC</span>
+            </Link>
+            <span className="text-[#E2E8F0] hidden sm:inline">•</span>
+            <Link
+              href="/bao-hanh"
+              className="flex items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-lg text-[#0F172A] font-bold hover:text-[#0063FD] hover:bg-[#EFF6FF] transition-colors"
+            >
+              <ShieldCheck className="h-4 w-4 text-[#16A34A]" />
+              <span>Tra Cứu Bảo Hành</span>
+            </Link>
+            <span className="text-[#E2E8F0] hidden md:inline">•</span>
+            <Link
+              href="/blog"
+              className="hidden md:flex items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-lg text-[#0F172A] font-bold hover:text-[#0063FD] hover:bg-[#EFF6FF] transition-colors"
+            >
+              <BookOpen className="h-4 w-4 text-[#8B5CF6]" />
+              <span>Tin Tức & Review</span>
+            </Link>
+            <span className="text-[#E2E8F0] hidden lg:inline">•</span>
+            <Link
+              href="/lien-he"
+              className="hidden lg:flex items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-lg text-[#0F172A] font-bold hover:text-[#0063FD] hover:bg-[#EFF6FF] transition-colors"
+            >
+              <Truck className="h-4 w-4 text-[#0063FD]" />
+              <span>Giao Hàng 63 Tỉnh Thành</span>
+            </Link>
+            <span className="text-[#E2E8F0] hidden xl:inline">•</span>
+            <Link
+              href="/lien-he"
+              className="hidden xl:flex items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-lg text-[#0F172A] font-bold hover:text-[#0063FD] hover:bg-[#EFF6FF] transition-colors"
+            >
+              <Phone className="h-4 w-4 text-[#0D9488]" />
+              <span>Hỗ Trợ Kỹ Thuật 24/7</span>
+            </Link>
           </div>
         </div>
       </section>
