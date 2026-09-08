@@ -27,13 +27,8 @@ export async function requireAdmin(req: NextRequest): Promise<RequireAdminResult
   const userToken = req.cookies.get(AUTH_COOKIE_NAME)?.value;
   if (userToken) {
     const res = await verifyJWT(userToken);
-    if (
-      res.valid &&
-      res.payload &&
-      (res.payload.role === "admin" ||
-        (process.env.QMD_ADMIN_USER && res.payload.email === process.env.QMD_ADMIN_USER))
-    ) {
-      return { authorized: true, user: (res.payload.user || res.payload.email) as string };
+    if (res.valid && res.payload && res.payload.role === "admin") {
+      return { authorized: true, user: (res.payload.user || res.payload.email || "admin") as string };
     }
   }
 
