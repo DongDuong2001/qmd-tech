@@ -136,6 +136,24 @@ export class OrderService {
     return null;
   }
 
+  async getOrderByTransactionId(transactionId: string): Promise<Order | null> {
+    try {
+      const db = getServiceSupabase();
+      const { data, error } = await db
+        .from("orders")
+        .select("id, order_code, payment_status")
+        .eq("payment_transaction_id", transactionId)
+        .maybeSingle();
+
+      if (!error && data) {
+        return data as unknown as Order;
+      }
+    } catch {
+      // Fallback
+    }
+    return null;
+  }
+
   async markOrderPaid(orderId: string, transactionId: string, paymentMethod: string): Promise<boolean> {
     try {
       const db = getServiceSupabase();
