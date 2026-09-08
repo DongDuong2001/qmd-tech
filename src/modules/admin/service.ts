@@ -11,6 +11,10 @@ import {
   CreateBlogPostInput,
 } from "@/shared/types";
 import { blogService } from "@/modules/blog/service";
+import {
+  MegaCategoryItem,
+  DEFAULT_MEGA_MENU_CATEGORIES,
+} from "@/components/navigation/megaMenuData";
 
 export interface CreateProductInput {
   name_vi: string;
@@ -760,6 +764,60 @@ export class AdminService {
 
   async deleteBlogPost(id: string): Promise<boolean> {
     return blogService.deletePost(id);
+  }
+
+  // ===================== MEGA MENU CUSTOMIZATION =====================
+  async getMegaMenu(): Promise<MegaCategoryItem[]> {
+    if (typeof window !== "undefined") {
+      try {
+        const res = await fetch("/api/admin/menu");
+        const json = await res.json();
+        if (json.success && Array.isArray(json.categories) && json.categories.length > 0) {
+          return json.categories;
+        }
+      } catch (err) {
+        console.warn("AdminService.getMegaMenu notice:", err);
+      }
+    }
+    return DEFAULT_MEGA_MENU_CATEGORIES;
+  }
+
+  async updateMegaMenu(categories: MegaCategoryItem[]): Promise<MegaCategoryItem[]> {
+    if (typeof window !== "undefined") {
+      const res = await fetch("/api/admin/menu", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ categories }),
+      });
+      const json = await res.json();
+      if (!json.success) {
+        throw new Error(json.error || "Lỗi cập nhật menu.");
+      }
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("qmd:menu_updated"));
+      }
+      return json.categories || categories;
+    }
+    return categories;
+  }
+
+  async resetMegaMenu(): Promise<MegaCategoryItem[]> {
+    if (typeof window !== "undefined") {
+      const res = await fetch("/api/admin/menu", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "reset" }),
+      });
+      const json = await res.json();
+      if (!json.success) {
+        throw new Error(json.error || "Lỗi khôi phục menu mặc định.");
+      }
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("qmd:menu_updated"));
+      }
+      return json.categories || DEFAULT_MEGA_MENU_CATEGORIES;
+    }
+    return DEFAULT_MEGA_MENU_CATEGORIES;
   }
 }
 
