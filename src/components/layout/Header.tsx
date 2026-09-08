@@ -55,7 +55,7 @@ export function Header() {
             <span className="flex items-center gap-1.5 truncate text-[11px] sm:text-xs text-[#334155]">
               <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 shrink-0 rounded-full bg-[#16A34A] animate-pulse" />
               <span className="truncate">
-                <strong className="text-[#0F172A]">Bán Hàng & Ráp PC Online Toàn Quốc</strong> • Giao tận nơi 34 tỉnh thành
+                <strong className="text-[#0F172A]">Giao hỏa tốc tại Hà Nội</strong> • Toàn quốc 34 tỉnh thành từ 1 - 3 ngày
               </span>
             </span>
             <span className="hidden md:inline-block text-[#CBD5E1]">|</span>
@@ -115,16 +115,11 @@ export function Header() {
                 className="object-cover"
               />
             </div>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-1">
-                <span className="text-lg sm:text-2xl font-black tracking-wider text-[#0F172A]">
-                  QMD<span className="text-[#0063FD]">-TECH</span>
-                </span>
-                <span className="rounded bg-[#0F172A] px-1 py-0.2 text-[8px] sm:text-[9px] font-black text-white uppercase tracking-wider">
-                  GAMING
-                </span>
-              </div>
-              <span className="hidden xs:block text-[9px] sm:text-[10px] font-extrabold tracking-widest text-[#0063FD] uppercase">
+            <div className="flex flex-col justify-center">
+              <span className="text-lg sm:text-2xl font-black tracking-wider text-[#0F172A] leading-none">
+                QMD<span className="text-[#0063FD]">-TECH</span>
+              </span>
+              <span className="hidden xs:block text-[9px] sm:text-[10px] font-bold tracking-widest text-[#0063FD] uppercase mt-1">
                 PC & Hardware Systems
               </span>
             </div>
