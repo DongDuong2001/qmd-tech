@@ -24,11 +24,11 @@ export function sanitizeSlug(rawSlug?: string, fallbackTitle?: string): string {
     } catch {
       // If URL parsing fails, strip protocol and domain
       text = text.replace(/^https?:\/\/[^/]+/i, "").replace(/^\//, "");
+      text = text.split("?")[0].split("#")[0];
     }
+  } else if (text.includes("?")) {
+    text = text.split("?")[0];
   }
-
-  // Remove query string and hash
-  text = text.split("?")[0].split("#")[0];
 
   // Vietnamese diacritic transliteration
   const normalized = text
