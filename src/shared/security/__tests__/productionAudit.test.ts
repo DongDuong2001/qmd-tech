@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { NextRequest } from "next/server";
 import { verifyAdminToken, createAdminToken } from "@/shared/security/jwt";
 import { compatibilityEngine } from "@/modules/builder/compatibilityEngine";
 import { cartService } from "@/modules/cart/service";
@@ -270,6 +271,92 @@ describe("Production Audit & Security Hardening Suite", () => {
       const uuidV4Regex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
       expect(uuidV4Regex.test(build.id)).toBe(true);
       expect(build.id).not.toContain("build-");
+    });
+  });
+
+  describe("Admin Role Authorization Integrity", () => {
+    it("should not grant admin authorization solely based on email matching when role is not admin", async () => {
+      const { requireAdmin } = await import("@/shared/security/adminAuth");
+      const { signJWT } = await import("@/shared/security/jwt");
+      const fakeUserToken = await signJWT({
+        sub: "user-123",
+        email: "admin@qmd.tech",
+        role: "customer",
+      });
+      const req = {
+        cookies: {
+          get: (name: string) => {
+            if (name === "qmd_session_token") return { value: fakeUserToken };
+            return undefined;
+          },
+        },
+      };
+      const res = await requireAdmin(req as unknown as NextRequest);
+      expect(res.authorized).toBe(false);
+    });
+  });
+
+  describe("SePay Strict Header Protocol", () => {
+    it("should reject non-Apikey authorization header formats", () => {
+      (sepayAdapter as unknown as { config: { apiKey: string } }).config.apiKey = "secret123";
+      expect(sepayAdapter.verifyWebhookAuth("Bearer secret123")).toBe(false);
+      expect(sepayAdapter.verifyWebhookAuth("secret123")).toBe(false);
+      expect(sepayAdapter.verifyWebhookAuth("Apikey secret123")).toBe(true);
+    });
+  });
+
+  describe("Rate Limiter IP Extraction Hardening", () => {
+    it("should prioritize trusted cf-connecting-ip and x-real-ip", async () => {
+      const { getClientIp } = await import("@/shared/security/rateLimiter");
+      const reqWithCf = new Request("http://localhost:3000", {
+        headers: {
+          "cf-connecting-ip": "203.0.113.195",
+          "x-forwarded-for": "1.2.3.4, 5.6.7.8",
+        },
+      });
+      expect(getClientIp(reqWithCf)).toBe("203.0.113.195");
+    });
+  });
+
+  describe("Orders PII Masking & Fail-Closed Validation", () => {
+    it("should reject order requests with missing product_id or invalid quantity", async () => {
+      const { POST } = await import("@/app/api/orders/route");
+      const fakeReq = new Request("http://localhost:3000/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customerName: "Test User",
+          customerPhone: "0988889999",
+          shippingAddress: "123 Test Street",
+          items: [{ product_id: "", quantity: 1 }],
+        }),
+      });
+
+      const res = await POST(fakeReq as unknown as NextRequest);
+      expect(res.status).toBe(400);
+      const data = await res.json();
+      expect(data.success).toBe(false);
+      expect(data.error).toContain("không hợp lệ");
+    });
+
+    it("should reject order with negative or float quantity", async () => {
+      const { POST } = await import("@/app/api/orders/route");
+      const fakeReq = new Request("http://localhost:3000/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customerName: "Test User",
+          customerPhone: "0988889999",
+          shippingAddress: "123 Test Street",
+          items: [{ product_id: "prod-1", quantity: -5 }],
+        }),
+      });
+
+      const res = await POST(fakeReq as unknown as NextRequest);
+      expect(res.status).toBe(400);
+      const data = await res.json();
+      expect(data.success).toBe(false);
+      expect(data.error).toContain("Số lượng sản phẩm");
     });
   });
 });
