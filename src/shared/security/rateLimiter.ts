@@ -76,14 +76,32 @@ export function checkRateLimit(
   };
 }
 
+// Validates IPv4, standard IPv6, and localhost
+const IP_REGEX = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$|^([0-9a-fA-F]{1,4}:){1,7}[0-9a-fA-F]{1,4}$|^::1$/;
+
 export function getClientIp(req: Request): string {
+  // 1. Cloudflare CF-Connecting-IP (cannot be spoofed behind Cloudflare)
+  const cfIp = req.headers.get("cf-connecting-ip")?.trim();
+  if (cfIp && IP_REGEX.test(cfIp)) {
+    return cfIp;
+  }
+
+  // 2. Standard reverse proxy header (Vercel, Nginx)
+  const realIp = req.headers.get("x-real-ip")?.trim();
+  if (realIp && IP_REGEX.test(realIp)) {
+    return realIp;
+  }
+
+  // 3. X-Forwarded-For: examine comma-separated list and validate structure
   const forwardedFor = req.headers.get("x-forwarded-for");
   if (forwardedFor) {
-    return forwardedFor.split(",")[0].trim();
+    const candidates = forwardedFor.split(",").map((p) => p.trim());
+    for (const candidate of candidates) {
+      if (IP_REGEX.test(candidate)) {
+        return candidate;
+      }
+    }
   }
-  const realIp = req.headers.get("x-real-ip");
-  if (realIp) {
-    return realIp.trim();
-  }
+
   return "127.0.0.1";
 }
