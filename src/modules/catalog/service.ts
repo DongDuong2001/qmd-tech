@@ -101,10 +101,18 @@ export class CatalogService {
       }
 
       if (filter.search) {
-        const cleanSearch = filter.search.trim().replace(/[,()]/g, " ");
-        query = query.or(
-          `name_vi.ilike.%${cleanSearch}%,name_en.ilike.%${cleanSearch}%,sku.ilike.%${cleanSearch}%,brand.ilike.%${cleanSearch}%,slug.ilike.%${cleanSearch}%`
-        );
+        // Strip PostgREST special syntax characters to avoid query injection and 400 Bad Request
+        const cleanSearch = filter.search
+          .trim()
+          .replace(/[%_(),."':;\\/]/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+
+        if (cleanSearch.length > 0) {
+          query = query.or(
+            `name_vi.ilike.%${cleanSearch}%,name_en.ilike.%${cleanSearch}%,sku.ilike.%${cleanSearch}%,brand.ilike.%${cleanSearch}%,slug.ilike.%${cleanSearch}%`
+          );
+        }
       }
 
       const page = filter.page || 1;
