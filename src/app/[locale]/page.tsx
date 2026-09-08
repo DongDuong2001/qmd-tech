@@ -86,7 +86,7 @@ export default async function HomePage() {
               className="hidden lg:flex items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-lg text-[#0F172A] font-bold hover:text-[#0063FD] hover:bg-[#EFF6FF] transition-colors"
             >
               <Truck className="h-4 w-4 text-[#0063FD]" />
-              <span>Giao Hàng 63 Tỉnh Thành</span>
+              <span>Giao Hàng Toàn Quốc 34 Tỉnh Thành</span>
             </Link>
             <span className="text-[#E2E8F0] hidden xl:inline">•</span>
             <Link
