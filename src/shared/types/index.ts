@@ -282,3 +282,5 @@ export interface SiteSettings {
   free_shipping_threshold_vnd: number;
   updated_at?: string;
 }
+
+export type { CareerJob, CreateCareerInput, UpdateCareerInput } from "@/modules/careers/types";
