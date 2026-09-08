@@ -11,6 +11,7 @@ import {
 import {
   MEGA_MENU_CATEGORIES,
   MegaCategoryItem,
+  resolveMegaCategoryIcon,
 } from "./megaMenuData";
 
 interface CategoryMegaMenuProps {
@@ -22,6 +23,7 @@ export function CategoryMegaMenu({
   className = "",
   buttonVariant = "header",
 }: CategoryMegaMenuProps) {
+  const [categories, setCategories] = useState<MegaCategoryItem[]>(MEGA_MENU_CATEGORIES);
   const [isOpen, setIsOpen] = useState(false);
   const [activeCategoryId, setActiveCategoryId] = useState<string>(
     MEGA_MENU_CATEGORIES[0]?.id || "vga"
@@ -29,8 +31,37 @@ export function CategoryMegaMenu({
   const menuRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  useEffect(() => {
+    let isMounted = true;
+    const loadMenu = () => {
+      fetch("/api/menu")
+        .then((r) => r.json())
+        .then((data) => {
+          if (isMounted && data.success && Array.isArray(data.categories) && data.categories.length > 0) {
+            setCategories(data.categories);
+            if (!data.categories.some((c: MegaCategoryItem) => c.id === activeCategoryId)) {
+              setActiveCategoryId(data.categories[0].id);
+            }
+          }
+        })
+        .catch(() => {
+          // Fallback to default
+        });
+    };
+
+    loadMenu();
+
+    const handleUpdate = () => loadMenu();
+    window.addEventListener("qmd:menu_updated", handleUpdate);
+    return () => {
+      isMounted = false;
+      window.removeEventListener("qmd:menu_updated", handleUpdate);
+    };
+  }, [activeCategoryId]);
+
   const activeCategory: MegaCategoryItem =
-    MEGA_MENU_CATEGORIES.find((c) => c.id === activeCategoryId) ||
+    categories.find((c) => c.id === activeCategoryId) ||
+    categories[0] ||
     MEGA_MENU_CATEGORIES[0];
 
   const handleMouseEnter = () => {
@@ -105,8 +136,8 @@ export function CategoryMegaMenu({
             {/* Left Column: Category List */}
             <div className="w-[260px] xl:w-[280px] shrink-0 border-r border-[#E2E8F0] bg-[#F8FAFC] py-2 overflow-y-auto no-scrollbar flex flex-col justify-between">
               <div className="space-y-0.5 px-2">
-                {MEGA_MENU_CATEGORIES.map((cat) => {
-                  const Icon = cat.icon;
+                {categories.map((cat) => {
+                  const Icon = resolveMegaCategoryIcon(cat.iconName || cat.icon);
                   const isActive = cat.id === activeCategoryId;
                   return (
                     <button
@@ -168,9 +199,12 @@ export function CategoryMegaMenu({
                 <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
                   <div className="flex items-center gap-2.5">
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#EFF6FF] text-[#0063FD]">
-                      {React.createElement(activeCategory.icon, {
-                        className: "h-4 w-4",
-                      })}
+                      {React.createElement(
+                        resolveMegaCategoryIcon(activeCategory.iconName || activeCategory.icon),
+                        {
+                          className: "h-4 w-4",
+                        }
+                      )}
                     </div>
                     <div>
                       <h3 className="text-sm sm:text-base font-black text-[#0F172A] uppercase tracking-wide">
@@ -269,7 +303,33 @@ export function MobileCategoryAccordion({
 }: {
   onSelect?: () => void;
 }) {
+  const [categories, setCategories] = useState<MegaCategoryItem[]>(MEGA_MENU_CATEGORIES);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadMenu = () => {
+      fetch("/api/menu")
+        .then((r) => r.json())
+        .then((data) => {
+          if (isMounted && data.success && Array.isArray(data.categories) && data.categories.length > 0) {
+            setCategories(data.categories);
+          }
+        })
+        .catch(() => {
+          // Fallback to default
+        });
+    };
+
+    loadMenu();
+
+    const handleUpdate = () => loadMenu();
+    window.addEventListener("qmd:menu_updated", handleUpdate);
+    return () => {
+      isMounted = false;
+      window.removeEventListener("qmd:menu_updated", handleUpdate);
+    };
+  }, []);
 
   const toggleCategory = (id: string) => {
     setExpandedId((prev) => (prev === id ? null : id));
@@ -291,8 +351,8 @@ export function MobileCategoryAccordion({
       </div>
 
       <div className="space-y-1 max-h-[340px] overflow-y-auto no-scrollbar">
-        {MEGA_MENU_CATEGORIES.map((cat) => {
-          const Icon = cat.icon;
+        {categories.map((cat) => {
+          const Icon = resolveMegaCategoryIcon(cat.iconName || cat.icon);
           const isExpanded = expandedId === cat.id;
 
           return (
