@@ -6,29 +6,137 @@ import { cartService } from "@/modules/cart/service";
 import { Order, CartItem, Product } from "@/shared/types";
 import { eventBus } from "@/shared/events/eventBus";
 import { AUTH_COOKIE_NAME } from "@/shared/security/cookies";
-import { catalogService } from "@/modules/catalog/service";
+import { checkRateLimit, getClientIp } from "@/shared/security/rateLimiter";
+import { requireAdmin } from "@/shared/security/adminAuth";
+import { verifyJWT } from "@/shared/security/jwt";
+
+function maskName(name?: string | null): string {
+  if (!name) return "***";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) {
+    return parts[0].length <= 2 ? `${parts[0][0]}***` : `${parts[0][0]}***${parts[0].slice(-1)}`;
+  }
+  return `${parts[0]} *** ${parts[parts.length - 1]}`;
+}
+
+function maskEmail(email?: string | null): string {
+  if (!email || !email.includes("@")) return "***@***.***";
+  const [local, domain] = email.split("@");
+  const maskedLocal = local.length <= 2 ? `${local[0]}***` : `${local[0]}***${local.slice(-1)}`;
+  return `${maskedLocal}@${domain}`;
+}
+
+function maskPhone(phone?: string | null): string {
+  if (!phone) return "***";
+  const clean = phone.replace(/\s+/g, "");
+  if (clean.length < 6) return "***";
+  return `${clean.slice(0, 3)}****${clean.slice(-2)}`;
+}
+
+function maskAddress(address?: string | null, city?: string | null): string {
+  if (!address) return city || "***";
+  return `***, ${city || "Việt Nam"}`;
+}
 
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const code = searchParams.get("code");
+    const ip = getClientIp(req);
+    const rl = checkRateLimit(ip, "get_order", 20, 60);
+    if (!rl.success) {
+      return NextResponse.json({ success: false, error: rl.error }, { status: 429 });
+    }
 
-    if (!code) {
-      return NextResponse.json({ success: false, error: "Thiếu mã đơn hàng." }, { status: 400 });
+    const { searchParams } = new URL(req.url);
+    const code = searchParams.get("code")?.trim().toUpperCase();
+
+    if (!code || !/^[A-Z0-9_-]{3,50}$/.test(code)) {
+      return NextResponse.json({ success: false, error: "Mã đơn hàng không hợp lệ." }, { status: 400 });
     }
 
     const db = getServiceSupabase();
     const { data, error } = await db
       .from("orders")
       .select("*, order_items(*, product:products(*))")
-      .eq("order_code", code.trim().toUpperCase())
+      .eq("order_code", code)
       .single();
 
     if (error || !data) {
       return NextResponse.json({ success: false, error: "Không tìm thấy đơn hàng." }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, order: data });
+    // Check if requester is Admin
+    const adminCheck = await requireAdmin(req);
+    const isAdmin = adminCheck.authorized;
+
+    // Check if requester is authenticated Order Owner
+    let isOwner = false;
+    const userToken = req.cookies.get(AUTH_COOKIE_NAME)?.value;
+    if (userToken && data.user_id) {
+      const verified = await verifyJWT(userToken);
+      if (verified.valid && verified.payload?.sub === data.user_id) {
+        isOwner = true;
+      }
+    }
+
+    // Full order details for Admin or Owner
+    if (isAdmin || isOwner) {
+      return NextResponse.json({ success: true, order: data, isRedacted: false });
+    }
+
+    // Redacted public order tracking response for anonymous inquiries (anti-IDOR & PII leak prevention)
+    const redactedOrder = {
+      id: data.id,
+      order_code: data.order_code,
+      status: data.status,
+      payment_status: data.payment_status,
+      payment_method: data.payment_method,
+      shipping_provider: data.shipping_provider,
+      tracking_code: data.tracking_code,
+      total_vnd: data.total_vnd,
+      subtotal_vnd: data.subtotal_vnd,
+      shipping_fee_vnd: data.shipping_fee_vnd,
+      discount_vnd: data.discount_vnd,
+      created_at: data.created_at,
+      customer_name: maskName(data.customer_name),
+      customer_email: maskEmail(data.customer_email),
+      customer_phone: maskPhone(data.customer_phone),
+      shipping_city: data.shipping_city,
+      shipping_district: data.shipping_district,
+      shipping_address: maskAddress(data.shipping_address, data.shipping_city),
+      order_items: Array.isArray(data.order_items)
+        ? data.order_items.map((item: {
+            id: string;
+            product_id: string;
+            quantity: number;
+            unit_price_vnd: number;
+            total_price_vnd: number;
+            product?: {
+              id: string;
+              name_vi: string;
+              name_en: string;
+              slug: string;
+              images: string[];
+            } | null;
+          }) => ({
+            id: item.id,
+            product_id: item.product_id,
+            quantity: item.quantity,
+            unit_price_vnd: item.unit_price_vnd,
+            total_price_vnd: item.total_price_vnd,
+            product: item.product
+              ? {
+                  id: item.product.id,
+                  name_vi: item.product.name_vi,
+                  name_en: item.product.name_en,
+                  slug: item.product.slug,
+                  images: item.product.images,
+                }
+              : null,
+          }))
+        : [],
+    };
+
+    return NextResponse.json({ success: true, order: redactedOrder, isRedacted: true });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Lỗi tìm kiếm đơn hàng.";
     return NextResponse.json({ success: false, error: msg }, { status: 500 });
@@ -92,40 +200,34 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. Fetch products authoritatively from database to verify stock and price
+    // 3. Fetch products authoritatively from database to verify stock and price (Fail Closed)
     const productIds = Array.from(new Set(items.map((i: { product_id: string }) => i.product_id)));
-    let dbProducts: Product[] = [];
     const db = getServiceSupabase();
 
-    try {
-      const { data, error } = await db.from("products").select("*").in("id", productIds);
-      if (!error && data) {
-        dbProducts = data as Product[];
-      }
-    } catch (err) {
-      console.warn("DB product lookup notice:", err);
+    const { data: dbData, error: dbError } = await db
+      .from("products")
+      .select("*")
+      .in("id", productIds)
+      .eq("is_active", true);
+
+    if (dbError) {
+      console.error("Orders API: Database error looking up products:", dbError);
+      return NextResponse.json(
+        { success: false, error: "Hệ thống đang bận, không thể xác thực sản phẩm. Vui lòng thử lại sau." },
+        { status: 503 }
+      );
     }
 
-    // Fallback if DB was unavailable or missing items
-    if (dbProducts.length < productIds.length) {
-      const fallbackProducts = await catalogService.getProductsByIds(productIds);
-      const existingIds = new Set(dbProducts.map((p) => p.id));
-      for (const p of fallbackProducts) {
-        if (!existingIds.has(p.id)) {
-          dbProducts.push(p);
-        }
-      }
-    }
-
+    const dbProducts: Product[] = (dbData as Product[]) || [];
     const productMap = new Map<string, Product>(dbProducts.map((p) => [p.id, p]));
 
-    // 4. Construct verified items with authoritative prices & check stock
+    // 4. Construct verified items strictly with authoritative prices & check stock
     const verifiedItems: CartItem[] = [];
     for (const rawItem of items) {
-      const product = productMap.get(rawItem.product_id) || rawItem.product;
+      const product = productMap.get(rawItem.product_id);
       if (!product) {
         return NextResponse.json(
-          { success: false, error: `Sản phẩm với mã ${rawItem.product_id} không tồn tại hoặc đã ngừng kinh doanh.` },
+          { success: false, error: `Sản phẩm với mã "${rawItem.product_id}" không tồn tại hoặc đã ngừng kinh doanh.` },
           { status: 400 }
         );
       }
@@ -208,7 +310,7 @@ export async function POST(req: NextRequest) {
     if (orderError) {
       console.error("Supabase insert order error:", orderError);
       return NextResponse.json(
-        { success: false, error: "Không thể lưu đơn hàng vào hệ thống: " + orderError.message },
+        { success: false, error: "Không thể lưu đơn hàng vào hệ thống. Vui lòng thử lại sau." },
         { status: 500 }
       );
     }
