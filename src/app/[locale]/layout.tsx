@@ -112,7 +112,7 @@ export default async function LocaleLayout({
 }: LocaleLayoutProps) {
   const { locale } = await params;
 
-  if (!routing.locales.includes(locale as "vi" | "en")) {
+  if (!routing.locales.includes(locale as "vi")) {
     notFound();
   }
 
