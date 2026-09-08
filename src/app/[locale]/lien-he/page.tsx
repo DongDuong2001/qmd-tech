@@ -50,7 +50,7 @@ export default function ContactPage() {
           <div className="rounded-xl border border-[#CBD5E1] bg-[#F8FAFC] p-6 space-y-3 shadow-xs">
             <h3 className="text-base font-bold text-[#0F172A]">Chính Sách Bán Hàng & Giao Nhận Toàn Quốc</h3>
             <p className="text-xs text-[#64748B] leading-relaxed">
-              QMD-Tech áp dụng mô hình phân phối linh kiện và máy tính ráp sẵn trực tuyến. Mọi đơn hàng đều được đóng gói chống sốc 3 lớp, bảo hiểm 100% giá trị hàng hóa và giao tận tay khách hàng trên 34 tỉnh thành qua đối tác vận chuyển hỏa tốc.
+              QMD-Tech áp dụng mô hình phân phối linh kiện và máy tính ráp sẵn trực tuyến. Khu vực nội thành Hà Nội được giao hỏa tốc nhanh nhất có thể; 33 tỉnh thành khác nhận hàng từ 1 đến 3 ngày làm việc. Mọi đơn hàng đều được đóng gói chống sốc 3 lớp, bảo hiểm 100% giá trị hàng hóa và hỗ trợ kiểm tra trước khi nhận.
             </p>
           </div>
         </div>
