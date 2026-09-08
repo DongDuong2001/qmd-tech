@@ -50,6 +50,17 @@ export class PaymentService {
       return { success: true, message: "Bỏ qua giao dịch không phải tiền vào (transferType !== 'in')." };
     }
 
+    // 2b. Verify destination account number if configured
+    const configuredAccount = (process.env.SEPAY_ACCOUNT_NUMBER || "").trim();
+    if (configuredAccount && payload.accountNumber) {
+      if (payload.accountNumber.trim() !== configuredAccount) {
+        return {
+          success: false,
+          message: `Số tài khoản nhận (${payload.accountNumber}) không khớp với tài khoản hệ thống.`,
+        };
+      }
+    }
+
     // 3. Extract order code from content / description
     // Example content: "QMD-M1X8K-5820" or "THANH TOAN DON HANG QMD-M1X8K-5820"
     const textToSearch = `${payload.content || ""} ${payload.description || ""}`.toUpperCase();
@@ -93,6 +104,25 @@ export class PaymentService {
         success: false,
         message: `Đơn hàng ${orderCode} đã bị hủy, không thể tiếp nhận thanh toán tự động.`,
       };
+    }
+
+    // 5b. Prevent cross-order transaction replay attacks
+    try {
+      const existingTx = await orderService.getOrderByTransactionId(String(payload.id));
+      if (existingTx) {
+        if (existingTx.id === order.id) {
+          return {
+            success: true,
+            message: `Giao dịch ${payload.id} đã được xử lý cho đơn hàng ${orderCode} trước đó.`,
+          };
+        }
+        return {
+          success: false,
+          message: `Mã giao dịch ${payload.id} đã được sử dụng cho đơn hàng khác (${existingTx.order_code}). Từ chối xử lý lặp lại.`,
+        };
+      }
+    } catch {
+      // If check fails, markOrderPaid will enforce idempotency
     }
 
     // 6. Mark order as paid
