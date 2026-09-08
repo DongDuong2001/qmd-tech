@@ -109,22 +109,19 @@ export function CategoryMegaMenu({
                   const Icon = cat.icon;
                   const isActive = cat.id === activeCategoryId;
                   return (
-                    <div
+                    <button
+                      type="button"
                       key={cat.id}
                       onMouseEnter={() => setActiveCategoryId(cat.id)}
                       onClick={() => setActiveCategoryId(cat.id)}
                       onFocus={() => setActiveCategoryId(cat.id)}
-                      className={`group flex items-center justify-between rounded-xl px-3 py-2.2 text-xs font-semibold cursor-pointer transition-all ${
+                      className={`w-full group flex items-center justify-between rounded-xl px-3 py-2.2 text-xs font-semibold cursor-pointer transition-all text-left ${
                         isActive
                           ? "bg-white text-[#0063FD] font-bold shadow-xs border-l-3 border-[#0063FD]"
                           : "text-[#334155] hover:bg-white hover:text-[#0063FD]"
                       }`}
                     >
-                      <Link
-                        href={cat.allUrl}
-                        onClick={() => setIsOpen(false)}
-                        className="flex items-center gap-2.5 flex-1 min-w-0 pr-1"
-                      >
+                      <div className="flex items-center gap-2.5 flex-1 min-w-0 pr-1">
                         <div
                           className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors ${
                             isActive
@@ -135,22 +132,9 @@ export function CategoryMegaMenu({
                           <Icon className="h-3.5 w-3.5" />
                         </div>
                         <span className="truncate">{cat.name}</span>
-                      </Link>
+                      </div>
 
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        {cat.badge && (
-                          <span
-                            className={`rounded px-1.5 py-0.2 text-[8px] font-black uppercase text-white ${
-                              cat.badgeColor === "red"
-                                ? "bg-[#EF4444]"
-                                : cat.badgeColor === "green"
-                                ? "bg-[#10B981]"
-                                : "bg-[#0063FD]"
-                            }`}
-                          >
-                            {cat.badge}
-                          </span>
-                        )}
+                      <div className="flex items-center shrink-0">
                         <ChevronRight
                           className={`h-3 w-3 transition-transform ${
                             isActive
@@ -159,7 +143,7 @@ export function CategoryMegaMenu({
                           }`}
                         />
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -234,11 +218,6 @@ export function CategoryMegaMenu({
                               <span className="group-hover:translate-x-0.5 transition-transform truncate">
                                 {item.name}
                               </span>
-                              {item.badge && (
-                                <span className="rounded bg-[#EFF6FF] border border-[#BFDBFE] px-1 py-0.2 text-[8px] font-black uppercase text-[#1D4ED8]">
-                                  {item.badge}
-                                </span>
-                              )}
                             </Link>
                           </li>
                         ))}
@@ -332,12 +311,7 @@ export function MobileCategoryAccordion({
                   </div>
                   <span>{cat.name}</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  {cat.badge && (
-                    <span className="rounded bg-[#EF4444] px-1 py-0.2 text-[8px] font-black text-white">
-                      {cat.badge}
-                    </span>
-                  )}
+                <div className="flex items-center">
                   <ChevronDown
                     className={`h-3.5 w-3.5 text-[#64748B] transition-transform ${
                       isExpanded ? "rotate-180" : ""
