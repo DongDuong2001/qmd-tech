@@ -67,11 +67,21 @@ import {
   Sliders,
   Globe,
   Store,
+  LayoutGrid,
+  Save,
+  RotateCcw,
 } from "lucide-react";
+import {
+  MegaCategoryItem,
+  MegaSubItem,
+  AVAILABLE_ICON_NAMES,
+  resolveMegaCategoryIcon,
+  DEFAULT_MEGA_MENU_CATEGORIES,
+} from "@/components/navigation/megaMenuData";
 
 export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState<
-    "overview" | "products" | "categories" | "banners" | "deals" | "suppliers" | "blogs" | "orders" | "reviews" | "settings" | "security"
+    "overview" | "products" | "categories" | "menu" | "banners" | "deals" | "suppliers" | "blogs" | "orders" | "reviews" | "settings" | "security"
   >("overview");
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -82,6 +92,25 @@ export default function AdminDashboardPage() {
   const [deals, setDeals] = useState<PrebuiltDeal[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
+
+  // Mega Menu Customization State
+  const [megaMenuCategories, setMegaMenuCategories] = useState<MegaCategoryItem[]>([]);
+  const [activeMenuCatId, setActiveMenuCatId] = useState<string>("vga");
+  const [isSavingMenu, setIsSavingMenu] = useState(false);
+  const [isAddMenuCategoryOpen, setIsAddMenuCategoryOpen] = useState(false);
+  const [newMenuCatForm, setNewMenuCatForm] = useState({
+    name: "",
+    slug: "",
+    iconName: "Layers",
+    allUrl: "/danh-muc",
+  });
+  const [newSubgroupTitle, setNewSubgroupTitle] = useState("");
+  const [addingToSubgroupIdx, setAddingToSubgroupIdx] = useState<number | null>(null);
+  const [newItemForm, setNewItemForm] = useState<MegaSubItem>({
+    name: "",
+    href: "/danh-muc",
+    isHighlight: false,
+  });
 
   // Site Settings State
   const [siteSettings, setSiteSettings] = useState<SiteSettings>({
@@ -309,7 +338,7 @@ export default function AdminDashboardPage() {
   const loadAllData = async () => {
     setIsRefreshing(true);
     try {
-      const [p, c, o, r, b, d, s, bl] = await Promise.all([
+      const [p, c, o, r, b, d, s, bl, m] = await Promise.all([
         adminService.getProducts(),
         adminService.getCategories(),
         adminService.getOrders(),
@@ -318,6 +347,7 @@ export default function AdminDashboardPage() {
         adminService.getPrebuiltDeals(),
         adminService.getSuppliers(),
         adminService.getBlogPosts(),
+        adminService.getMegaMenu(),
       ]);
       setProducts(p);
       setCategories(c);
@@ -327,6 +357,10 @@ export default function AdminDashboardPage() {
       setDeals(d);
       setSuppliers(s);
       setBlogs(bl);
+      setMegaMenuCategories(m);
+      if (m.length > 0) {
+        setActiveMenuCatId((prev) => (m.some((cat) => cat.id === prev) ? prev : m[0].id));
+      }
 
       // Fetch dynamic site settings
       try {
@@ -586,6 +620,239 @@ export default function AdminDashboardPage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       showNotification("error", "Lỗi xóa danh mục: " + msg);
+    }
+  };
+
+  // =========================================================================
+  // MEGA MENU HANDLERS
+  // =========================================================================
+  const activeMenuCategory =
+    megaMenuCategories.find((c) => c.id === activeMenuCatId) || megaMenuCategories[0];
+
+  const handleMoveMenuCategory = (index: number, direction: "up" | "down") => {
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= megaMenuCategories.length) return;
+    const copy = [...megaMenuCategories];
+    const temp = copy[index];
+    copy[index] = copy[targetIndex];
+    copy[targetIndex] = temp;
+    setMegaMenuCategories(copy);
+  };
+
+  const handleDeleteMenuCategory = (catId: string) => {
+    if (!confirm("Bạn có chắc chắn muốn xóa danh mục này khỏi Menu Dropdown?")) return;
+    const filtered = megaMenuCategories.filter((c) => c.id !== catId);
+    setMegaMenuCategories(filtered);
+    if (activeMenuCatId === catId && filtered.length > 0) {
+      setActiveMenuCatId(filtered[0].id);
+    }
+  };
+
+  const handleCreateMenuCategory = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMenuCatForm.name.trim()) {
+      showNotification("error", "Vui lòng nhập tên danh mục hiển thị.");
+      return;
+    }
+    const cleanSlug = (newMenuCatForm.slug || newMenuCatForm.name)
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9-]+/g, "-")
+      .replace(/^-|-$/g, "");
+
+    const newCat: MegaCategoryItem = {
+      id: cleanSlug || `cat-${Date.now()}`,
+      slug: cleanSlug || "danh-muc",
+      name: newMenuCatForm.name.trim(),
+      iconName: newMenuCatForm.iconName || "Layers",
+      allUrl: newMenuCatForm.allUrl.trim() || `/danh-muc/${cleanSlug}`,
+      subGroups: [],
+    };
+
+    const updated = [...megaMenuCategories, newCat];
+    setMegaMenuCategories(updated);
+    setActiveMenuCatId(newCat.id);
+    setIsAddMenuCategoryOpen(false);
+    setNewMenuCatForm({
+      name: "",
+      slug: "",
+      iconName: "Layers",
+      allUrl: "/danh-muc",
+    });
+    showNotification("success", `Đã thêm danh mục "${newCat.name}" vào Menu Dropdown!`);
+  };
+
+  const handleUpdateActiveCategoryField = (
+    field: "name" | "slug" | "iconName" | "allUrl",
+    value: string
+  ) => {
+    if (!activeMenuCategory) return;
+    const updated = megaMenuCategories.map((cat) => {
+      if (cat.id === activeMenuCategory.id) {
+        return { ...cat, [field]: value };
+      }
+      return cat;
+    });
+    setMegaMenuCategories(updated);
+  };
+
+  const handleAddSubgroup = (title: string) => {
+    if (!activeMenuCategory || !title.trim()) return;
+    const updated = megaMenuCategories.map((cat) => {
+      if (cat.id === activeMenuCategory.id) {
+        return {
+          ...cat,
+          subGroups: [...(cat.subGroups || []), { title: title.trim(), items: [] }],
+        };
+      }
+      return cat;
+    });
+    setMegaMenuCategories(updated);
+    showNotification("success", `Đã thêm nhóm "${title.trim()}"!`);
+  };
+
+  const handleDeleteSubgroup = (subgroupIdx: number) => {
+    if (!activeMenuCategory) return;
+    const updated = megaMenuCategories.map((cat) => {
+      if (cat.id === activeMenuCategory.id) {
+        const subGroups = [...cat.subGroups];
+        subGroups.splice(subgroupIdx, 1);
+        return { ...cat, subGroups };
+      }
+      return cat;
+    });
+    setMegaMenuCategories(updated);
+  };
+
+  const handleMoveSubgroup = (subgroupIdx: number, direction: "up" | "down") => {
+    if (!activeMenuCategory) return;
+    const targetIdx = direction === "up" ? subgroupIdx - 1 : subgroupIdx + 1;
+    if (targetIdx < 0 || targetIdx >= activeMenuCategory.subGroups.length) return;
+    const updated = megaMenuCategories.map((cat) => {
+      if (cat.id === activeMenuCategory.id) {
+        const subGroups = [...cat.subGroups];
+        const temp = subGroups[subgroupIdx];
+        subGroups[subgroupIdx] = subGroups[targetIdx];
+        subGroups[targetIdx] = temp;
+        return { ...cat, subGroups };
+      }
+      return cat;
+    });
+    setMegaMenuCategories(updated);
+  };
+
+  const handleUpdateSubgroupTitle = (subgroupIdx: number, title: string) => {
+    if (!activeMenuCategory) return;
+    const updated = megaMenuCategories.map((cat) => {
+      if (cat.id === activeMenuCategory.id) {
+        const subGroups = [...cat.subGroups];
+        subGroups[subgroupIdx] = { ...subGroups[subgroupIdx], title };
+        return { ...cat, subGroups };
+      }
+      return cat;
+    });
+    setMegaMenuCategories(updated);
+  };
+
+  const handleCommitAddItem = (subgroupIdx: number) => {
+    if (!activeMenuCategory || !newItemForm.name.trim()) return;
+    const item: MegaSubItem = {
+      name: newItemForm.name.trim(),
+      href: newItemForm.href.trim() || activeMenuCategory.allUrl || "/danh-muc",
+      isHighlight: Boolean(newItemForm.isHighlight),
+    };
+    const updated = megaMenuCategories.map((cat) => {
+      if (cat.id === activeMenuCategory.id) {
+        const subGroups = [...cat.subGroups];
+        const targetGroup = { ...subGroups[subgroupIdx] };
+        targetGroup.items = [...targetGroup.items, item];
+        subGroups[subgroupIdx] = targetGroup;
+        return { ...cat, subGroups };
+      }
+      return cat;
+    });
+    setMegaMenuCategories(updated);
+    setAddingToSubgroupIdx(null);
+    setNewItemForm({
+      name: "",
+      href: activeMenuCategory.allUrl || "/danh-muc",
+      isHighlight: false,
+    });
+    showNotification("success", `Đã thêm liên kết "${item.name}"!`);
+  };
+
+  const handleUpdateItemField = (
+    subgroupIdx: number,
+    itemIdx: number,
+    field: "name" | "href" | "isHighlight",
+    value: unknown
+  ) => {
+    if (!activeMenuCategory) return;
+    const updated = megaMenuCategories.map((cat) => {
+      if (cat.id === activeMenuCategory.id) {
+        const subGroups = [...cat.subGroups];
+        const group = { ...subGroups[subgroupIdx] };
+        const items = [...group.items];
+        items[itemIdx] = { ...items[itemIdx], [field]: value };
+        group.items = items;
+        subGroups[subgroupIdx] = group;
+        return { ...cat, subGroups };
+      }
+      return cat;
+    });
+    setMegaMenuCategories(updated);
+  };
+
+  const handleDeleteItem = (subgroupIdx: number, itemIdx: number) => {
+    if (!activeMenuCategory) return;
+    const updated = megaMenuCategories.map((cat) => {
+      if (cat.id === activeMenuCategory.id) {
+        const subGroups = [...cat.subGroups];
+        const group = { ...subGroups[subgroupIdx] };
+        const items = [...group.items];
+        items.splice(itemIdx, 1);
+        group.items = items;
+        subGroups[subgroupIdx] = group;
+        return { ...cat, subGroups };
+      }
+      return cat;
+    });
+    setMegaMenuCategories(updated);
+  };
+
+  const handleSaveMenu = async () => {
+    setIsSavingMenu(true);
+    try {
+      await adminService.updateMegaMenu(megaMenuCategories);
+      showNotification("success", "Đã lưu và áp dụng cấu hình Menu Dropdown thành công!");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi lưu menu: " + msg);
+    } finally {
+      setIsSavingMenu(false);
+    }
+  };
+
+  const handleResetMenu = async () => {
+    if (
+      !confirm(
+        "Bạn có chắc chắn muốn khôi phục Menu Dropdown về 12 danh mục mặc định chuẩn của QMD-Tech?"
+      )
+    )
+      return;
+    setIsSavingMenu(true);
+    try {
+      const resetData = await adminService.resetMegaMenu();
+      setMegaMenuCategories(resetData);
+      if (resetData.length > 0) {
+        setActiveMenuCatId(resetData[0].id);
+      }
+      showNotification("success", "Đã khôi phục Menu Dropdown về 12 danh mục mặc định chuẩn!");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi khôi phục menu: " + msg);
+    } finally {
+      setIsSavingMenu(false);
     }
   };
 
@@ -1009,6 +1276,28 @@ export default function AdminDashboardPage() {
               </span>
             </button>
 
+            {/* MEGA MENU DROPDOWN TAB */}
+            <button
+              onClick={() => setActiveTab("menu")}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
+                activeTab === "menu"
+                  ? "bg-[#0063FD] text-white shadow-xs font-black"
+                  : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <LayoutGrid className="h-4 w-4" />
+                <span>Menu Dropdown</span>
+              </div>
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-mono ${
+                activeTab === "menu"
+                  ? "bg-white/20 text-white font-bold"
+                  : "bg-[#EFF6FF] text-[#0063FD] font-black border border-[#BFDBFE]"
+              }`}>
+                {megaMenuCategories.length}
+              </span>
+            </button>
+
             {/* BANNERS TAB */}
             <button
               onClick={() => setActiveTab("banners")}
@@ -1217,6 +1506,7 @@ export default function AdminDashboardPage() {
               {activeTab === "overview" && "Bảng Điều Khiển Tổng Quan"}
               {activeTab === "products" && "Quản Lý Danh Mục Sản Phẩm"}
               {activeTab === "categories" && "Phân Loại Linh Kiện Phần Cứng"}
+              {activeTab === "menu" && "Tùy Chỉnh Menu Dropdown Khách Hàng"}
               {activeTab === "banners" && "Quản Lý Banner & Poster Sự Kiện"}
               {activeTab === "deals" && "Cấu Hình PC Ráp Sẵn & Bố Trí Trang Chủ"}
               {activeTab === "suppliers" && "Danh Sách Nguồn Hàng & Nhà Phân Phối"}
@@ -1279,6 +1569,39 @@ export default function AdminDashboardPage() {
                 >
                   <Plus className="h-4 w-4" />
                   Thêm Danh Mục
+                </Button>
+              </div>
+            )}
+            {activeTab === "menu" && (
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={handleResetMenu}
+                  variant="outline"
+                  size="sm"
+                  className="gap-1 text-xs font-bold text-[#64748B] border-[#CBD5E1] hover:bg-[#F1F5F9]"
+                  title="Khôi phục về 12 danh mục mặc định chuẩn"
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Khôi Phục Gốc</span>
+                </Button>
+                <Button
+                  onClick={() => setIsAddMenuCategoryOpen(true)}
+                  variant="outline"
+                  size="sm"
+                  className="gap-1 text-xs font-bold text-[#0063FD] border-[#BFDBFE] hover:bg-[#EFF6FF]"
+                >
+                  <Plus className="h-3.5 w-3.5 text-[#0063FD]" />
+                  <span className="hidden sm:inline">Thêm Danh Mục</span>
+                </Button>
+                <Button
+                  onClick={handleSaveMenu}
+                  disabled={isSavingMenu}
+                  variant="primary"
+                  size="sm"
+                  className="gap-1.5 text-xs font-black shadow-xs uppercase"
+                >
+                  <Save className="h-4 w-4" />
+                  <span>{isSavingMenu ? "Đang lưu..." : "LƯU MENU"}</span>
                 </Button>
               </div>
             )}
@@ -1653,10 +1976,30 @@ export default function AdminDashboardPage() {
           )}
 
           {/* ========================================================================= */}
-          {/* TAB 3: CATEGORIES MANAGEMENT */}
+          {/* TAB 3: CATEGORIES & COMPONENT TYPES */}
           {/* ========================================================================= */}
           {activeTab === "categories" && (
             <div className="space-y-4">
+              {/* Sub-tab Switcher */}
+              <div className="flex items-center gap-2 border-b border-[#E2E8F0] pb-3">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("categories")}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-black bg-[#0063FD] text-white shadow-xs"
+                >
+                  <Layers className="h-3.5 w-3.5" />
+                  <span>Kho Danh Mục Sản Phẩm ({categories.length})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("menu")}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] transition-colors"
+                >
+                  <LayoutGrid className="h-3.5 w-3.5 text-[#0063FD]" />
+                  <span>Tùy Chỉnh Menu Dropdown ({megaMenuCategories.length})</span>
+                </button>
+              </div>
+
               {/* Top Controls Bar */}
               <div className="rounded-xl border border-[#E2E8F0] bg-white p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="relative flex-1 max-w-sm">
@@ -1791,6 +2134,458 @@ export default function AdminDashboardPage() {
                   })}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* TAB: STOREFRONT MEGA MENU CUSTOMIZATION */}
+          {/* ========================================================================= */}
+          {activeTab === "menu" && (
+            <div className="space-y-6">
+              {/* Sub-tab Switcher */}
+              <div className="flex items-center gap-2 border-b border-[#E2E8F0] pb-3">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("categories")}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] transition-colors"
+                >
+                  <Layers className="h-3.5 w-3.5" />
+                  <span>Kho Danh Mục Sản Phẩm ({categories.length})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("menu")}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-black bg-[#0063FD] text-white shadow-xs"
+                >
+                  <LayoutGrid className="h-3.5 w-3.5" />
+                  <span>Tùy Chỉnh Menu Dropdown ({megaMenuCategories.length})</span>
+                </button>
+              </div>
+
+              {/* Info & Action Banner */}
+              <div className="rounded-xl border border-[#BFDBFE] bg-[#EFF6FF] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                <div className="space-y-1">
+                  <h3 className="text-xs font-black uppercase text-[#1D4ED8] tracking-wider flex items-center gap-1.5">
+                    <LayoutGrid className="h-4 w-4 text-[#0063FD]" />
+                    QUẢN LÝ DỮ LIỆU MENU DROPDOWN (MEGA MENU)
+                  </h3>
+                  <p className="text-xs text-[#1E40AF]">
+                    Tùy chỉnh các danh mục hiển thị trên dropdown header của Web Shop. Bạn có thể sắp xếp thứ tự, đổi biểu tượng, quản lý nhóm con và các đường dẫn linh kiện. Bấm <strong>LƯU MENU</strong> để áp dụng.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button
+                    onClick={handleResetMenu}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs font-bold text-[#64748B] border-[#CBD5E1] bg-white hover:bg-[#F8FAFC]"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                    Khôi Phục Gốc
+                  </Button>
+                  <Button
+                    onClick={handleSaveMenu}
+                    disabled={isSavingMenu}
+                    variant="primary"
+                    size="sm"
+                    className="text-xs font-black shadow-xs uppercase"
+                  >
+                    <Save className="h-4 w-4 mr-1" />
+                    {isSavingMenu ? "Đang lưu..." : "LƯU MENU"}
+                  </Button>
+                </div>
+              </div>
+
+              {/* 2-Column Split Workspace */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                {/* LEFT COLUMN: Danh mục cấp 1 (4 cols) */}
+                <div className="lg:col-span-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black uppercase tracking-wider text-[#64748B]">
+                      Danh mục Menu ({megaMenuCategories.length})
+                    </span>
+                    <Button
+                      onClick={() => setIsAddMenuCategoryOpen(true)}
+                      variant="outline"
+                      size="sm"
+                      className="text-[11px] font-bold text-[#0063FD] border-[#BFDBFE] h-7 px-2"
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      Thêm Mới
+                    </Button>
+                  </div>
+
+                  <div className="rounded-xl border border-[#E2E8F0] bg-white divide-y divide-[#F1F5F9] shadow-xs overflow-hidden max-h-[660px] overflow-y-auto no-scrollbar">
+                    {megaMenuCategories.map((cat, idx) => {
+                      const CatIcon = resolveMegaCategoryIcon(cat.iconName || cat.icon);
+                      const isSelected = cat.id === activeMenuCatId;
+                      return (
+                        <div
+                          key={cat.id || idx}
+                          onClick={() => setActiveMenuCatId(cat.id)}
+                          className={`p-3 flex items-center justify-between gap-2 cursor-pointer transition-all ${
+                            isSelected
+                              ? "bg-[#EFF6FF] border-l-4 border-[#0063FD]"
+                              : "hover:bg-[#F8FAFC]"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                            <div
+                              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                                isSelected
+                                  ? "bg-[#0063FD] text-white"
+                                  : "bg-[#F1F5F9] text-[#64748B]"
+                              }`}
+                            >
+                              <CatIcon className="h-4 w-4" />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="text-xs font-black text-[#0F172A] truncate">
+                                {cat.name}
+                              </div>
+                              <div className="text-[10px] text-[#64748B] truncate font-mono">
+                                /{cat.slug} • {cat.subGroups?.length || 0} nhóm con
+                              </div>
+                            </div>
+                          </div>
+
+                          <div
+                            className="flex items-center gap-1 shrink-0"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              onClick={() => handleMoveMenuCategory(idx, "up")}
+                              disabled={idx === 0}
+                              className="p-1 rounded hover:bg-[#E2E8F0] disabled:opacity-20 text-[#64748B]"
+                              title="Di chuyển lên"
+                            >
+                              <ArrowUp className="h-3 w-3" />
+                            </button>
+                            <button
+                              onClick={() => handleMoveMenuCategory(idx, "down")}
+                              disabled={idx === megaMenuCategories.length - 1}
+                              className="p-1 rounded hover:bg-[#E2E8F0] disabled:opacity-20 text-[#64748B]"
+                              title="Di chuyển xuống"
+                            >
+                              <ArrowDown className="h-3 w-3" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteMenuCategory(cat.id)}
+                              className="p-1 rounded text-[#DC2626] hover:bg-[#FEE2E2]"
+                              title="Xóa danh mục này"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* RIGHT COLUMN: Active Category Editor (8 cols) */}
+                <div className="lg:col-span-8 space-y-5">
+                  {activeMenuCategory ? (
+                    <div className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-xs space-y-5">
+                      {/* Active Header & Top Fields */}
+                      <div className="border-b border-[#E2E8F0] pb-4 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2.5">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#EFF6FF] text-[#0063FD]">
+                              {React.createElement(
+                                resolveMegaCategoryIcon(activeMenuCategory.iconName || activeMenuCategory.icon),
+                                { className: "h-5 w-5" }
+                              )}
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-black text-[#0F172A] uppercase">
+                                Chi Tiết: {activeMenuCategory.name}
+                              </h4>
+                              <span className="text-[11px] font-mono text-[#64748B]">
+                                ID: {activeMenuCategory.id}
+                              </span>
+                            </div>
+                          </div>
+
+                          <Link
+                            href={activeMenuCategory.allUrl || "/danh-muc"}
+                            target="_blank"
+                            className="inline-flex items-center gap-1 text-xs font-bold text-[#0063FD] hover:underline bg-[#EFF6FF] px-2.5 py-1 rounded-lg"
+                          >
+                            <span>Xem trang danh mục</span>
+                            <ExternalLink className="h-3 w-3" />
+                          </Link>
+                        </div>
+
+                        {/* Editable properties of active category */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div>
+                            <label className="text-[11px] font-bold text-[#475569] uppercase block mb-1">
+                              Tên hiển thị *
+                            </label>
+                            <input
+                              type="text"
+                              value={activeMenuCategory.name}
+                              onChange={(e) => handleUpdateActiveCategoryField("name", e.target.value)}
+                              className="w-full text-xs font-semibold px-3 py-2 rounded-lg border border-[#CBD5E1] focus:border-[#0063FD] focus:ring-1 focus:ring-[#0063FD] outline-none"
+                              placeholder="VD: VGA - Card Màn Hình"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[11px] font-bold text-[#475569] uppercase block mb-1">
+                              Biểu tượng (Icon)
+                            </label>
+                            <select
+                              value={activeMenuCategory.iconName || "Layers"}
+                              onChange={(e) => handleUpdateActiveCategoryField("iconName", e.target.value)}
+                              className="w-full text-xs font-semibold px-3 py-2 rounded-lg border border-[#CBD5E1] focus:border-[#0063FD] focus:ring-1 focus:ring-[#0063FD] outline-none bg-white"
+                            >
+                              {AVAILABLE_ICON_NAMES.map((name) => (
+                                <option key={name} value={name}>
+                                  {name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="text-[11px] font-bold text-[#475569] uppercase block mb-1">
+                              Link "Xem tất cả"
+                            </label>
+                            <input
+                              type="text"
+                              value={activeMenuCategory.allUrl}
+                              onChange={(e) => handleUpdateActiveCategoryField("allUrl", e.target.value)}
+                              className="w-full text-xs font-semibold px-3 py-2 rounded-lg border border-[#CBD5E1] focus:border-[#0063FD] focus:ring-1 focus:ring-[#0063FD] outline-none"
+                              placeholder="VD: /danh-muc/vga"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Sub-groups Manager */}
+                      <div className="space-y-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div>
+                            <h5 className="text-xs font-black uppercase tracking-wider text-[#0F172A]">
+                              Nhóm Con (Sub-Groups) & Danh Sách Liên Kết
+                            </h5>
+                            <p className="text-[11px] text-[#64748B]">
+                              Các nhóm con hiển thị theo dạng cột trong bảng dropdown bên phải.
+                            </p>
+                          </div>
+
+                          {/* Add Subgroup input / button */}
+                          <div className="flex items-center gap-1.5">
+                            <input
+                              type="text"
+                              value={newSubgroupTitle}
+                              onChange={(e) => setNewSubgroupTitle(e.target.value)}
+                              placeholder="Tiêu đề nhóm mới..."
+                              className="text-xs px-2.5 py-1.5 rounded-lg border border-[#CBD5E1] outline-none focus:border-[#0063FD] w-40"
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" && newSubgroupTitle.trim()) {
+                                  handleAddSubgroup(newSubgroupTitle.trim());
+                                  setNewSubgroupTitle("");
+                                }
+                              }}
+                            />
+                            <Button
+                              onClick={() => {
+                                if (newSubgroupTitle.trim()) {
+                                  handleAddSubgroup(newSubgroupTitle.trim());
+                                  setNewSubgroupTitle("");
+                                }
+                              }}
+                              variant="outline"
+                              size="sm"
+                              className="text-xs font-bold text-[#0063FD] border-[#BFDBFE] hover:bg-[#EFF6FF] h-8"
+                            >
+                              <Plus className="h-3.5 w-3.5 mr-1" />
+                              Thêm Nhóm
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Sub-groups list */}
+                        {activeMenuCategory.subGroups.length === 0 ? (
+                          <div className="p-8 border border-dashed border-[#CBD5E1] rounded-xl text-center text-xs text-[#64748B] space-y-2">
+                            <p>Chưa có nhóm con nào trong danh mục này.</p>
+                            <p className="text-[11px]">
+                              Nhập tiêu đề ở trên và bấm "Thêm Nhóm" để tạo nhóm đầu tiên.
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            {activeMenuCategory.subGroups.map((group, gIdx) => (
+                              <div
+                                key={gIdx}
+                                className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 space-y-3 shadow-2xs"
+                              >
+                                {/* Subgroup Header */}
+                                <div className="flex items-center justify-between gap-2 border-b border-[#E2E8F0] pb-2">
+                                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                                    <span className="h-2 w-2 rounded-full bg-[#0063FD] shrink-0" />
+                                    <input
+                                      type="text"
+                                      value={group.title}
+                                      onChange={(e) => handleUpdateSubgroupTitle(gIdx, e.target.value)}
+                                      className="text-xs font-black uppercase text-[#0F172A] bg-transparent border-b border-transparent hover:border-[#CBD5E1] focus:border-[#0063FD] focus:bg-white px-1.5 py-0.5 rounded outline-none flex-1 min-w-0"
+                                    />
+                                    <span className="text-[10px] text-[#64748B] font-mono">
+                                      ({group.items.length} link)
+                                    </span>
+                                  </div>
+
+                                  <div className="flex items-center gap-1 shrink-0">
+                                    <button
+                                      onClick={() => handleMoveSubgroup(gIdx, "up")}
+                                      disabled={gIdx === 0}
+                                      className="p-1 rounded hover:bg-[#E2E8F0] disabled:opacity-20 text-[#64748B]"
+                                      title="Di chuyển nhóm lên"
+                                    >
+                                      <ArrowUp className="h-3 w-3" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleMoveSubgroup(gIdx, "down")}
+                                      disabled={gIdx === activeMenuCategory.subGroups.length - 1}
+                                      className="p-1 rounded hover:bg-[#E2E8F0] disabled:opacity-20 text-[#64748B]"
+                                      title="Di chuyển nhóm xuống"
+                                    >
+                                      <ArrowDown className="h-3 w-3" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteSubgroup(gIdx)}
+                                      className="p-1 rounded text-[#DC2626] hover:bg-[#FEE2E2]"
+                                      title="Xóa nhóm này"
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                    </button>
+                                  </div>
+                                </div>
+
+                                {/* Items in this Subgroup */}
+                                <div className="space-y-1.5">
+                                  {group.items.map((item, iIdx) => (
+                                    <div
+                                      key={iIdx}
+                                      className="flex items-center justify-between gap-2 bg-white p-2 rounded-lg border border-[#E2E8F0] text-xs shadow-2xs"
+                                    >
+                                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                                        <input
+                                          type="text"
+                                          value={item.name}
+                                          onChange={(e) => handleUpdateItemField(gIdx, iIdx, "name", e.target.value)}
+                                          className="font-semibold text-[#0F172A] border-b border-transparent hover:border-[#CBD5E1] focus:border-[#0063FD] px-1 py-0.5 rounded outline-none w-1/3 min-w-[110px]"
+                                          placeholder="Tên liên kết"
+                                        />
+                                        <input
+                                          type="text"
+                                          value={item.href}
+                                          onChange={(e) => handleUpdateItemField(gIdx, iIdx, "href", e.target.value)}
+                                          className="font-mono text-[11px] text-[#475569] border-b border-transparent hover:border-[#CBD5E1] focus:border-[#0063FD] px-1 py-0.5 rounded outline-none flex-1 min-w-[140px]"
+                                          placeholder="/danh-muc/..."
+                                        />
+                                        <label className="flex items-center gap-1 text-[11px] font-bold text-[#0063FD] cursor-pointer shrink-0 ml-1 select-none">
+                                          <input
+                                            type="checkbox"
+                                            checked={Boolean(item.isHighlight)}
+                                            onChange={(e) => handleUpdateItemField(gIdx, iIdx, "isHighlight", e.target.checked)}
+                                            className="rounded text-[#0063FD]"
+                                          />
+                                          <span>Nổi bật</span>
+                                        </label>
+                                      </div>
+
+                                      <button
+                                        onClick={() => handleDeleteItem(gIdx, iIdx)}
+                                        className="p-1 rounded text-[#DC2626] hover:bg-[#FEE2E2] shrink-0"
+                                        title="Xóa liên kết này"
+                                      >
+                                        <X className="h-3.5 w-3.5" />
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+
+                                {/* Add Item input form */}
+                                {addingToSubgroupIdx === gIdx ? (
+                                  <div className="p-2.5 rounded-lg border border-[#BFDBFE] bg-[#EFF6FF] space-y-2">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                      <input
+                                        type="text"
+                                        value={newItemForm.name}
+                                        onChange={(e) => setNewItemForm({ ...newItemForm, name: e.target.value })}
+                                        placeholder="Tên mục (VD: RTX 5090)"
+                                        className="text-xs px-2.5 py-1.5 rounded-lg border border-[#CBD5E1] bg-white outline-none focus:border-[#0063FD]"
+                                      />
+                                      <input
+                                        type="text"
+                                        value={newItemForm.href}
+                                        onChange={(e) => setNewItemForm({ ...newItemForm, href: e.target.value })}
+                                        placeholder="URL (VD: /danh-muc/vga?q=5090)"
+                                        className="text-xs px-2.5 py-1.5 rounded-lg border border-[#CBD5E1] bg-white outline-none focus:border-[#0063FD]"
+                                      />
+                                      <div className="flex items-center justify-between">
+                                        <label className="flex items-center gap-1 text-xs font-bold text-[#0063FD] cursor-pointer">
+                                          <input
+                                            type="checkbox"
+                                            checked={Boolean(newItemForm.isHighlight)}
+                                            onChange={(e) => setNewItemForm({ ...newItemForm, isHighlight: e.target.checked })}
+                                          />
+                                          <span>Nổi bật</span>
+                                        </label>
+                                        <div className="flex items-center gap-1">
+                                          <Button
+                                            onClick={() => setAddingToSubgroupIdx(null)}
+                                            variant="outline"
+                                            size="sm"
+                                            className="text-[11px] h-7 px-2"
+                                          >
+                                            Hủy
+                                          </Button>
+                                          <Button
+                                            onClick={() => handleCommitAddItem(gIdx)}
+                                            variant="primary"
+                                            size="sm"
+                                            className="text-[11px] h-7 px-2"
+                                          >
+                                            Thêm
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <button
+                                    onClick={() => {
+                                      setAddingToSubgroupIdx(gIdx);
+                                      setNewItemForm({
+                                        name: "",
+                                        href: activeMenuCategory.allUrl || "/danh-muc",
+                                        isHighlight: false,
+                                      });
+                                    }}
+                                    className="w-full py-1.5 rounded-lg border border-dashed border-[#CBD5E1] text-[11px] font-bold text-[#0063FD] hover:bg-white hover:border-[#0063FD] transition-all flex items-center justify-center gap-1"
+                                  >
+                                    <Plus className="h-3 w-3" />
+                                    Thêm liên kết vào nhóm "{group.title}"
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-[#E2E8F0] bg-white p-12 text-center text-xs text-[#64748B]">
+                      Chọn một danh mục ở cột bên trái để chỉnh sửa thông tin và liên kết.
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 
@@ -3354,6 +4149,94 @@ export default function AdminDashboardPage() {
       </Modal>
 
       {/* ========================================================================= */}
+      {/* ADD MEGA MENU CATEGORY MODAL */}
+      {/* ========================================================================= */}
+      <Modal
+        isOpen={isAddMenuCategoryOpen}
+        onClose={() => setIsAddMenuCategoryOpen(false)}
+        title="THÊM MỤC MỚI VÀO MENU DROPDOWN"
+        description="Thêm danh mục cha cấp 1 vào Menu Mega Dropdown của cửa hàng"
+        maxWidth="md"
+      >
+        <form onSubmit={handleCreateMenuCategory} className="space-y-3 text-xs">
+          <div>
+            <label className="block font-bold text-[#1E293B] mb-1">Tên danh mục hiển thị *</label>
+            <input
+              required
+              type="text"
+              placeholder="VD: Gaming Gear, Màn Hình Máy Tính"
+              value={newMenuCatForm.name}
+              onChange={(e) => {
+                const name = e.target.value;
+                const autoSlug = name
+                  .toLowerCase()
+                  .trim()
+                  .replace(/[^a-z0-9-]+/g, "-")
+                  .replace(/^-|-$/g, "");
+                setNewMenuCatForm((prev) => ({
+                  ...prev,
+                  name,
+                  slug: prev.slug || autoSlug,
+                  allUrl: prev.allUrl === "/danh-muc" || !prev.allUrl ? `/danh-muc/${autoSlug}` : prev.allUrl,
+                }));
+              }}
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Mã định danh (Slug ID)</label>
+              <input
+                type="text"
+                placeholder="VD: gear, monitor"
+                value={newMenuCatForm.slug}
+                onChange={(e) => setNewMenuCatForm({ ...newMenuCatForm, slug: e.target.value.toLowerCase().trim() })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
+              />
+            </div>
+            <div>
+              <label className="block font-bold text-[#1E293B] mb-1">Icon hiển thị</label>
+              <select
+                value={newMenuCatForm.iconName}
+                onChange={(e) => setNewMenuCatForm({ ...newMenuCatForm, iconName: e.target.value })}
+                className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
+              >
+                {AVAILABLE_ICON_NAMES.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-bold text-[#1E293B] mb-1">Đường dẫn xem tất cả (All URL)</label>
+            <input
+              type="text"
+              placeholder="VD: /danh-muc/monitor"
+              value={newMenuCatForm.allUrl}
+              onChange={(e) => setNewMenuCatForm({ ...newMenuCatForm, allUrl: e.target.value })}
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
+            />
+          </div>
+
+          <div className="pt-2 flex items-center justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsAddMenuCategoryOpen(false)}
+            >
+              Hủy
+            </Button>
+            <Button type="submit" variant="primary" size="sm" className="font-black uppercase text-xs">
+              Thêm Vào Menu
+            </Button>
+          </div>
+        </form>
+      </Modal>
       {/* ADD BANNER MODAL */}
       {/* ========================================================================= */}
       <Modal
