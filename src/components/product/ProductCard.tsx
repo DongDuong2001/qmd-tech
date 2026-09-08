@@ -237,7 +237,7 @@ export function ProductCard({
             <ShieldCheck className="h-3 w-3 text-[#16A34A]" />
             Bảo hành {product.warranty_months} tháng
           </span>
-          <span className="text-[#0F172A] font-semibold">Giao 2h HN/HCM</span>
+          <span className="text-[#0F172A] font-semibold">Hỏa tốc tại HN</span>
         </div>
       </div>
     </div>
