@@ -1,4 +1,4 @@
-﻿-- ========================================================================
+-- ========================================================================
 -- QMD-Tech Database Migration: Career Applications with PDF Resumes
 -- ========================================================================
 
@@ -29,11 +29,13 @@ CREATE INDEX IF NOT EXISTS idx_career_apps_created_at ON career_applications(cre
 ALTER TABLE career_applications ENABLE ROW LEVEL SECURITY;
 
 -- Allow public submission of applications
+DROP POLICY IF EXISTS "Allow public insert on career_applications" ON career_applications;
 CREATE POLICY "Allow public insert on career_applications"
     ON career_applications FOR INSERT
     WITH CHECK (true);
 
 -- Allow service role full administrative access
+DROP POLICY IF EXISTS "Allow service role all on career_applications" ON career_applications;
 CREATE POLICY "Allow service role all on career_applications"
     ON career_applications FOR ALL
     USING (true);
