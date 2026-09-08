@@ -78,6 +78,7 @@ import {
   resolveMegaCategoryIcon,
   DEFAULT_MEGA_MENU_CATEGORIES,
 } from "@/components/navigation/megaMenuData";
+import { sanitizeSlug } from "@/modules/blog/service";
 
 export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState<
@@ -1057,7 +1058,8 @@ export default function AdminDashboardPage() {
   const handleCreateBlogPost = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await adminService.createBlogPost(blogForm);
+      const cleanSlug = sanitizeSlug(blogForm.slug, blogForm.title_vi);
+      await adminService.createBlogPost({ ...blogForm, slug: cleanSlug });
       showNotification("success", "Đã xuất bản bài viết công nghệ mới!");
       setIsAddBlogOpen(false);
       setBlogForm({
@@ -1086,7 +1088,8 @@ export default function AdminDashboardPage() {
     e.preventDefault();
     if (!editingBlogId) return;
     try {
-      await adminService.updateBlogPost(editingBlogId, editBlogForm);
+      const cleanSlug = sanitizeSlug(editBlogForm.slug, editBlogForm.title_vi);
+      await adminService.updateBlogPost(editingBlogId, { ...editBlogForm, slug: cleanSlug });
       showNotification("success", "Đã lưu thay đổi bài viết thành công!");
       setIsEditBlogOpen(false);
       setEditingBlogId(null);
@@ -4657,14 +4660,7 @@ export default function AdminDashboardPage() {
               value={blogForm.title_vi}
               onChange={(e) => {
                 const title = e.target.value;
-                const autoSlug = title
-                  .toLowerCase()
-                  .normalize("NFD")
-                  .replace(/[\u0300-\u036f]/g, "")
-                  .replace(/[đĐ]/g, "d")
-                  .replace(/[^a-z0-9\s-]/g, "")
-                  .trim()
-                  .replace(/\s+/g, "-");
+                const autoSlug = sanitizeSlug(title);
                 setBlogForm({ ...blogForm, title_vi: title, slug: blogForm.slug || autoSlug });
               }}
               className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none text-sm font-bold shadow-2xs"
@@ -4679,9 +4675,12 @@ export default function AdminDashboardPage() {
                 type="text"
                 placeholder="huong-dan-chon-nguon-psu"
                 value={blogForm.slug}
-                onChange={(e) => setBlogForm({ ...blogForm, slug: e.target.value.toLowerCase().trim() })}
+                onChange={(e) => setBlogForm({ ...blogForm, slug: sanitizeSlug(e.target.value) })}
                 className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
               />
+              <span className="text-[10px] text-[#64748B] mt-1 block">
+                Tự động chuẩn hóa khi dán link ngoài hoặc nhập văn bản.
+              </span>
             </div>
             <div>
               <label className="block font-bold text-[#1E293B] mb-1">Chuyên mục bài viết *</label>
@@ -4800,9 +4799,12 @@ export default function AdminDashboardPage() {
                 required
                 type="text"
                 value={editBlogForm.slug}
-                onChange={(e) => setEditBlogForm({ ...editBlogForm, slug: e.target.value.toLowerCase().trim() })}
+                onChange={(e) => setEditBlogForm({ ...editBlogForm, slug: sanitizeSlug(e.target.value) })}
                 className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none font-mono shadow-2xs"
               />
+              <span className="text-[10px] text-[#64748B] mt-1 block">
+                Tự động chuẩn hóa khi dán link ngoài hoặc nhập văn bản.
+              </span>
             </div>
             <div>
               <label className="block font-bold text-[#1E293B] mb-1">Chuyên mục bài viết *</label>
