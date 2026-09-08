@@ -30,11 +30,13 @@ CREATE INDEX IF NOT EXISTS idx_careers_created_at ON careers(created_at DESC);
 ALTER TABLE careers ENABLE ROW LEVEL SECURITY;
 
 -- Public read access for active job openings
+DROP POLICY IF EXISTS "Allow public read on active careers" ON careers;
 CREATE POLICY "Allow public read on active careers"
     ON careers FOR SELECT
     USING (is_active = true);
 
 -- Service role full access for admin backend
+DROP POLICY IF EXISTS "Allow all on careers for service role" ON careers;
 CREATE POLICY "Allow all on careers for service role"
     ON careers FOR ALL
     USING (true);
