@@ -1,5 +1,13 @@
 import { supabase, getServiceSupabase } from "@/shared/db/supabase";
-import { CareerJob, CreateCareerInput, UpdateCareerInput } from "./types";
+import {
+  CareerJob,
+  CreateCareerInput,
+  UpdateCareerInput,
+  CareerApplication,
+  SubmitApplicationInput,
+  UpdateApplicationStatusInput,
+  ApplicationStatus,
+} from "./types";
 
 export function sanitizeCareerSlug(rawSlug?: string, fallbackTitle?: string): string {
   let text = (rawSlug || "").trim();
@@ -45,6 +53,58 @@ async function withTimeout<T>(promise: PromiseLike<T>, ms = 1200): Promise<T> {
   });
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
+
+export function isPdfBuffer(buffer: Uint8Array | Buffer): boolean {
+  if (!buffer || buffer.length < 4) return false;
+  return buffer[0] === 0x25 && buffer[1] === 0x50 && buffer[2] === 0x44 && buffer[3] === 0x46;
+}
+
+export function isPdfDataUri(uri: string): boolean {
+  if (!uri || typeof uri !== "string") return false;
+  if (!uri.startsWith("data:application/pdf;base64,")) return false;
+  const base64Data = uri.slice("data:application/pdf;base64,".length);
+  return base64Data.startsWith("JVBERi");
+}
+
+export const SAMPLE_PDF_BASE64 =
+  "data:application/pdf;base64,JVBERi0xLjQKJeLjz9MKMSAwIG9iago8PAovVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9LaWRzIFszIDAgUl0KL0NvdW50IDEKPj4KZW5kb2JqCjMgMCBvYmoKPDwKL1R5cGUgL1BhZ2UKL1BhcmVudCAyIDAgUgovTWVkaWFCb3ggWzAgMCA2MTIgNzkyXQovQ29udGVudHMgNCAwIFIKPj4KZW5kb2JqCjQgMCBvYmoKPDwKL0xlbmd0aCA0NAo+PgpzdHJlYW0KQVQgL0YxIDI0IFRmCjcwIDcwMCBUZAooQ1YgLSBRTUQgVGVjaCBBcHBsaWNhbnQpIFRqCkVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDUKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDE4IDAwMDAwIG4gCjAwMDAwMDAwNzcgMDAwMDAgbiAKMDAwMDAwMDEzNCAwMDAwMCBuIAowMDAwMDAwMjMwIDAwMDAwIG4gCnRyYWlsZXIKPDwKL1NpemUgNQovUm9vdCAxIDAgUgo+PgpzdGFydHhyZWYKMzI2CiUlRU9GCg==";
+
+export const DEFAULT_APPLICATIONS: CareerApplication[] = [
+  {
+    id: "app-demo-01",
+    career_id: "job-tech-01",
+    job_title: "Kỹ Thuật Viên Lắp Ráp & Cài Đặt PC",
+    full_name: "Nguyễn Văn An",
+    email: "an.nguyen@example.com",
+    phone: "0912345678",
+    experience: "2 năm kinh nghiệm",
+    introduction: "Em có 2 năm kinh nghiệm build PC custom và bảo trì hệ thống tại Hà Nội. Rất mong muốn được đồng hành cùng QMD-TECH.",
+    resume_url: SAMPLE_PDF_BASE64,
+    resume_filename: "CV_NguyenVanAn_KyThuatVien.pdf",
+    resume_file_size: 485,
+    status: "pending",
+    notes: "",
+    created_at: "2026-09-08T08:30:00.000Z",
+    updated_at: "2026-09-08T08:30:00.000Z",
+  },
+  {
+    id: "app-demo-02",
+    career_id: "job-sale-02",
+    job_title: "Chuyên Viên Tư Vấn Bán Hàng Showroom & Online",
+    full_name: "Trần Thị Mai",
+    email: "mai.tran@example.com",
+    phone: "0987654321",
+    experience: "1 năm kinh nghiệm bán lẻ IT",
+    introduction: "Đã từng làm tư vấn gear và linh kiện máy tính, am hiểu khách hàng công nghệ.",
+    resume_url: SAMPLE_PDF_BASE64,
+    resume_filename: "CV_TranThiMai_Sales.pdf",
+    resume_file_size: 485,
+    status: "reviewed",
+    notes: "Hồ sơ khá tốt, chuẩn bị liên hệ phỏng vấn vòng 1.",
+    created_at: "2026-09-07T14:15:00.000Z",
+    updated_at: "2026-09-07T16:00:00.000Z",
+  },
+];
 
 export const DEFAULT_CAREERS: CareerJob[] = [
   {
@@ -119,6 +179,7 @@ export const DEFAULT_CAREERS: CareerJob[] = [
 
 export class CareerService {
   private localCareers: CareerJob[] = [...DEFAULT_CAREERS];
+  private localApplications: CareerApplication[] = [...DEFAULT_APPLICATIONS];
 
   async getPublicCareers(): Promise<CareerJob[]> {
     try {
@@ -280,6 +341,234 @@ export class CareerService {
     }
 
     this.localCareers = this.localCareers.filter((j) => j.id !== id);
+    return true;
+  }
+
+  // --- Applications Management ---
+
+  async submitApplication(input: SubmitApplicationInput): Promise<CareerApplication> {
+    const full_name = input.full_name.trim();
+    if (!full_name) {
+      throw new Error("Vui lòng nhập họ và tên ứng viên.");
+    }
+    const email = input.email.trim();
+    if (!email || !email.includes("@")) {
+      throw new Error("Vui lòng nhập địa chỉ email hợp lệ.");
+    }
+    const phone = input.phone.trim();
+    if (!phone) {
+      throw new Error("Vui lòng nhập số điện thoại liên hệ.");
+    }
+    if (!input.resume_url || !input.resume_url.trim()) {
+      throw new Error("Vui lòng đính kèm file CV định dạng PDF.");
+    }
+    if (!isPdfDataUri(input.resume_url) && !input.resume_url.startsWith("http")) {
+      throw new Error("File đính kèm không đúng định dạng PDF hợp lệ.");
+    }
+
+    let job_title = input.job_title?.trim() || "";
+    if (!job_title && input.career_id) {
+      const job = await this.getCareerById(input.career_id);
+      if (job) job_title = job.title;
+    }
+
+    const now = new Date().toISOString();
+    const newApp: CareerApplication = {
+      id: `app-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      career_id: input.career_id || null,
+      job_title: job_title || "Vị trí ứng tuyển",
+      full_name,
+      email,
+      phone,
+      experience: input.experience?.trim() || null,
+      introduction: input.introduction?.trim() || null,
+      resume_url: input.resume_url,
+      resume_filename: input.resume_filename?.trim() || "CV_UngVien.pdf",
+      resume_file_size: input.resume_file_size || 0,
+      status: "pending",
+      notes: null,
+      created_at: now,
+      updated_at: now,
+    };
+
+    try {
+      const client = typeof window === "undefined" ? getServiceSupabase() : supabase;
+      const res = await withTimeout(
+        client
+          .from("career_applications")
+          .insert([newApp])
+          .select()
+          .single()
+      );
+
+      if (!res.error && res.data) {
+        const created = res.data as CareerApplication;
+        this.localApplications.unshift(created);
+        return created;
+      }
+    } catch {
+      // Fallback to local
+    }
+
+    this.localApplications.unshift(newApp);
+    return newApp;
+  }
+
+  async getCareerById(id: string): Promise<CareerJob | null> {
+    try {
+      const res = await withTimeout(
+        supabase
+          .from("careers")
+          .select("*")
+          .eq("id", id)
+          .single()
+      );
+      if (!res.error && res.data) {
+        return res.data as CareerJob;
+      }
+    } catch {
+      // Fallback
+    }
+    return this.localCareers.find((c) => c.id === id) || null;
+  }
+
+  async getApplicationsAdmin(filters?: {
+    status?: ApplicationStatus;
+    career_id?: string;
+    search?: string;
+  }): Promise<CareerApplication[]> {
+    try {
+      const client = typeof window === "undefined" ? getServiceSupabase() : supabase;
+      let query = client
+        .from("career_applications")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (filters?.status) {
+        query = query.eq("status", filters.status);
+      }
+      if (filters?.career_id) {
+        query = query.eq("career_id", filters.career_id);
+      }
+
+      const res = await withTimeout(query);
+      if (!res.error && Array.isArray(res.data) && res.data.length > 0) {
+        let results = res.data as CareerApplication[];
+        if (filters?.search) {
+          const s = filters.search.toLowerCase().trim();
+          results = results.filter(
+            (a) =>
+              a.full_name.toLowerCase().includes(s) ||
+              a.email.toLowerCase().includes(s) ||
+              a.phone.toLowerCase().includes(s) ||
+              a.job_title.toLowerCase().includes(s)
+          );
+        }
+        return results;
+      }
+    } catch {
+      // Fallback to local
+    }
+
+    let list = [...this.localApplications];
+    if (filters?.status) {
+      list = list.filter((a) => a.status === filters.status);
+    }
+    if (filters?.career_id) {
+      list = list.filter((a) => a.career_id === filters.career_id);
+    }
+    if (filters?.search) {
+      const s = filters.search.toLowerCase().trim();
+      list = list.filter(
+        (a) =>
+          a.full_name.toLowerCase().includes(s) ||
+          a.email.toLowerCase().includes(s) ||
+          a.phone.toLowerCase().includes(s) ||
+          a.job_title.toLowerCase().includes(s)
+      );
+    }
+    return list;
+  }
+
+  async getApplicationById(id: string): Promise<CareerApplication | null> {
+    try {
+      const client = typeof window === "undefined" ? getServiceSupabase() : supabase;
+      const res = await withTimeout(
+        client
+          .from("career_applications")
+          .select("*")
+          .eq("id", id)
+          .single()
+      );
+      if (!res.error && res.data) {
+        return res.data as CareerApplication;
+      }
+    } catch {
+      // Fallback
+    }
+    return this.localApplications.find((a) => a.id === id) || null;
+  }
+
+  async updateApplicationStatus(
+    idOrInput: string | (UpdateApplicationStatusInput & { id: string }),
+    maybeInput?: UpdateApplicationStatusInput
+  ): Promise<CareerApplication | null> {
+    const targetId = typeof idOrInput === "string" ? idOrInput : idOrInput.id;
+    const payload: Partial<UpdateApplicationStatusInput> =
+      typeof idOrInput === "string" ? maybeInput || {} : idOrInput;
+
+    const patch: Partial<CareerApplication> = {
+      updated_at: new Date().toISOString(),
+    };
+    if (payload.status) {
+      patch.status = payload.status;
+    }
+    if (typeof payload.notes === "string") {
+      patch.notes = payload.notes;
+    }
+
+    try {
+      const client = typeof window === "undefined" ? getServiceSupabase() : supabase;
+      const res = await withTimeout(
+        client
+          .from("career_applications")
+          .update(patch)
+          .eq("id", targetId)
+          .select()
+          .single()
+      );
+      if (!res.error && res.data) {
+        const updated = res.data as CareerApplication;
+        const idx = this.localApplications.findIndex((a) => a.id === targetId);
+        if (idx !== -1) {
+          this.localApplications[idx] = updated;
+        }
+        return updated;
+      }
+    } catch {
+      // Fallback
+    }
+
+    const idx = this.localApplications.findIndex((a) => a.id === targetId);
+    if (idx !== -1) {
+      this.localApplications[idx] = {
+        ...this.localApplications[idx],
+        ...patch,
+      } as CareerApplication;
+      return this.localApplications[idx];
+    }
+    return null;
+  }
+
+  async deleteApplication(id: string): Promise<boolean> {
+    try {
+      const client = typeof window === "undefined" ? getServiceSupabase() : supabase;
+      await withTimeout(client.from("career_applications").delete().eq("id", id));
+    } catch {
+      // ignore
+    }
+
+    this.localApplications = this.localApplications.filter((a) => a.id !== id);
     return true;
   }
 }
