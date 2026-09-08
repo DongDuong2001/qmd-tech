@@ -1,3 +1,12 @@
+## [1.7.1](https://github.com/DongDuong2001/qmd-tech/compare/v1.7.0...v1.7.1) (2026-09-08)
+
+
+### Bug Fixes
+
+* **db:** make career policies idempotent with drop policy if exists ([1986aa5](https://github.com/DongDuong2001/qmd-tech/commit/1986aa5ec512fa1ee4d8c924764401a32983d1e4))
+* **db:** make mega menu settings policies idempotent with drop policy if exists ([1a5bad6](https://github.com/DongDuong2001/qmd-tech/commit/1a5bad6b736753f5d130e4f5e247614a1a9a9e6b))
+* **db:** strip UTF-8 BOM and make career applications policies idempotent ([b106027](https://github.com/DongDuong2001/qmd-tech/commit/b106027cc83f97a435f7f64edc6d5a2ba6934747))
+
 # [1.7.0](https://github.com/DongDuong2001/qmd-tech/compare/v1.6.0...v1.7.0) (2026-09-08)
 
 
