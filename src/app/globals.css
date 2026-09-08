@@ -20,6 +20,19 @@
     --price: #0063fd;
   }
 
+  body {
+    background-color: #f4f6f8;
+    color: #0f172a;
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    color: inherit;
+  }
+
   input, select, textarea {
     background-color: #ffffff;
     color: #0f172a;
@@ -46,19 +59,6 @@
   --font-heading: var(--font-be-vietnam-pro), var(--font-inter), system-ui, sans-serif;
   --font-body: var(--font-inter), var(--font-be-vietnam-pro), system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), monospace;
-}
-
-body {
-  background-color: #f4f6f8;
-  color: #0f172a;
-  font-family: var(--font-body);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading);
-  color: #0f172a;
 }
 
 .font-mono {
