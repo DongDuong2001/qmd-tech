@@ -40,7 +40,8 @@ export async function generateMetadata({
   params,
 }: BlogPostPageProps): Promise<Metadata> {
   const { slug, locale } = await params;
-  const post = await blogService.getPostBySlug(slug);
+  const decodedSlug = decodeURIComponent(slug || "");
+  const post = await blogService.getPostBySlug(decodedSlug);
 
   if (!post || !post.is_published) {
     return {
@@ -101,7 +102,8 @@ export default async function BlogPostDetailPage({
   params,
 }: BlogPostPageProps) {
   const { slug, locale } = await params;
-  const post = await blogService.getPostBySlug(slug);
+  const decodedSlug = decodeURIComponent(slug || "");
+  const post = await blogService.getPostBySlug(decodedSlug);
 
   if (!post || !post.is_published) {
     notFound();
@@ -212,17 +214,28 @@ export default async function BlogPostDetailPage({
         </div>
       </header>
 
-      {/* 3. Cover Image */}
+      {/* 3. Cover Image (Ambient Backdrop with Unclipped Foreground) */}
       {post.cover_image && (
-        <div className="relative w-full h-72 sm:h-96 lg:h-[480px] rounded-2xl overflow-hidden border border-[#E2E8F0] bg-[#0F172A] shadow-xs">
+        <div className="relative w-full aspect-[16/9] sm:aspect-[21/9] lg:aspect-[16/8] max-h-[520px] rounded-2xl overflow-hidden border border-[#E2E8F0] bg-[#0F172A] shadow-xs flex items-center justify-center">
+          {/* Ambient blurred backdrop to fill aspect ratio without empty black bars */}
           <Image
             src={post.cover_image}
-            alt={post.title_vi}
+            alt=""
             fill
-            priority
-            sizes="(max-width: 1280px) 100vw, 1200px"
-            className="object-cover"
+            className="object-cover blur-2xl opacity-45 scale-110 pointer-events-none select-none"
+            aria-hidden="true"
           />
+          {/* Unclipped foreground image preserving 100% of banner graphic, text and logos */}
+          <div className="relative z-10 w-full h-full p-2 sm:p-4 flex items-center justify-center">
+            <Image
+              src={post.cover_image}
+              alt={post.title_vi}
+              fill
+              priority
+              sizes="(max-width: 1280px) 100vw, 1200px"
+              className="object-contain drop-shadow-md"
+            />
+          </div>
         </div>
       )}
 
@@ -239,7 +252,7 @@ export default async function BlogPostDetailPage({
               prose-p:text-[#334155] prose-p:leading-relaxed prose-p:my-3
               prose-a:text-[#0063FD] prose-a:font-bold hover:prose-a:underline
               prose-strong:text-[#0F172A] prose-strong:font-bold
-              prose-img:rounded-xl prose-img:border prose-img:border-[#E2E8F0] prose-img:shadow-sm prose-img:my-6
+              prose-img:rounded-xl prose-img:border prose-img:border-[#E2E8F0] prose-img:shadow-sm prose-img:my-6 prose-img:max-h-[560px] prose-img:object-contain prose-img:w-auto prose-img:mx-auto
               prose-blockquote:border-l-4 prose-blockquote:border-[#0063FD] prose-blockquote:bg-[#EFF6FF]/60 prose-blockquote:py-2.5 prose-blockquote:px-5 prose-blockquote:rounded-r-xl prose-blockquote:my-4 prose-blockquote:italic
               prose-pre:bg-[#0F172A] prose-pre:text-[#38BDF8] prose-pre:rounded-xl prose-pre:p-4
               prose-ul:list-disc prose-ul:pl-5 prose-ul:my-3
