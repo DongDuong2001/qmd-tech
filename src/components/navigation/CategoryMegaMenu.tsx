@@ -129,13 +129,13 @@ export function CategoryMegaMenu({
       {/* Mega Dropdown Panel */}
       {isOpen && (
         <div
-          className="absolute left-0 top-full mt-2 w-[920px] lg:w-[980px] xl:w-[1040px] max-w-[95vw] rounded-2xl border border-[#E2E8F0] bg-white shadow-2xl ring-1 ring-black/5 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150"
-          style={{ maxHeight: "580px" }}
+          className="absolute left-0 top-full mt-2 w-[1080px] lg:w-[1180px] xl:w-[1260px] 2xl:w-[1300px] max-w-[96vw] rounded-2xl border border-[#E2E8F0] bg-white shadow-2xl ring-1 ring-black/5 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+          style={{ maxHeight: "600px" }}
         >
-          <div className="flex h-[560px]">
+          <div className="flex h-[580px]">
             {/* Left Column: Category List */}
-            <div className="w-[260px] xl:w-[280px] shrink-0 border-r border-[#E2E8F0] bg-[#F8FAFC] py-2 overflow-y-auto no-scrollbar flex flex-col justify-between">
-              <div className="space-y-0.5 px-2">
+            <div className="w-[240px] xl:w-[260px] shrink-0 border-r border-[#E2E8F0] bg-[#F8FAFC] py-2.5 overflow-y-auto no-scrollbar flex flex-col justify-between">
+              <div className="space-y-1 px-2.5">
                 {categories.map((cat) => {
                   const Icon = resolveMegaCategoryIcon(cat.iconName || cat.icon);
                   const isActive = cat.id === activeCategoryId;
@@ -146,7 +146,7 @@ export function CategoryMegaMenu({
                       onMouseEnter={() => setActiveCategoryId(cat.id)}
                       onClick={() => setActiveCategoryId(cat.id)}
                       onFocus={() => setActiveCategoryId(cat.id)}
-                      className={`w-full group flex items-center justify-between rounded-xl px-3 py-2.2 text-xs font-semibold cursor-pointer transition-all text-left ${
+                      className={`w-full group flex items-center justify-between rounded-xl px-3 py-2.5 text-xs font-semibold cursor-pointer transition-all text-left ${
                         isActive
                           ? "bg-white text-[#0063FD] font-bold shadow-xs border-l-3 border-[#0063FD]"
                           : "text-[#334155] hover:bg-white hover:text-[#0063FD]"
@@ -180,7 +180,7 @@ export function CategoryMegaMenu({
               </div>
 
               {/* Bottom Quick Link to All Categories */}
-              <div className="px-3 pt-2 mt-1 border-t border-[#E2E8F0]">
+              <div className="px-3 pt-2.5 mt-1 border-t border-[#E2E8F0]">
                 <Link
                   href="/danh-muc"
                   onClick={() => setIsOpen(false)}
@@ -193,16 +193,16 @@ export function CategoryMegaMenu({
             </div>
 
             {/* Right Column: Detailed Sub-series Grid */}
-            <div className="flex-1 p-6 overflow-y-auto bg-white flex flex-col justify-between">
-              <div className="space-y-5">
+            <div className="flex-1 p-6 xl:p-8 overflow-y-auto bg-white flex flex-col justify-between">
+              <div className="space-y-6">
                 {/* Active Category Header Bar */}
-                <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#EFF6FF] text-[#0063FD]">
+                <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3.5">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#EFF6FF] text-[#0063FD]">
                       {React.createElement(
                         resolveMegaCategoryIcon(activeCategory.iconName || activeCategory.icon),
                         {
-                          className: "h-4 w-4",
+                          className: "h-4.5 w-4.5",
                         }
                       )}
                     </div>
@@ -210,7 +210,7 @@ export function CategoryMegaMenu({
                       <h3 className="text-sm sm:text-base font-black text-[#0F172A] uppercase tracking-wide">
                         {activeCategory.name}
                       </h3>
-                      <p className="text-[10px] text-[#64748B]">
+                      <p className="text-[11px] text-[#64748B]">
                         Linh kiện chính hãng • Bảo hành 1 đổi 1 • Giá tốt nhất
                       </p>
                     </div>
@@ -226,30 +226,30 @@ export function CategoryMegaMenu({
                   </Link>
                 </div>
 
-                {/* Subgroups Grid (3 to 4 Columns) */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+                {/* Subgroups Grid (Spacious 3 to 4 Columns) */}
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-6">
                   {activeCategory.subGroups.map((group, gIdx) => (
-                    <div key={gIdx} className="space-y-2.5">
-                      <div className="flex items-center gap-1.5 border-b border-[#F1F5F9] pb-1.5">
-                        <span className="h-1.5 w-1.5 rounded-full bg-[#0063FD]" />
-                        <h4 className="text-[11px] font-black uppercase text-[#0F172A] tracking-wider truncate">
+                    <div key={gIdx} className="space-y-3 min-w-0">
+                      <div className="flex items-center gap-2 border-b border-[#F1F5F9] pb-2">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#0063FD] shrink-0" />
+                        <h4 className="text-xs font-black uppercase text-[#0F172A] tracking-wider truncate">
                           {group.title}
                         </h4>
                       </div>
 
-                      <ul className="space-y-1.5">
+                      <ul className="space-y-2">
                         {group.items.map((item, iIdx) => (
                           <li key={iIdx}>
                             <Link
                               href={item.href}
                               onClick={() => setIsOpen(false)}
-                              className={`group inline-flex items-center gap-1.5 text-xs transition-colors ${
+                              className={`group inline-flex items-baseline gap-1.5 text-xs transition-colors leading-relaxed ${
                                 item.isHighlight
                                   ? "font-bold text-[#0063FD] hover:text-[#0052D4]"
                                   : "text-[#475569] hover:text-[#0063FD] font-medium"
                               }`}
                             >
-                              <span className="group-hover:translate-x-0.5 transition-transform truncate">
+                              <span className="group-hover:translate-x-0.5 transition-transform">
                                 {item.name}
                               </span>
                             </Link>
