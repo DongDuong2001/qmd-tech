@@ -23,6 +23,10 @@ import {
   Tag,
   BookOpen,
 } from "lucide-react";
+import {
+  CategoryMegaMenu,
+  MobileCategoryAccordion,
+} from "@/components/navigation/CategoryMegaMenu";
 
 export function Header() {
   const pathname = usePathname();
@@ -129,8 +133,13 @@ export function Header() {
             </div>
           </Link>
 
+          {/* Category Mega Dropdown (Desktop - GearVN Style) */}
+          <div className="hidden lg:block shrink-0 ml-1">
+            <CategoryMegaMenu buttonVariant="header" />
+          </div>
+
           {/* Search Bar (Desktop) */}
-          <div className="hidden lg:flex flex-1 max-w-xl mx-4">
+          <div className="hidden lg:flex flex-1 max-w-lg xl:max-w-xl mx-2 xl:mx-4">
             <form onSubmit={handleSearch} className="relative w-full">
               <input
                 type="text"
@@ -242,6 +251,9 @@ export function Header() {
               </Link>
             </div>
           </div>
+
+          {/* Mobile Category Mega Accordion */}
+          <MobileCategoryAccordion onSelect={() => setMobileMenuOpen(false)} />
 
           {/* Core Feature Shortcuts */}
           <div className="grid grid-cols-2 gap-2 text-xs font-bold">
