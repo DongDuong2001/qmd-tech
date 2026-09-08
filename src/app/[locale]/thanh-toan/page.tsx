@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "@/i18n/routing";
 import { useLocale, useTranslations } from "next-intl";
 import { i18nService } from "@/modules/i18n/service";
@@ -8,6 +8,7 @@ import { orderService } from "@/modules/orders/service";
 import { useCart } from "@/shared/context/CartContext";
 import { Button } from "@/components/ui/button";
 import { SePayVietQRModal } from "@/components/checkout/SePayVietQRModal";
+import { Province34, WardItem } from "@/modules/location/service";
 import {
   CheckCircle2,
   ShieldCheck,
@@ -15,6 +16,8 @@ import {
   Banknote,
   Smartphone,
   QrCode,
+  ChevronDown,
+  MapPin,
 } from "lucide-react";
 
 export default function CheckoutPage() {
@@ -27,10 +30,88 @@ export default function CheckoutPage() {
     phone: "0988889999",
     email: "dongduong@example.com",
     address: "Số 18, Đường Cầu Giấy",
-    city: "Hà Nội",
-    district: "Cầu Giấy",
+    city: "Thành phố Hà Nội",
+    district: "Phường Dịch Vọng Hậu",
     notes: "",
   });
+
+  const [provinces, setProvinces] = useState<Province34[]>([]);
+  const [wards, setWards] = useState<WardItem[]>([]);
+  const [selectedProvinceCode, setSelectedProvinceCode] = useState<number | null>(1);
+  const [loadingProvinces, setLoadingProvinces] = useState(true);
+  const [loadingWards, setLoadingWards] = useState(false);
+
+  const loadWardsForProvince = async (provinceCode: number) => {
+    setLoadingWards(true);
+    try {
+      const res = await fetch(`/api/location/wards?province_code=${provinceCode}`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.wards) && data.wards.length > 0) {
+        setWards(data.wards);
+        // Default select first ward or keep match
+        setForm((prev) => {
+          const matched = data.wards.find(
+            (w: WardItem) =>
+              w.name.toLowerCase().includes(prev.district.toLowerCase()) ||
+              prev.district.toLowerCase().includes(w.name.toLowerCase())
+          );
+          return {
+            ...prev,
+            district: matched ? matched.name : data.wards[0].name,
+          };
+        });
+      } else {
+        setWards([]);
+      }
+    } catch (err) {
+      console.warn("Error loading wards:", err);
+      setWards([]);
+    } finally {
+      setLoadingWards(false);
+    }
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+    async function initLocations() {
+      try {
+        const res = await fetch("/api/location/provinces");
+        const data = await res.json();
+        if (isMounted && data.success && Array.isArray(data.provinces)) {
+          setProvinces(data.provinces);
+          const initial = data.provinces.find((p: Province34) => p.code === 1) || data.provinces[0];
+          if (initial) {
+            setSelectedProvinceCode(initial.code);
+            setForm((prev) => ({ ...prev, city: initial.name }));
+            loadWardsForProvince(initial.code);
+          }
+        }
+      } catch (err) {
+        console.warn("Error loading provinces:", err);
+      } finally {
+        if (isMounted) setLoadingProvinces(false);
+      }
+    }
+
+    initLocations();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleProvinceSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const code = Number(e.target.value);
+    setSelectedProvinceCode(code);
+    const selected = provinces.find((p) => p.code === code);
+    if (selected) {
+      setForm((prev) => ({ ...prev, city: selected.name, district: "" }));
+      loadWardsForProvince(code);
+    }
+  };
+
+  const handleWardSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setForm((prev) => ({ ...prev, district: e.target.value }));
+  };
 
   const [paymentMethod, setPaymentMethod] = useState<"sepay" | "cod" | "vnpay" | "momo">("sepay");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -191,27 +272,67 @@ export default function CheckoutPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-[#64748B] mb-1">
-                  {t("checkout.city")} *
+                  Tỉnh / Thành phố (34 Tỉnh Thành) *
                 </label>
-                <input
-                  required
-                  type="text"
-                  value={form.city}
-                  onChange={(e) => setForm({ ...form, city: e.target.value })}
-                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3.5 py-2 text-sm text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
-                />
+                <div className="relative">
+                  <select
+                    required
+                    value={selectedProvinceCode ?? ""}
+                    onChange={handleProvinceSelect}
+                    className="w-full appearance-none rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3.5 py-2.5 pr-8 text-sm text-[#0F172A] font-medium focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
+                  >
+                    {loadingProvinces ? (
+                      <option value="">Đang tải 34 tỉnh thành...</option>
+                    ) : (
+                      provinces.map((p) => (
+                        <option key={p.code} value={p.code}>
+                          {p.name}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-3 h-4 w-4 text-[#64748B] pointer-events-none" />
+                </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#64748B] mb-1">
-                  {t("checkout.district")}
+                <label className="block text-xs font-semibold text-[#64748B] mb-1 flex items-center justify-between">
+                  <span>Phường / Xã *</span>
+                  <span className="text-[10px] text-[#0063FD] font-normal">Mô hình 2 cấp</span>
                 </label>
-                <input
-                  type="text"
-                  value={form.district}
-                  onChange={(e) => setForm({ ...form, district: e.target.value })}
-                  className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3.5 py-2 text-sm text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
-                />
+                <div className="relative">
+                  {wards.length > 0 ? (
+                    <>
+                      <select
+                        required
+                        value={form.district}
+                        onChange={handleWardSelect}
+                        disabled={loadingWards}
+                        className="w-full appearance-none rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3.5 py-2.5 pr-8 text-sm text-[#0F172A] font-medium focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs disabled:opacity-60"
+                      >
+                        {loadingWards ? (
+                          <option value="">Đang tải phường/xã...</option>
+                        ) : (
+                          wards.map((w) => (
+                            <option key={w.code} value={w.name}>
+                              {w.name}
+                            </option>
+                          ))
+                        )}
+                      </select>
+                      <ChevronDown className="absolute right-3 top-3 h-4 w-4 text-[#64748B] pointer-events-none" />
+                    </>
+                  ) : (
+                    <input
+                      required
+                      type="text"
+                      placeholder="Nhập tên Phường / Xã"
+                      value={form.district}
+                      onChange={(e) => setForm({ ...form, district: e.target.value })}
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3.5 py-2 text-sm text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
+                    />
+                  )}
+                </div>
               </div>
             </div>
 
