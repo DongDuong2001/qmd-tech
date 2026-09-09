@@ -464,4 +464,57 @@ describe("Production Audit Phase 2: Stock Decrement & Atomic Order Integrity", (
       expect(flameEffectCard.ctaText).toBe("San ngay");
     });
   });
+
+  describe("Brand Assets & Trademark Compliance Integrity", () => {
+    it("should verify brands.json contains exactly 25 top hardware manufacturers", async () => {
+      const brandsModule = await import("@/data/brands.json");
+      const brands = brandsModule.default;
+
+      expect(brands).toHaveLength(25);
+    });
+
+    it("should enforce complete metadata fields and valid usage levels for all brands", async () => {
+      const brandsModule = await import("@/data/brands.json");
+      const brands = brandsModule.default;
+      const validUsageLevels = [
+        "partner_approval_required",
+        "reseller_limited_license",
+        "brand_guidelines_compliant",
+      ];
+
+      for (const b of brands) {
+        expect(b.id).toBeDefined();
+        expect(b.name).toBeDefined();
+        expect(b.official_website).toMatch(/^https?:\/\//);
+        expect(b.category).toBeDefined();
+        expect(b.format).toBeDefined();
+        expect(validUsageLevels).toContain(b.usage_level);
+        expect(b.commercial_note).toBeDefined();
+        expect(b.local_asset_path).toMatch(/^\/brands\/.*\.svg$/);
+      }
+    });
+
+    it("should correctly classify high-approval brands vs reseller-licensed brands", async () => {
+      const brandsModule = await import("@/data/brands.json");
+      const brands = brandsModule.default;
+
+      const gigabyte = brands.find((b: { id: string }) => b.id === "gigabyte");
+      const intel = brands.find((b: { id: string }) => b.id === "intel");
+      const nvidia = brands.find((b: { id: string }) => b.id === "nvidia");
+
+      expect(gigabyte?.usage_level).toBe("partner_approval_required");
+      expect(intel?.usage_level).toBe("partner_approval_required");
+      expect(nvidia?.usage_level).toBe("partner_approval_required");
+
+      const amd = brands.find((b: { id: string }) => b.id === "amd");
+      const sapphire = brands.find((b: { id: string }) => b.id === "sapphire");
+      const msi = brands.find((b: { id: string }) => b.id === "msi");
+      const asus = brands.find((b: { id: string }) => b.id === "asus");
+
+      expect(amd?.usage_level).toBe("reseller_limited_license");
+      expect(sapphire?.usage_level).toBe("reseller_limited_license");
+      expect(msi?.usage_level).toBe("reseller_limited_license");
+      expect(asus?.usage_level).toBe("reseller_limited_license");
+    });
+  });
 });
