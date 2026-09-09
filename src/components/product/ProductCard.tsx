@@ -81,7 +81,7 @@ export function ProductCard({
           </span>
 
           <div className="flex items-center gap-1">
-            {discountPercent && discountPercent > 0 && (
+            {discountPercent != null && discountPercent > 0 && (
               <Badge variant="discount" className="text-[10px] bg-[#0063FD] text-white">
                 -{discountPercent}%
               </Badge>
