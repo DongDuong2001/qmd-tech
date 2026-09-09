@@ -14,6 +14,7 @@ import {
   Product,
   Category,
   Order,
+  CartItem,
   Review,
   EventBanner,
   PrebuiltDeal,
@@ -6391,8 +6392,9 @@ export default function AdminDashboardPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#E2E8F0]">
-                    {Array.isArray(selectedOrder.items) && selectedOrder.items.length > 0 ? (
-                      selectedOrder.items.map((it, idx) => (
+                    {Array.isArray(selectedOrder.items || selectedOrder.order_items) &&
+                    (selectedOrder.items || selectedOrder.order_items)!.length > 0 ? (
+                      (selectedOrder.items || selectedOrder.order_items)!.map((it: CartItem, idx: number) => (
                         <tr key={idx} className="hover:bg-[#F8FAFC]">
                           <td className="p-3">
                             <div className="font-bold text-[#0F172A]">
