@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import { useLocale, useTranslations } from "next-intl";
@@ -10,14 +10,20 @@ import { useCart } from "@/shared/context/CartContext";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import {
-  ShoppingCart,
   Check,
   ShieldCheck,
   Gift,
-  Zap,
   Eye,
   Flame,
 } from "lucide-react";
+import {
+  CartIcon,
+  type CartIconHandle,
+  FlameIcon,
+  type FlameIconHandle,
+  ArrowRightIcon,
+  type ArrowRightIconHandle,
+} from "@/components/icons";
 
 interface ProductCardProps {
   product: Product;
@@ -43,6 +49,10 @@ export function ProductCard({
   const { addToCart } = useCart();
   const [isAdded, setIsAdded] = useState(false);
   const hasFlame = isFlashSale || flameEffect;
+
+  const cartIconRef = useRef<CartIconHandle>(null);
+  const flameIconRef = useRef<FlameIconHandle>(null);
+  const arrowIconRef = useRef<ArrowRightIconHandle>(null);
 
   const handleCartClick = async () => {
     if (onAddToCart) {
@@ -247,6 +257,8 @@ export function ProductCard({
               disabled={isOutOfStock}
               variant="outline"
               size="sm"
+              onMouseEnter={() => cartIconRef.current?.startAnimation()}
+              onMouseLeave={() => cartIconRef.current?.stopAnimation()}
               className={`w-full gap-1 text-[11px] font-bold py-1.5 border-[#CBD5E1] transition-all ${
                 isAdded
                   ? "border-[#16A34A] text-[#16A34A] bg-[#DCFCE7]"
@@ -262,16 +274,27 @@ export function ProductCard({
                 </>
               ) : (
                 <>
-                  <ShoppingCart className="h-3 w-3" />
+                  <CartIcon ref={cartIconRef} size={13} className="inline-flex" />
                   Thêm giỏ
                 </>
               )}
             </Button>
-            <Link href={`/san-pham/${product.slug}`} className="w-full">
+            <Link
+              href={`/san-pham/${product.slug}`}
+              className="w-full"
+              onMouseEnter={() => {
+                flameIconRef.current?.startAnimation();
+                arrowIconRef.current?.startAnimation();
+              }}
+              onMouseLeave={() => {
+                flameIconRef.current?.stopAnimation();
+                arrowIconRef.current?.stopAnimation();
+              }}
+            >
               <Button
                 variant="primary"
                 size="sm"
-                className={`w-full text-[11px] font-black py-1.5 ${
+                className={`w-full text-[11px] font-black py-1.5 gap-1 ${
                   hasFlame
                     ? "bg-gradient-to-r from-[#DC2626] to-[#EA580C] hover:from-[#B91C1C] hover:to-[#C2410C] text-white border-0 shadow-xs"
                     : ""
@@ -279,12 +302,12 @@ export function ProductCard({
               >
                 {hasFlame ? (
                   <>
-                    <Flame className="h-3 w-3 fill-current" />
+                    <FlameIcon ref={flameIconRef} size={13} className="inline-flex" />
                     Săn ngay
                   </>
                 ) : (
                   <>
-                    <Zap className="h-3 w-3 fill-current" />
+                    <ArrowRightIcon ref={arrowIconRef} size={13} className="inline-flex" />
                     Mua ngay
                   </>
                 )}
