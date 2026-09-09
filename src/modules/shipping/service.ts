@@ -1,18 +1,36 @@
 import { ShippingFeeCalculationInput, ShippingFeeResult, TrackingInfo } from "./types";
-import { ghnAdapter } from "./adapters/ghn";
-import { ghtkAdapter } from "./adapters/ghtk";
 
 export class ShippingService {
   async getQuotes(input: ShippingFeeCalculationInput): Promise<ShippingFeeResult[]> {
-    const [ghn, ghtk] = await Promise.all([
-      ghnAdapter.calculateFee(input),
-      ghtkAdapter.calculateFee(input),
-    ]);
+    const isHanoi =
+      input.toAddress?.toLowerCase().includes("hà nội") ||
+      input.toAddress?.toLowerCase().includes("ha noi");
 
-    return [ghn, ghtk];
+    const quotes: ShippingFeeResult[] = [];
+
+    if (isHanoi) {
+      quotes.push({
+        provider: "qmd_express",
+        serviceName: "QMD Express — Hỏa Tốc Nội Thành Hà Nội",
+        feeVnd: 0,
+        expectedDeliveryDays: 0,
+      });
+    }
+
+    quotes.push({
+      provider: "standard",
+      serviceName: "Chuyển Phát Toàn Quốc 34 Tỉnh Thành (QMD Điều Phối)",
+      feeVnd: isHanoi ? 30000 : 40000,
+      expectedDeliveryDays: isHanoi ? 1 : 2,
+    });
+
+    return quotes;
   }
 
-  async trackShipment(trackingCode: string, provider: "ghn" | "ghtk"): Promise<TrackingInfo> {
+  async trackShipment(
+    trackingCode: string,
+    provider: "qmd_express" | "standard" | "ghn" | "ghtk"
+  ): Promise<TrackingInfo> {
     return {
       trackingCode,
       provider: provider.toUpperCase(),
@@ -20,8 +38,8 @@ export class ShippingService {
       history: [
         {
           time: new Date().toISOString(),
-          description: "Bưu kiện đã nhập kho trung chuyển",
-          location: "Hub Hà Nội / TP.HCM",
+          description: "Đơn hàng đã được QMD-Tech đóng gói và bàn giao bộ phận điều phối vận chuyển.",
+          location: "Kho QMD-Tech Hà Nội",
         },
       ],
     };
