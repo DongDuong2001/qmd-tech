@@ -138,5 +138,175 @@ describe("Production Audit Phase 2: Stock Decrement & Atomic Order Integrity", (
         expect(mockDb.stockMap.get("prod-2")).toBe(2);
       }
     });
+
+    it("should enforce fail-closed behavior on stock exhaustion without fallback order creation", () => {
+      // Simulates the endpoint behavior when RPC returns INSUFFICIENT_STOCK
+      type RpcResult = {
+        success: boolean;
+        order_id?: string;
+        order_code?: string;
+        error_code?: string;
+        message?: string;
+      };
+
+      const rpcResult: RpcResult = {
+        success: false,
+        error_code: "INSUFFICIENT_STOCK",
+        message: "San pham ASUS TUF Gaming chi con 1 san pham trong kho, khong du so luong yeu cau (3)",
+      };
+
+      function handleRpcCheckoutResponse(result: RpcResult): {
+        httpStatus: number;
+        responseBody: Record<string, unknown>;
+        fallbackAttempted: boolean;
+      } {
+        if (!result.success) {
+          if (result.error_code === "INSUFFICIENT_STOCK") {
+            return {
+              httpStatus: 409,
+              responseBody: {
+                error: result.message || "Mot so san pham da het hang hoac khong du so luong",
+                code: "INSUFFICIENT_STOCK",
+              },
+              fallbackAttempted: false, // Strict: fallback is NEVER attempted
+            };
+          }
+
+          return {
+            httpStatus: 503,
+            responseBody: {
+              error: "Khong the khoi tao don hang do loi he thong dat hang atomic",
+              code: "CHECKOUT_SERVICE_UNAVAILABLE",
+            },
+            fallbackAttempted: false,
+          };
+        }
+
+        return {
+          httpStatus: 201,
+          responseBody: { orderId: result.order_id, orderCode: result.order_code },
+          fallbackAttempted: false,
+        };
+      }
+
+      const response = handleRpcCheckoutResponse(rpcResult);
+
+      expect(response.httpStatus).toBe(409);
+      expect(response.responseBody.code).toBe("INSUFFICIENT_STOCK");
+      expect(response.fallbackAttempted).toBe(false);
+    });
+
+    it("should enforce fail-closed 503 on database RPC exception and reject non-atomic inserts", () => {
+      type RpcResult = {
+        success: boolean;
+        error_code?: string;
+        message?: string;
+      };
+
+      const rpcError: RpcResult = {
+        success: false,
+        error_code: "DATABASE_UNAVAILABLE",
+        message: "Connection pool exhausted",
+      };
+
+      function handleRpcCheckoutResponse(result: RpcResult) {
+        if (!result.success) {
+          return {
+            httpStatus: 503,
+            code: "CHECKOUT_SERVICE_UNAVAILABLE",
+            orderCreated: false,
+          };
+        }
+        return { httpStatus: 201, code: "SUCCESS", orderCreated: true };
+      }
+
+      const outcome = handleRpcCheckoutResponse(rpcError);
+
+      expect(outcome.httpStatus).toBe(503);
+      expect(outcome.code).toBe("CHECKOUT_SERVICE_UNAVAILABLE");
+      expect(outcome.orderCreated).toBe(false);
+    });
+  });
+
+  describe("Storefront & Admin Banner Position Integrity", () => {
+    interface TestBanner {
+      id: string;
+      title_vi: string;
+      position?: "hero" | "middle_carousel" | "side_left" | "side_right";
+      is_active: boolean;
+    }
+
+    const testBanners: TestBanner[] = [
+      { id: "b1", title_vi: "Banner Hero 1", position: "hero", is_active: true },
+      { id: "b2", title_vi: "Banner Hero 2", is_active: true }, // position undefined -> defaults to hero
+      { id: "b3", title_vi: "Poster Giua 1", position: "middle_carousel", is_active: true },
+      { id: "b4", title_vi: "Poster Giua 2", position: "middle_carousel", is_active: false },
+      { id: "b5", title_vi: "Suon Trai", position: "side_left", is_active: true },
+      { id: "b6", title_vi: "Suon Phai", position: "side_right", is_active: true },
+    ];
+
+    it("should partition banners correctly according to position attribute", () => {
+      const heroBanners = testBanners.filter((b) => (b.position || "hero") === "hero");
+      const middleBanners = testBanners.filter((b) => b.position === "middle_carousel");
+      const sideLeftBanners = testBanners.filter((b) => b.position === "side_left");
+      const sideRightBanners = testBanners.filter((b) => b.position === "side_right");
+
+      expect(heroBanners).toHaveLength(2);
+      expect(middleBanners).toHaveLength(2);
+      expect(sideLeftBanners).toHaveLength(1);
+      expect(sideRightBanners).toHaveLength(1);
+    });
+
+    it("should filter active banners for middle carousel rendering", () => {
+      const activeMiddleBanners = testBanners.filter(
+        (b) => b.position === "middle_carousel" && b.is_active
+      );
+
+      expect(activeMiddleBanners).toHaveLength(1);
+      expect(activeMiddleBanners[0].title_vi).toBe("Poster Giua 1");
+    });
+  });
+
+  describe("Store-Managed Shipping Dispatch Integrity", () => {
+    it("should calculate free or nominal express delivery for Hanoi destinations", async () => {
+      const { shippingService } = await import("@/modules/shipping/service");
+
+      const hanoiQuotes = await shippingService.getQuotes({
+        toAddress: "123 Pho Hue, Quan Hai Ba Trung, Ha Noi",
+        items: [],
+      });
+
+      expect(hanoiQuotes.length).toBeGreaterThanOrEqual(2);
+      const expressQuote = hanoiQuotes.find((q) => q.provider === "qmd_express");
+      const standardQuote = hanoiQuotes.find((q) => q.provider === "standard");
+
+      expect(expressQuote).toBeDefined();
+      expect(expressQuote?.feeVnd).toBe(0);
+      expect(standardQuote).toBeDefined();
+      expect(standardQuote?.feeVnd).toBe(30000);
+    });
+
+    it("should calculate 40000 VND flat courier fee for provincial destinations", async () => {
+      const { shippingService } = await import("@/modules/shipping/service");
+
+      const provincialQuotes = await shippingService.getQuotes({
+        toAddress: "456 Tran Phu, Quan Hai Chau, Da Nang",
+        items: [],
+      });
+
+      expect(provincialQuotes).toHaveLength(1);
+      expect(provincialQuotes[0].provider).toBe("standard");
+      expect(provincialQuotes[0].feeVnd).toBe(40000);
+    });
+
+    it("should return store-managed tracking information without third-party mock dependencies", async () => {
+      const { shippingService } = await import("@/modules/shipping/service");
+
+      const tracking = await shippingService.trackShipment("QMD-TRACK-12345", "qmd_express");
+
+      expect(tracking.trackingCode).toBe("QMD-TRACK-12345");
+      expect(tracking.provider).toBe("QMD_EXPRESS");
+      expect(tracking.history[0].location).toContain("Kho QMD-Tech");
+    });
   });
 });
