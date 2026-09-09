@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Be_Vietnam_Pro, Inter, JetBrains_Mono } from "next/font/google";
+import { Be_Vietnam_Pro, Manrope, JetBrains_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -17,10 +17,10 @@ const beVietnamPro = Be_Vietnam_Pro({
   display: "swap",
 });
 
-const inter = Inter({
+const manrope = Manrope({
   subsets: ["vietnamese", "latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-inter",
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-manrope",
   display: "swap",
 });
 
@@ -121,7 +121,7 @@ export default async function LocaleLayout({
   return (
     <html
       lang={locale}
-      className={`${beVietnamPro.variable} ${inter.variable} ${jetbrainsMono.variable}`}
+      className={`${beVietnamPro.variable} ${manrope.variable} ${jetbrainsMono.variable}`}
     >
       <body className="min-h-screen max-w-full overflow-x-hidden bg-[#F8FAFC] text-[#0F172A] antialiased flex flex-col justify-between selection:bg-[#0063FD] selection:text-white">
         <NextIntlClientProvider messages={messages}>
