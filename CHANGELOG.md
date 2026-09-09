@@ -1,3 +1,49 @@
+# [1.9.0](https://github.com/DongDuong2001/qmd-tech/compare/v1.8.0...v1.9.0) (2026-09-09)
+
+
+### Bug Fixes
+
+* **db:** harden create_order_atomic with gen_random_uuid, price canonicalization, and banner position column ([9a9811a](https://github.com/DongDuong2001/qmd-tech/commit/9a9811a47937c9caa7aae71bb16c535b11309d93))
+* **home:** expand touch target size for event poster indicator dots ([424db54](https://github.com/DongDuong2001/qmd-tech/commit/424db548079a86fa69372fd028f0a3e76d92d559))
+* **home:** expand touch target size for hero carousel indicator dots ([bbd57f3](https://github.com/DongDuong2001/qmd-tech/commit/bbd57f34a4439a3081affe764d98742fc8fc09c6))
+* **orders:** enforce fail-closed atomic checkout and remove dangerous non-atomic fallback ([7c9c7a2](https://github.com/DongDuong2001/qmd-tech/commit/7c9c7a2e55c1f43c3d64863a179dd0c73a4317dd))
+* **payments:** remove momo mock credentials and throw configuration error in momo adapter ([962a3dc](https://github.com/DongDuong2001/qmd-tech/commit/962a3dc45cea7558cd295b2da587185ddd9b09eb))
+* **payments:** remove sandbox mock credentials and throw configuration error in vnpay adapter ([31321ae](https://github.com/DongDuong2001/qmd-tech/commit/31321aeb6ffbe45b9e20d94a768e7003538c6f6b))
+* **product:** prevent rendering stray zero when discountPercent is zero ([ba517cc](https://github.com/DongDuong2001/qmd-tech/commit/ba517cc5ade35e773f6fb56d49e49451b56d4b1c))
+
+
+### Features
+
+* **admin:** add flash sale countdown timing controls and quick preset buttons ([1afc26c](https://github.com/DongDuong2001/qmd-tech/commit/1afc26c072cbfe9a731f886f1acae2856c2aa1c7))
+* **admin:** add secure admin banners api route with position support ([4c1cefb](https://github.com/DongDuong2001/qmd-tech/commit/4c1cefb7cf5ec10f94c6467db155a6afd72f359f))
+* **admin:** enhance event banners tab with position filters, zone guide, and position selector ([5f49ef4](https://github.com/DongDuong2001/qmd-tech/commit/5f49ef4c7d182f804790bac1f6e5b82a34b7b0e4))
+* **admin:** route banner operations through admin api and provide default event posters ([d4a4394](https://github.com/DongDuong2001/qmd-tech/commit/d4a43945271b6d0973d05baac2403d838e06b931))
+* **assets:** add vector brand SVG assets for top 25 PC hardware manufacturers ([a18762b](https://github.com/DongDuong2001/qmd-tech/commit/a18762bcc8f998780a5067599017616e2454ccc6))
+* **brands:** add 25 manufacturers brand dataset with compliance and usage levels ([92b39b2](https://github.com/DongDuong2001/qmd-tech/commit/92b39b2d5d04f2b625c79178960449db179a9a5c))
+* **db:** add site_settings schema and flash sale countdown migration ([613a3b9](https://github.com/DongDuong2001/qmd-tech/commit/613a3b9e67adaebb451b0cedb7569c879a5eb7cb))
+* **header:** integrate lucide-animated cart, wrench, and search micro-interactions ([b7e4c9b](https://github.com/DongDuong2001/qmd-tech/commit/b7e4c9bd1c738bf9f98c3117e94c25e525f7947b))
+* **home:** add FlashSaleCountdown component with real-time countdown timer ([cf098ff](https://github.com/DongDuong2001/qmd-tech/commit/cf098ffd32bfbee09cab9595dadb42926b97f55f))
+* **home:** add interactive swipeable EventPosterCarousel component for middle promotions ([bca889e](https://github.com/DongDuong2001/qmd-tech/commit/bca889ef44246259ae0546b7b1686be21852b975))
+* **home:** apply isFlashSale to ProductCard in Giờ Vàng section ([038bd66](https://github.com/DongDuong2001/qmd-tech/commit/038bd6632cac7e0ec3c3ef5c0c6ef6319cf3b587))
+* **home:** filter HeroCarousel to position hero banners ([8fc1e2f](https://github.com/DongDuong2001/qmd-tech/commit/8fc1e2ffd50fc352c3aad64a364c4f77ff05d468))
+* **home:** integrate EventPosterCarousel and DualFlankSideBanners into homepage ([6717569](https://github.com/DongDuong2001/qmd-tech/commit/67175696d89cc3b63bf5972a5ca5732ce535f56e))
+* **home:** integrate FlashSaleCountdown and conceal real inventory stock on deal cards ([8920640](https://github.com/DongDuong2001/qmd-tech/commit/89206406fa50da29cfddfd0bfe4a051c5f3522a2))
+* **icons:** add selective lucide-animated icon components powered by motion ([121bce5](https://github.com/DongDuong2001/qmd-tech/commit/121bce5e6dd67f97514118a6cea4d704e984241b))
+* **product:** add hideStock prop to conceal inventory and show limited deal badge ([80fd4d3](https://github.com/DongDuong2001/qmd-tech/commit/80fd4d32a25bb58a54ea856e4d1d4be02e2522bc))
+* **product:** add isFlashSale flame effect and fix duplicate slashed price contrast ([6d4d72c](https://github.com/DongDuong2001/qmd-tech/commit/6d4d72c3c968bac67cf4c810616d49ef890d5909))
+* **product:** integrate lucide-animated cart, flame, and arrow-right micro-interactions into ProductCard ([6b5d662](https://github.com/DongDuong2001/qmd-tech/commit/6b5d662a6960cc5bd99e19a82f3759530f3bde7c))
+* **security:** add checkRateLimitDistributed supporting Upstash Redis REST with fail-safe fallback ([14b7ce2](https://github.com/DongDuong2001/qmd-tech/commit/14b7ce21e202093cbd6b058ad6a35d4bd4e16c6e))
+* **settings:** configure default flash sale timing and title in settings service ([cea4815](https://github.com/DongDuong2001/qmd-tech/commit/cea48154e99b0693eb21491b4373c26e861c384f))
+* **shipping:** add qmd_express and standard store dispatch providers to types ([8fd0c8a](https://github.com/DongDuong2001/qmd-tech/commit/8fd0c8ad84afc11b2dfe3998e4b73f78ca47c0e3))
+* **shipping:** implement active store-managed dispatch and courier booking service ([edd0563](https://github.com/DongDuong2001/qmd-tech/commit/edd05633dae8f54467fceee8668986a35bf38e26))
+* **styles:** add flame border shimmer and glow animations for flash sale cards ([d234a24](https://github.com/DongDuong2001/qmd-tech/commit/d234a248340924f60589d3e1ab00c146cefc94f5))
+* **types:** add flash_sale configuration fields to SiteSettings ([0be0956](https://github.com/DongDuong2001/qmd-tech/commit/0be09567610641b32abe9cf5a814a1a9acc2ac77))
+* **types:** add HardwareBrand and BrandUsageLevel domain types ([c600658](https://github.com/DongDuong2001/qmd-tech/commit/c60065879db60cf86465bb5fc35cac20729d2b93))
+* **types:** add position field to EventBanner and add store shipping providers ([8e4592d](https://github.com/DongDuong2001/qmd-tech/commit/8e4592d38a93fbd5e133e837357d2b4f5ad268ed))
+* **typography:** configure Manrope and Be Vietnam Pro via next/font/google ([e1e8ae4](https://github.com/DongDuong2001/qmd-tech/commit/e1e8ae4447df8e6c879c46bb4f559f1611e789da))
+* **typography:** wire Manrope heading and Be Vietnam Pro body variables into theme and utility classes ([8a31f57](https://github.com/DongDuong2001/qmd-tech/commit/8a31f57225b701184b60d1f67f1e863673497b73))
+* **ui:** add dismissible DualFlankSideBanners component for left and right screen edges ([a2dc2ed](https://github.com/DongDuong2001/qmd-tech/commit/a2dc2ed7813f567f7c833711d81c4cb8af5e19da))
+
 # [1.8.0](https://github.com/DongDuong2001/qmd-tech/compare/v1.7.1...v1.8.0) (2026-09-09)
 
 
