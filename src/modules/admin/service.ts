@@ -444,6 +444,20 @@ export class AdminService {
 
   // ===================== ORDERS =====================
   async getOrders(): Promise<Order[]> {
+    if (typeof window !== "undefined") {
+      try {
+        const res = await fetch("/api/admin/orders");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.orders)) {
+            return json.orders as Order[];
+          }
+        }
+      } catch (err) {
+        console.warn("AdminService.getOrders fetch notice:", err);
+      }
+    }
+
     const { data, error } = await supabase
       .from("orders")
       .select("*, order_items(*)")
@@ -457,6 +471,22 @@ export class AdminService {
   }
 
   async updateOrderStatus(orderId: string, status: Order["status"]): Promise<boolean> {
+    if (typeof window !== "undefined") {
+      try {
+        const res = await fetch("/api/admin/orders", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: orderId, status }),
+        });
+        const json = await res.json();
+        if (json.success) {
+          return true;
+        }
+      } catch (err) {
+        console.warn("AdminService.updateOrderStatus fetch notice:", err);
+      }
+    }
+
     const { error } = await supabase
       .from("orders")
       .update({ status })
