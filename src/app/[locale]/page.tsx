@@ -129,22 +129,10 @@ export default async function HomePage() {
             />
 
             {/* Flash Sale Product Cards Grid (2 cols on mobile, 4 on desktop) */}
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 items-stretch">
               {featuredProducts.slice(0, 4).map((product) => (
-                <div key={product.id} className="relative flex flex-col justify-between">
-                  <ProductCard product={product} hideStock={true} />
-                  {/* Deal limit badge (Conceals exact inventory stock from customers) */}
-                  <div className="mt-1.5 sm:mt-2 rounded-lg bg-[#FEF2F2] p-2 border border-[#FECACA]">
-                    <div className="flex items-center justify-between text-[10px] font-bold text-[#DC2626]">
-                      <span className="flex items-center gap-1">
-                        <Flame className="h-3.5 w-3.5 text-[#EF4444] shrink-0" />
-                        <span className="truncate">Số lượng ưu đãi có hạn</span>
-                      </span>
-                      <span className="rounded bg-white px-1.5 py-0.5 text-[8px] sm:text-[9px] font-black text-[#DC2626] border border-[#FCA5A5] shrink-0">
-                        Deal Giới Hạn
-                      </span>
-                    </div>
-                  </div>
+                <div key={product.id} className="relative h-full">
+                  <ProductCard product={product} hideStock={true} isFlashSale={true} />
                 </div>
               ))}
             </div>
