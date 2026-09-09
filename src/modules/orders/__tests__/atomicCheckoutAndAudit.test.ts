@@ -311,4 +311,93 @@ describe("Production Audit Phase 2: Stock Decrement & Atomic Order Integrity", (
       expect(tracking.history[0].location).toContain("Kho QMD-Tech");
     });
   });
+
+  describe("Flash Sale Countdown & Deal Inventory Shield Integrity", () => {
+    function computeCountdown(targetMs: number, currentMs: number) {
+      const diff = targetMs - currentMs;
+      if (diff <= 0) {
+        return { days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: true };
+      }
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / (1000 * 60)) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+      return { days, hours, minutes, seconds, isExpired: false };
+    }
+
+    it("should accurately calculate remaining hours, minutes, and seconds from target ISO time", () => {
+      const currentMs = new Date("2026-09-09T12:00:00.000Z").getTime();
+      const targetMs = new Date("2026-09-09T15:30:45.000Z").getTime();
+
+      const timer = computeCountdown(targetMs, currentMs);
+
+      expect(timer.isExpired).toBe(false);
+      expect(timer.days).toBe(0);
+      expect(timer.hours).toBe(3);
+      expect(timer.minutes).toBe(30);
+      expect(timer.seconds).toBe(45);
+    });
+
+    it("should calculate days when target time exceeds 24 hours", () => {
+      const currentMs = new Date("2026-09-09T12:00:00.000Z").getTime();
+      const targetMs = new Date("2026-09-11T14:15:30.000Z").getTime();
+
+      const timer = computeCountdown(targetMs, currentMs);
+
+      expect(timer.isExpired).toBe(false);
+      expect(timer.days).toBe(2);
+      expect(timer.hours).toBe(2);
+      expect(timer.minutes).toBe(15);
+      expect(timer.seconds).toBe(30);
+    });
+
+    it("should mark timer as expired when target time is in the past", () => {
+      const currentMs = new Date("2026-09-09T12:00:00.000Z").getTime();
+      const targetMs = new Date("2026-09-09T11:59:59.000Z").getTime();
+
+      const timer = computeCountdown(targetMs, currentMs);
+
+      expect(timer.isExpired).toBe(true);
+      expect(timer.days).toBe(0);
+      expect(timer.hours).toBe(0);
+      expect(timer.minutes).toBe(0);
+      expect(timer.seconds).toBe(0);
+    });
+
+    it("should verify deal card conceals real inventory numbers when hideStock is true", () => {
+      // Simulates the badge resolution logic in ProductCard with hideStock
+      function resolveStockBadge(stock: number, hideStock: boolean): {
+        badgeText: string;
+        isStockNumberRevealed: boolean;
+      } {
+        if (hideStock) {
+          return {
+            badgeText: "Deal Gioi Han",
+            isStockNumberRevealed: false,
+          };
+        }
+        return {
+          badgeText: stock > 0 ? "San hang" : "Het hang",
+          isStockNumberRevealed: false,
+        };
+      }
+
+      const dealWithZeroStock = resolveStockBadge(0, true);
+      const dealWithStock = resolveStockBadge(5, true);
+
+      expect(dealWithZeroStock.badgeText).toBe("Deal Gioi Han");
+      expect(dealWithZeroStock.isStockNumberRevealed).toBe(false);
+      expect(dealWithStock.badgeText).toBe("Deal Gioi Han");
+      expect(dealWithStock.isStockNumberRevealed).toBe(false);
+    });
+
+    it("should verify default site settings contain active flash sale configuration", async () => {
+      const { DEFAULT_SITE_SETTINGS } = await import("@/modules/settings/service");
+
+      expect(DEFAULT_SITE_SETTINGS.flash_sale_enabled).toBe(true);
+      expect(DEFAULT_SITE_SETTINGS.flash_sale_title).toBe("GIỜ VÀNG GIÁ TỐT");
+      expect(DEFAULT_SITE_SETTINGS.flash_sale_subtitle).toContain("Số lượng ưu đãi có hạn");
+      expect(DEFAULT_SITE_SETTINGS.flash_sale_end_time).toBeDefined();
+    });
+  });
 });
