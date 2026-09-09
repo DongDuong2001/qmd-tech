@@ -1,3 +1,23 @@
+# [1.8.0](https://github.com/DongDuong2001/qmd-tech/compare/v1.7.1...v1.8.0) (2026-09-09)
+
+
+### Bug Fixes
+
+* **builder:** rehydrate products authoritatively server-side to prevent price manipulation ([152cc78](https://github.com/DongDuong2001/qmd-tech/commit/152cc78ee3b0b3a907baae73bb6b17d39097b708))
+* **db:** harden stock decrement rpc, lockdown orders rls, and add atomic checkout rpc ([0a2a026](https://github.com/DongDuong2001/qmd-tech/commit/0a2a02617418f204681d430f82d80ad78671d62b))
+* **orders:** add atomic checkout rpc with rollback and capability secret token ([79c2122](https://github.com/DongDuong2001/qmd-tech/commit/79c2122fbc00b07dfadceca18f61d5ab3230bd7e))
+* **security:** upgrade html sanitizer to sanitize-html with strict tag and scheme allowlist ([a2b1490](https://github.com/DongDuong2001/qmd-tech/commit/a2b1490197ecf94fd0ad53ffd3509576c9c8b3ee))
+
+
+### Features
+
+* **admin:** add secure admin orders api route with service role and admin auth ([dede02b](https://github.com/DongDuong2001/qmd-tech/commit/dede02b1c6c12d5e2b90b08c23f3d164e5213d9a))
+* **admin:** overhaul layout with fixed sidebar, enhanced product and order lists, and order detail modal ([dac05bd](https://github.com/DongDuong2001/qmd-tech/commit/dac05bd7b8be2cc7c0222d886b19cd55fdedd7fc))
+* **admin:** render order_items with proper typing in order detail modal ([dab6d8f](https://github.com/DongDuong2001/qmd-tech/commit/dab6d8f57475bdeb55da86b77f25716b04dd6ba1))
+* **admin:** route getOrders and updateOrderStatus through secure admin orders api ([db7bb18](https://github.com/DongDuong2001/qmd-tech/commit/db7bb18de47e51f738763aa25851eb221fbd1f57))
+* **types:** add order_access_token field to Order interface ([9fc9b0f](https://github.com/DongDuong2001/qmd-tech/commit/9fc9b0f7c1f1337b431ae7c617479106fd8ffeb2))
+* **types:** add order_items relation field to Order interface ([5d15484](https://github.com/DongDuong2001/qmd-tech/commit/5d154845d5bbd6bf3248f5327da740107032597f))
+
 ## [1.7.1](https://github.com/DongDuong2001/qmd-tech/compare/v1.7.0...v1.7.1) (2026-09-08)
 
 
