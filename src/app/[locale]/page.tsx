@@ -5,6 +5,8 @@ import { catalogService } from "@/modules/catalog/service";
 import { adminService } from "@/modules/admin/service";
 import { ProductCard } from "@/components/product/ProductCard";
 import { HeroCarousel } from "@/components/home/HeroCarousel";
+import { EventPosterCarousel } from "@/components/home/EventPosterCarousel";
+import { DualFlankSideBanners } from "@/components/common/DualFlankSideBanners";
 import { Button } from "@/components/ui/button";
 import {
   AsusRogLogo,
@@ -42,7 +44,8 @@ export default async function HomePage() {
   const prebuiltDeals = await adminService.getPrebuiltDeals();
 
   return (
-    <div className="space-y-6 sm:space-y-10 pb-16">
+    <div className="space-y-6 sm:space-y-10 pb-16 relative">
+      <DualFlankSideBanners banners={banners} />
       {/* ========================================================================= */}
       {/* 1. TOP UTILITY STRIP (GearVN & Modern Tech Retailer Navigation Strip)      */}
       {/* ========================================================================= */}
@@ -281,6 +284,11 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ========================================================================= */}
+      {/* 4.5 MIDDLE EVENT POSTER CAROUSEL (Quẹt qua kiểu carousel sự kiện)         */}
+      {/* ========================================================================= */}
+      <EventPosterCarousel banners={banners} />
 
       {/* ========================================================================= */}
       {/* 5. HARDWARE CATALOG BY CATEGORIES (Responsive 2-Col on Mobile, 4 on PC)   */}
