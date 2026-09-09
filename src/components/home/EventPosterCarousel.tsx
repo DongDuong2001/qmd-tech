@@ -202,7 +202,7 @@ export function EventPosterCarousel({ banners }: EventPosterCarouselProps) {
 
           {/* Slide Indicator Dots */}
           {displayBanners.length > 1 && (
-            <div className="absolute bottom-3 right-4 z-20 flex items-center gap-1.5 rounded-full bg-black/60 backdrop-blur-xs px-3 py-1">
+            <div className="absolute bottom-3 right-4 z-20 flex items-center rounded-full bg-black/60 backdrop-blur-xs px-2 py-0.5">
               {displayBanners.map((_, idx) => (
                 <button
                   key={idx}
@@ -211,11 +211,15 @@ export function EventPosterCarousel({ banners }: EventPosterCarouselProps) {
                     e.stopPropagation();
                     setCurrentIndex(idx);
                   }}
-                  className={`h-1.5 rounded-full transition-all cursor-pointer ${
-                    currentIndex === idx ? "w-6 bg-[#0063FD]" : "w-1.5 bg-white/60 hover:bg-white"
-                  }`}
+                  className="p-2 flex items-center justify-center cursor-pointer"
                   aria-label={`Chuyển đến poster ${idx + 1}`}
-                />
+                >
+                  <span
+                    className={`h-1.5 rounded-full transition-all block ${
+                      currentIndex === idx ? "w-6 bg-[#0063FD]" : "w-1.5 bg-white/60 hover:bg-white"
+                    }`}
+                  />
+                </button>
               ))}
             </div>
           )}
