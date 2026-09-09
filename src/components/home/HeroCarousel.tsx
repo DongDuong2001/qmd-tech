@@ -79,7 +79,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
 
           {/* Slide Progress Dots (Centered at Bottom of Poster) */}
           {activeBanners.length > 1 && (
-            <div className="absolute bottom-2.5 sm:bottom-3.5 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 rounded-full bg-black/50 backdrop-blur-xs px-2.5 py-1">
+            <div className="absolute bottom-2.5 sm:bottom-3.5 left-1/2 -translate-x-1/2 z-10 flex items-center rounded-full bg-black/50 backdrop-blur-xs px-2 py-0.5">
               {activeBanners.map((_, idx) => (
                 <button
                   key={idx}
@@ -88,11 +88,15 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
                     e.stopPropagation();
                     setCurrentIndex(idx);
                   }}
-                  className={`h-1.5 rounded-full transition-all ${
-                    currentIndex === idx ? "w-5 bg-[#0063FD]" : "w-1.5 bg-white/70 hover:bg-white"
-                  }`}
+                  className="p-2 flex items-center justify-center cursor-pointer"
                   aria-label={`Slide ${idx + 1}`}
-                />
+                >
+                  <span
+                    className={`h-1.5 rounded-full transition-all block ${
+                      currentIndex === idx ? "w-5 bg-[#0063FD]" : "w-1.5 bg-white/70 hover:bg-white"
+                    }`}
+                  />
+                </button>
               ))}
             </div>
           )}
