@@ -14,7 +14,10 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
-  const activeBanners = banners.filter((b) => b.is_active);
+  const heroBanners = banners.filter(
+    (b) => b.is_active && (b.position === "hero" || !b.position)
+  );
+  const activeBanners = heroBanners.length > 0 ? heroBanners : banners.filter((b) => b.is_active);
   const currentBanner = activeBanners[currentIndex] || activeBanners[0];
 
   const nextSlide = useCallback(() => {
