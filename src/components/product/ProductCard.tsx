@@ -23,6 +23,7 @@ interface ProductCardProps {
   onAddToCart?: (product: Product) => void;
   onSelectForBuild?: (product: Product) => void;
   isBuilderMode?: boolean;
+  hideStock?: boolean;
 }
 
 export function ProductCard({
@@ -30,6 +31,7 @@ export function ProductCard({
   onAddToCart,
   onSelectForBuild,
   isBuilderMode,
+  hideStock = false,
 }: ProductCardProps) {
   const locale = useLocale() as "vi" | "en";
   const t = useTranslations();
@@ -84,7 +86,11 @@ export function ProductCard({
                 -{discountPercent}%
               </Badge>
             )}
-            {isOutOfStock ? (
+            {hideStock ? (
+              <span className="rounded bg-[#FEF2F2] border border-[#FECACA] px-1.5 py-0.5 text-[9px] font-black text-[#DC2626] uppercase">
+                Deal Giới Hạn
+              </span>
+            ) : isOutOfStock ? (
               <Badge variant="danger" className="text-[10px]">Hết hàng</Badge>
             ) : (
               <Badge variant="success" className="text-[10px]">Sẵn hàng</Badge>
