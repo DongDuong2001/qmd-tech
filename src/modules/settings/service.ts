@@ -21,6 +21,10 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   zalo_url: "https://zalo.me/0988888888",
   youtube_url: "https://youtube.com/@qmdtech",
   free_shipping_threshold_vnd: 5000000,
+  flash_sale_enabled: true,
+  flash_sale_title: "GIỜ VÀNG GIÁ TỐT",
+  flash_sale_subtitle: "Linh kiện chính hãng • Bảo hành 1 đổi 1 trong 30 ngày • Số lượng ưu đãi có hạn",
+  flash_sale_end_time: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
   updated_at: new Date().toISOString(),
 };
 
