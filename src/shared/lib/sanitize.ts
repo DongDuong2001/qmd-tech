@@ -3,21 +3,15 @@
  * Strips active script vectors, malicious schemas, event handlers, and embeds.
  */
 
-const DANGEROUS_TAGS = [
-  "script",
-  "iframe",
-  "object",
-  "embed",
-  "applet",
-  "meta",
-  "link",
-  "style",
-  "form",
-  "input",
-  "button",
-  "textarea",
-  "select",
-  "base",
+import sanitize from "sanitize-html";
+
+const ALLOWED_TAGS = [
+  "p", "h1", "h2", "h3", "h4", "h5", "h6",
+  "strong", "b", "em", "i", "u", "s",
+  "ul", "ol", "li", "blockquote",
+  "a", "img", "pre", "code", "br", "hr",
+  "table", "thead", "tbody", "tr", "th", "td",
+  "span", "div", "figure", "figcaption"
 ];
 
 export function sanitizeHtml(html: string | undefined | null): string {
@@ -25,28 +19,19 @@ export function sanitizeHtml(html: string | undefined | null): string {
     return "";
   }
 
-  let sanitized = html;
-
-  // 1. Remove dangerous paired tags and their contents
-  for (const tag of DANGEROUS_TAGS) {
-    const pairedRegex = new RegExp(`<${tag}[^>]*>[\\s\\S]*?<\\/${tag}>`, "gi");
-    sanitized = sanitized.replace(pairedRegex, "");
-
-    // Remove self-closing or lone opening tags
-    const loneRegex = new RegExp(`<${tag}[^>]*\\/?>`, "gi");
-    sanitized = sanitized.replace(loneRegex, "");
-  }
-
-  // 2. Strip inline event handlers (onclick, onerror, onload, onmouseover, etc.)
-  sanitized = sanitized.replace(/\s+on[a-zA-Z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "");
-
-  // 3. Strip dangerous protocol schemes in attributes (javascript:, data:text/html, vbscript:)
-  sanitized = sanitized.replace(
-    /(href|src|action|formaction)\s*=\s*["']?\s*(?:javascript|vbscript|data\s*:\s*text\/html)[^"'>\s]*["']?/gi,
-    '$1="#"'
-  );
-
-  return sanitized;
+  return sanitize(html, {
+    allowedTags: ALLOWED_TAGS,
+    allowedAttributes: {
+      a: ["href", "name", "target", "rel", "title"],
+      img: ["src", "alt", "title", "width", "height", "loading"],
+      "*": ["class", "id"],
+    },
+    allowedSchemes: ["http", "https", "mailto", "tel"],
+    allowedSchemesByTag: {
+      a: ["http", "https", "mailto", "tel"],
+      img: ["http", "https", "data"],
+    },
+  });
 }
 
 /**
