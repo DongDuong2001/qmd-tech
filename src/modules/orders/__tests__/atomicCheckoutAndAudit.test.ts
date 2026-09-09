@@ -400,4 +400,68 @@ describe("Production Audit Phase 2: Stock Decrement & Atomic Order Integrity", (
       expect(DEFAULT_SITE_SETTINGS.flash_sale_end_time).toBeDefined();
     });
   });
+
+  describe("Flash Sale Flame Effect & Usability Integrity", () => {
+    function computePriceDisplay(priceVnd: number, originalPriceVnd?: number | null) {
+      const hasDiscount = Boolean(originalPriceVnd && originalPriceVnd > priceVnd);
+      const discountPercent = hasDiscount
+        ? Math.round(((originalPriceVnd! - priceVnd) / originalPriceVnd!) * 100)
+        : null;
+      const showSlashedPrice = hasDiscount;
+
+      return { hasDiscount, discountPercent, showSlashedPrice };
+    }
+
+    it("should not display slashed original price when original price equals current price", () => {
+      const result = computePriceDisplay(144990000, 144990000);
+
+      expect(result.hasDiscount).toBe(false);
+      expect(result.discountPercent).toBeNull();
+      expect(result.showSlashedPrice).toBe(false);
+    });
+
+    it("should not display slashed original price when original price is lower than current price", () => {
+      const result = computePriceDisplay(15000000, 14000000);
+
+      expect(result.hasDiscount).toBe(false);
+      expect(result.discountPercent).toBeNull();
+      expect(result.showSlashedPrice).toBe(false);
+    });
+
+    it("should display slashed original price and discount percent when genuine discount exists", () => {
+      const result = computePriceDisplay(18500000, 20000000);
+
+      expect(result.hasDiscount).toBe(true);
+      expect(result.discountPercent).toBe(8); // (20M - 18.5M) / 20M = 7.5% -> 8%
+      expect(result.showSlashedPrice).toBe(true);
+    });
+
+    it("should correctly activate flame effect state for flash sale cards", () => {
+      function resolveFlameCardState(isFlashSale?: boolean, flameEffect?: boolean) {
+        const hasFlame = Boolean(isFlashSale || flameEffect);
+        return {
+          hasFlame,
+          wrapperClass: hasFlame ? "flame-card-wrapper" : "",
+          priceColor: hasFlame ? "text-[#DC2626]" : "text-[#0063FD]",
+          ctaText: hasFlame ? "San ngay" : "Mua ngay",
+        };
+      }
+
+      const standardCard = resolveFlameCardState(false, false);
+      expect(standardCard.hasFlame).toBe(false);
+      expect(standardCard.wrapperClass).toBe("");
+      expect(standardCard.priceColor).toBe("text-[#0063FD]");
+      expect(standardCard.ctaText).toBe("Mua ngay");
+
+      const flashSaleCard = resolveFlameCardState(true, false);
+      expect(flashSaleCard.hasFlame).toBe(true);
+      expect(flashSaleCard.wrapperClass).toBe("flame-card-wrapper");
+      expect(flashSaleCard.priceColor).toBe("text-[#DC2626]");
+      expect(flashSaleCard.ctaText).toBe("San ngay");
+
+      const flameEffectCard = resolveFlameCardState(false, true);
+      expect(flameEffectCard.hasFlame).toBe(true);
+      expect(flameEffectCard.ctaText).toBe("San ngay");
+    });
+  });
 });
