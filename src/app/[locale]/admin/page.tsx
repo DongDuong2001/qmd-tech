@@ -74,6 +74,7 @@ import {
   Briefcase,
   Download,
   Info,
+  Flame,
 } from "lucide-react";
 import {
   MegaCategoryItem,
@@ -199,8 +200,56 @@ export default function AdminDashboardPage() {
     zalo_url: "https://zalo.me/0988888888",
     youtube_url: "https://youtube.com/@qmdtech",
     free_shipping_threshold_vnd: 5000000,
+    flash_sale_enabled: true,
+    flash_sale_title: "GIỜ VÀNG GIÁ TỐT",
+    flash_sale_subtitle: "Linh kiện chính hãng • Bảo hành 1 đổi 1 trong 30 ngày • Số lượng ưu đãi có hạn",
+    flash_sale_end_time: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
   });
   const [isSavingSettings, setIsSavingSettings] = useState(false);
+
+  const formatForDatetimeLocal = (isoString?: string) => {
+    if (!isoString) return "";
+    try {
+      const d = new Date(isoString);
+      if (isNaN(d.getTime())) return "";
+      const pad = (n: number) => String(n).padStart(2, "0");
+      const year = d.getFullYear();
+      const month = pad(d.getMonth() + 1);
+      const day = pad(d.getDate());
+      const hours = pad(d.getHours());
+      const minutes = pad(d.getMinutes());
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    } catch {
+      return "";
+    }
+  };
+
+  const handleQuickUpdateFlashSale = async (endTimeIso: string, isEnabled?: boolean) => {
+    setIsSavingSettings(true);
+    const updatedSettings: SiteSettings = {
+      ...siteSettings,
+      flash_sale_end_time: endTimeIso,
+      ...(isEnabled !== undefined ? { flash_sale_enabled: isEnabled } : {}),
+    };
+    setSiteSettings(updatedSettings);
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedSettings),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Lỗi lưu cấu hình Giờ Vàng");
+      }
+      showNotification("success", "Đã cập nhật thời gian đếm ngược Giờ Vàng Giá Tốt thành công!");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Lỗi lưu cấu hình Giờ Vàng";
+      showNotification("error", msg);
+    } finally {
+      setIsSavingSettings(false);
+    }
+  };
   const [newShowroom, setNewShowroom] = useState<ShowroomLocation>({
     id: "",
     city: "Hà Nội",
@@ -3206,7 +3255,141 @@ export default function AdminDashboardPage() {
           {/* TAB 5: PREBUILT PC DEALS (Bố Trí & Sắp Xếp Deal Máy Ráp Sẵn) */}
           {/* ========================================================================= */}
           {activeTab === "deals" && (
-            <div className="space-y-4">
+            <div className="space-y-6">
+              {/* FLASH SALE & COUNTDOWN TIMER MANAGER */}
+              <div className="rounded-xl border border-[#FECDD3] bg-gradient-to-br from-[#FFF1F2] to-[#FFE4E6] p-5 shadow-xs space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#FECDD3] pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#EF4444] text-white shadow-xs">
+                      <Flame className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-sm font-black uppercase tracking-wider text-[#9F1239]">
+                          Điều Phối Giờ Vàng Giá Tốt (Flash Sale)
+                        </h4>
+                        <span
+                          className={`rounded px-2 py-0.5 text-[10px] font-bold ${
+                            siteSettings.flash_sale_enabled
+                              ? "bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC]"
+                              : "bg-[#F1F5F9] text-[#64748B] border border-[#CBD5E1]"
+                          }`}
+                        >
+                          {siteSettings.flash_sale_enabled ? "Đang Hoạt Động" : "Tạm Tắt"}
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#BE123C]">
+                        Tùy chỉnh thời gian kết thúc đếm ngược hiển thị trên trang chủ cho khách hàng.
+                      </p>
+                    </div>
+                  </div>
+
+                  <label className="flex items-center gap-2 cursor-pointer font-bold text-xs text-[#9F1239] self-start sm:self-auto bg-white/80 px-3 py-1.5 rounded-lg border border-[#FECDD3]">
+                    <input
+                      type="checkbox"
+                      checked={siteSettings.flash_sale_enabled ?? true}
+                      onChange={(e) => {
+                        const enabled = e.target.checked;
+                        setSiteSettings((prev) => ({ ...prev, flash_sale_enabled: enabled }));
+                        handleQuickUpdateFlashSale(siteSettings.flash_sale_end_time || new Date().toISOString(), enabled);
+                      }}
+                      className="rounded border-[#CBD5E1] text-[#EF4444] focus:ring-[#EF4444] h-4 w-4"
+                    />
+                    <span>Kích hoạt Giờ Vàng trên trang chủ</span>
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white/90 p-4 rounded-xl border border-[#FECDD3]">
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">
+                      Thời gian kết thúc đếm ngược (End Time) *
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={formatForDatetimeLocal(siteSettings.flash_sale_end_time)}
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          const iso = new Date(e.target.value).toISOString();
+                          setSiteSettings((prev) => ({ ...prev, flash_sale_end_time: iso }));
+                        }
+                      }}
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] font-mono focus:border-[#EF4444] focus:outline-none shadow-2xs font-bold"
+                    />
+                    <p className="text-[11px] text-[#64748B] mt-1">
+                      Đồng hồ đếm ngược trên trang chủ sẽ tự động đếm lùi về mốc thời gian này.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">
+                      Chọn nhanh mốc thời gian kết thúc:
+                    </label>
+                    <div className="flex flex-wrap gap-1.5 pt-0.5">
+                      <button
+                        type="button"
+                        onClick={() => handleQuickUpdateFlashSale(new Date(Date.now() + 2 * 3600 * 1000).toISOString())}
+                        className="rounded-lg border border-[#CBD5E1] bg-white px-2.5 py-1.5 text-xs font-bold text-[#0F172A] hover:border-[#EF4444] hover:text-[#EF4444] transition-colors"
+                      >
+                        +2 Giờ
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleQuickUpdateFlashSale(new Date(Date.now() + 6 * 3600 * 1000).toISOString())}
+                        className="rounded-lg border border-[#CBD5E1] bg-white px-2.5 py-1.5 text-xs font-bold text-[#0F172A] hover:border-[#EF4444] hover:text-[#EF4444] transition-colors"
+                      >
+                        +6 Giờ
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleQuickUpdateFlashSale(new Date(Date.now() + 12 * 3600 * 1000).toISOString())}
+                        className="rounded-lg border border-[#CBD5E1] bg-white px-2.5 py-1.5 text-xs font-bold text-[#0F172A] hover:border-[#EF4444] hover:text-[#EF4444] transition-colors"
+                      >
+                        +12 Giờ
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleQuickUpdateFlashSale(new Date(Date.now() + 24 * 3600 * 1000).toISOString())}
+                        className="rounded-lg border border-[#CBD5E1] bg-white px-2.5 py-1.5 text-xs font-bold text-[#0F172A] hover:border-[#EF4444] hover:text-[#EF4444] transition-colors"
+                      >
+                        +24 Giờ
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const now = new Date();
+                          const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+                          handleQuickUpdateFlashSale(endOfDay.toISOString());
+                        }}
+                        className="rounded-lg border border-[#CBD5E1] bg-white px-2.5 py-1.5 text-xs font-bold text-[#0F172A] hover:border-[#EF4444] hover:text-[#EF4444] transition-colors"
+                      >
+                        Hôm nay 23:59
+                      </button>
+                    </div>
+
+                    <div className="pt-2">
+                      <Button
+                        type="button"
+                        onClick={() => handleQuickUpdateFlashSale(siteSettings.flash_sale_end_time || new Date().toISOString(), siteSettings.flash_sale_enabled)}
+                        disabled={isSavingSettings}
+                        variant="primary"
+                        size="sm"
+                        className="bg-[#EF4444] hover:bg-[#DC2626] font-bold text-xs"
+                      >
+                        {isSavingSettings ? "Đang lưu..." : "Cập Nhật Ngay Lên Trang Khách"}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-lg bg-white/70 p-2.5 border border-[#FECDD3] text-[11px] text-[#9F1239] flex items-center gap-2">
+                  <Info className="h-4 w-4 shrink-0 text-[#EF4444]" />
+                  <span>
+                    Chính sách hiển thị: Toàn bộ số lượng tồn kho thực tế của sản phẩm deal trong Giờ Vàng đều được hệ thống ẩn hoàn toàn đối với khách hàng (chỉ hiển thị nhãn "Deal Giới Hạn").
+                  </span>
+                </div>
+              </div>
+
+              {/* Header */}
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-xs font-black uppercase tracking-wider text-[#64748B]">
@@ -4530,11 +4713,110 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              {/* Grid 3: Bo Cong Thuong Legal Registration */}
+              {/* Grid 3: Flash Sale / Golden Hour Settings */}
+              <div className="rounded-xl border border-[#FECDD3] bg-[#FFF1F2] p-6 shadow-xs space-y-4">
+                <div className="flex items-center justify-between border-b border-[#FECDD3] pb-3">
+                  <div className="flex items-center gap-2 text-[#9F1239] font-black uppercase text-xs">
+                    <Flame className="h-4 w-4 text-[#EF4444]" />
+                    <span>3. Cấu Hình Giờ Vàng Giá Tốt (Flash Sale & Countdown Timer)</span>
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer font-bold text-xs text-[#9F1239]">
+                    <input
+                      type="checkbox"
+                      checked={siteSettings.flash_sale_enabled ?? true}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, flash_sale_enabled: e.target.checked })}
+                      className="rounded border-[#CBD5E1] text-[#EF4444] focus:ring-[#EF4444] h-4 w-4"
+                    />
+                    <span>Kích hoạt hiển thị trên trang chủ</span>
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">Tiêu Đề Chương Trình *</label>
+                    <input
+                      required
+                      type="text"
+                      value={siteSettings.flash_sale_title || "GIỜ VÀNG GIÁ TỐT"}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, flash_sale_title: e.target.value })}
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] focus:border-[#EF4444] focus:outline-none shadow-2xs font-bold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">Thời Gian Kết Thúc Đếm Ngược (End Time) *</label>
+                    <input
+                      type="datetime-local"
+                      value={formatForDatetimeLocal(siteSettings.flash_sale_end_time)}
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          setSiteSettings({ ...siteSettings, flash_sale_end_time: new Date(e.target.value).toISOString() });
+                        }
+                      }}
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] font-mono focus:border-[#EF4444] focus:outline-none shadow-2xs font-bold"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#1E293B] mb-1">Thông Điệp Phụ / Thể Lệ Chương Trình</label>
+                  <input
+                    type="text"
+                    value={siteSettings.flash_sale_subtitle || ""}
+                    onChange={(e) => setSiteSettings({ ...siteSettings, flash_sale_subtitle: e.target.value })}
+                    className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] focus:border-[#EF4444] focus:outline-none shadow-2xs"
+                  />
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <span className="text-[11px] font-bold text-[#9F1239]">Chọn nhanh mốc thời gian:</span>
+                  <button
+                    type="button"
+                    onClick={() => setSiteSettings({ ...siteSettings, flash_sale_end_time: new Date(Date.now() + 2 * 3600 * 1000).toISOString() })}
+                    className="rounded-lg border border-[#FECDD3] bg-white px-2.5 py-1 text-xs font-bold text-[#0F172A] hover:text-[#EF4444] shadow-2xs"
+                  >
+                    +2 Giờ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSiteSettings({ ...siteSettings, flash_sale_end_time: new Date(Date.now() + 6 * 3600 * 1000).toISOString() })}
+                    className="rounded-lg border border-[#FECDD3] bg-white px-2.5 py-1 text-xs font-bold text-[#0F172A] hover:text-[#EF4444] shadow-2xs"
+                  >
+                    +6 Giờ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSiteSettings({ ...siteSettings, flash_sale_end_time: new Date(Date.now() + 12 * 3600 * 1000).toISOString() })}
+                    className="rounded-lg border border-[#FECDD3] bg-white px-2.5 py-1 text-xs font-bold text-[#0F172A] hover:text-[#EF4444] shadow-2xs"
+                  >
+                    +12 Giờ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSiteSettings({ ...siteSettings, flash_sale_end_time: new Date(Date.now() + 24 * 3600 * 1000).toISOString() })}
+                    className="rounded-lg border border-[#FECDD3] bg-white px-2.5 py-1 text-xs font-bold text-[#0F172A] hover:text-[#EF4444] shadow-2xs"
+                  >
+                    +24 Giờ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const now = new Date();
+                      const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+                      setSiteSettings({ ...siteSettings, flash_sale_end_time: endOfDay.toISOString() });
+                    }}
+                    className="rounded-lg border border-[#FECDD3] bg-white px-2.5 py-1 text-xs font-bold text-[#0F172A] hover:text-[#EF4444] shadow-2xs"
+                  >
+                    Hôm nay 23:59
+                  </button>
+                </div>
+              </div>
+
+              {/* Grid 4: Bo Cong Thuong Legal Registration */}
               <div className="rounded-xl border border-[#CBD5E1] bg-white p-6 shadow-xs space-y-4">
                 <div className="flex items-center gap-2 text-[#0063FD] font-black uppercase text-xs border-b border-[#E2E8F0] pb-3">
                   <ShieldCheck className="h-4 w-4" />
-                  <span>3. Pháp Lý Website & Đăng Ký Bộ Công Thương</span>
+                  <span>4. Pháp Lý Website & Đăng Ký Bộ Công Thương</span>
                 </div>
 
                 <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 space-y-3">
