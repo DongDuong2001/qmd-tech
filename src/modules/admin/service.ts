@@ -67,6 +67,7 @@ export interface CreateBannerInput {
   target_url: string;
   display_order?: number;
   is_active?: boolean;
+  position?: "hero" | "middle_carousel" | "side_left" | "side_right";
 }
 
 export interface CreatePrebuiltDealInput {
@@ -115,8 +116,120 @@ export const DEFAULT_HARDWARE_CATEGORIES: Category[] = [
   { id: "cat-gear", slug: "gear", name_vi: "Gaming Gear & Phụ Kiện", name_en: "Gaming Gear", icon: "ShoppingBag", sort_order: 10 },
 ];
 
+export const DEFAULT_EVENT_BANNERS: EventBanner[] = [
+  // 1. HERO TOP BANNERS
+  {
+    id: "banner-hero-1",
+    title_vi: "Khai Phá Sức Mạnh Đồ Họa Cùng RTX 50 Series",
+    title_en: "Unleash Next-Gen Graphics with RTX 50 Series",
+    subtitle_vi: "Hiệu năng đỉnh cao AI & Ray Tracing siêu thực cho dàn máy chuyên nghiệp.",
+    subtitle_en: "Peak AI & Ray Tracing performance for high-end workstations.",
+    tag: "SIÊU PHẨM 2026",
+    image_url: "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=1600&auto=format&fit=crop&q=80",
+    target_url: "/danh-muc/vga",
+    display_order: 1,
+    is_active: true,
+    position: "hero",
+  },
+  {
+    id: "banner-hero-2",
+    title_vi: "Đại Hội PC Ráp Sẵn — Tối Ưu Hóa Bởi Kỹ Sư QMD-Tech",
+    title_en: "QMD-Tech Custom PC Showcase",
+    subtitle_vi: "Linh kiện 100% chính hãng, bảo hành tận nơi tại Hà Nội, giao hàng 34 tỉnh thành.",
+    subtitle_en: "100% genuine components, on-site warranty in Hanoi, nationwide shipping.",
+    tag: "PC BUILD CHUYÊN NGHIỆP",
+    image_url: "https://images.unsplash.com/photo-1591488320449-011701bb6704?w=1600&auto=format&fit=crop&q=80",
+    target_url: "/build-pc",
+    display_order: 2,
+    is_active: true,
+    position: "hero",
+  },
+
+  // 2. MIDDLE EVENT POSTER CAROUSEL (Quẹt / Vuốt ở giữa trang chủ)
+  {
+    id: "banner-mid-1",
+    title_vi: "Tuần Lễ Build PC Rinh Ngay Quà Khủng",
+    title_en: "PC Builder Week — Exclusive Gear Gifts",
+    subtitle_vi: "Tặng kèm gói vệ sinh máy trọn đời + Lót chuột Gaming cỡ lớn khi ráp bộ PC từ 15 triệu.",
+    subtitle_en: "Complimentary lifetime cleaning + XL mousepad on custom PC builds above 15M VND.",
+    tag: "QUÀ TẶNG ĐẶC BIỆT",
+    image_url: "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1600&auto=format&fit=crop&q=80",
+    target_url: "/build-pc",
+    display_order: 1,
+    is_active: true,
+    position: "middle_carousel",
+  },
+  {
+    id: "banner-mid-2",
+    title_vi: "Ngày Hội Nâng Cấp SSD NVMe Gen 5 Siêu Tốc",
+    title_en: "NVMe Gen 5 Storage Upgrade Fest",
+    subtitle_vi: "Tốc độ đọc ghi lên tới 14,000 MB/s, giảm trực tiếp 15% cho khách nâng cấp cấu hình.",
+    subtitle_en: "Speeds up to 14,000 MB/s, 15% off for storage upgrade clients.",
+    tag: "TỐC ĐỘ ĐỈNH CAO",
+    image_url: "https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?w=1600&auto=format&fit=crop&q=80",
+    target_url: "/danh-muc/ssd",
+    display_order: 2,
+    is_active: true,
+    position: "middle_carousel",
+  },
+  {
+    id: "banner-mid-3",
+    title_vi: "Học Sinh & Sinh Viên — Nhận Ngay Voucher 500.000₫",
+    title_en: "Student Tech Grant — 500k VND Voucher",
+    subtitle_vi: "Áp dụng cho mọi đơn hàng PC đồ họa, lập trình và học tập trực tuyến.",
+    subtitle_en: "Valid for all graphic design, coding, and online study PC configurations.",
+    tag: "ƯU ĐÃI SINH VIÊN",
+    image_url: "https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=1600&auto=format&fit=crop&q=80",
+    target_url: "/khuyen-mai",
+    display_order: 3,
+    is_active: true,
+    position: "middle_carousel",
+  },
+  {
+    id: "banner-mid-4",
+    title_vi: "Bảo Trì & Vệ Sinh Máy Định Kỳ Miễn Phí",
+    title_en: "Free Periodic Maintenance & Deep Cleaning",
+    subtitle_vi: "Kiểm tra nhiệt độ keo tản nhiệt gốm cao cấp và tối ưu luồng gió case.",
+    subtitle_en: "Thermal paste check with premium ceramic compound and airflow optimization.",
+    tag: "DỊCH VỤ TẬN TÂM",
+    image_url: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1600&auto=format&fit=crop&q=80",
+    target_url: "/bao-hanh",
+    display_order: 4,
+    is_active: true,
+    position: "middle_carousel",
+  },
+
+  // 3. DUAL FLANK SIDE BANNERS (Banner dọc 2 cạnh sườn màn hình)
+  {
+    id: "banner-side-left",
+    title_vi: "Build PC Nhận Quà",
+    title_en: "Build PC Special Gift",
+    subtitle_vi: "Tặng gear cao cấp",
+    subtitle_en: "Free gaming gear",
+    tag: "HOT",
+    image_url: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&auto=format&fit=crop&q=80",
+    target_url: "/build-pc",
+    display_order: 1,
+    is_active: true,
+    position: "side_left",
+  },
+  {
+    id: "banner-side-right",
+    title_vi: "Hỏa Tốc Hà Nội 2H",
+    title_en: "Hanoi Express 2H",
+    subtitle_vi: "Giao ngay tận nơi",
+    subtitle_en: "Express courier",
+    tag: "EXPRESS",
+    image_url: "https://images.unsplash.com/photo-1591488320449-011701bb6704?w=600&auto=format&fit=crop&q=80",
+    target_url: "/lien-he",
+    display_order: 1,
+    is_active: true,
+    position: "side_right",
+  },
+];
+
 export class AdminService {
-  private localBanners: EventBanner[] = [];
+  private localBanners: EventBanner[] = [...DEFAULT_EVENT_BANNERS];
   private localDeals: PrebuiltDeal[] = [];
   private localSuppliers: Supplier[] = [];
 
@@ -522,6 +635,20 @@ export class AdminService {
 
   // ===================== BANNERS & POSTERS =====================
   async getBanners(): Promise<EventBanner[]> {
+    if (typeof window !== "undefined") {
+      try {
+        const res = await fetch("/api/admin/banners");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.banners) && json.banners.length > 0) {
+            return json.banners as EventBanner[];
+          }
+        }
+      } catch (err) {
+        console.warn("AdminService.getBanners fetch notice:", err);
+      }
+    }
+
     try {
       const { data, error } = await supabase
         .from("banners")
@@ -538,6 +665,23 @@ export class AdminService {
   }
 
   async createBanner(input: CreateBannerInput): Promise<EventBanner> {
+    if (typeof window !== "undefined") {
+      try {
+        const res = await fetch("/api/admin/banners", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(input),
+        });
+        const json = await res.json();
+        if (json.success && json.banner) {
+          this.localBanners.push(json.banner as EventBanner);
+          return json.banner as EventBanner;
+        }
+      } catch (err) {
+        console.warn("AdminService.createBanner fetch notice:", err);
+      }
+    }
+
     const newBanner: EventBanner = {
       id: `banner-${Date.now()}`,
       title_vi: input.title_vi,
@@ -549,6 +693,7 @@ export class AdminService {
       target_url: input.target_url || "/danh-muc",
       display_order: input.display_order ?? (this.localBanners.length + 1),
       is_active: input.is_active ?? true,
+      position: input.position || "hero",
       created_at: new Date().toISOString(),
     };
 
@@ -570,6 +715,24 @@ export class AdminService {
   }
 
   async updateBanner(id: string, updates: Partial<CreateBannerInput>): Promise<EventBanner | null> {
+    if (typeof window !== "undefined") {
+      try {
+        const res = await fetch("/api/admin/banners", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, ...updates }),
+        });
+        const json = await res.json();
+        if (json.success && json.banner) {
+          const idx = this.localBanners.findIndex((b) => b.id === id);
+          if (idx !== -1) this.localBanners[idx] = json.banner as EventBanner;
+          return json.banner as EventBanner;
+        }
+      } catch (err) {
+        console.warn("AdminService.updateBanner fetch notice:", err);
+      }
+    }
+
     try {
       const { data, error } = await supabase
         .from("banners")
@@ -593,6 +756,21 @@ export class AdminService {
   }
 
   async deleteBanner(id: string): Promise<boolean> {
+    if (typeof window !== "undefined") {
+      try {
+        const res = await fetch(`/api/admin/banners?id=${encodeURIComponent(id)}`, {
+          method: "DELETE",
+        });
+        const json = await res.json();
+        if (json.success) {
+          this.localBanners = this.localBanners.filter((b) => b.id !== id);
+          return true;
+        }
+      } catch (err) {
+        console.warn("AdminService.deleteBanner fetch notice:", err);
+      }
+    }
+
     try {
       await supabase.from("banners").delete().eq("id", id);
     } catch {
