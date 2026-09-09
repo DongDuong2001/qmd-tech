@@ -148,6 +148,7 @@ export interface Order {
   notes?: string;
   created_at?: string;
   items?: CartItem[];
+  order_items?: CartItem[];
 }
 
 export interface Review {
