@@ -273,7 +273,8 @@ describe("Production Audit Phase 2: Stock Decrement & Atomic Order Integrity", (
 
       const hanoiQuotes = await shippingService.getQuotes({
         toAddress: "123 Pho Hue, Quan Hai Ba Trung, Ha Noi",
-        items: [],
+        weightGrams: 500,
+        insuranceValueVnd: 1000000,
       });
 
       expect(hanoiQuotes.length).toBeGreaterThanOrEqual(2);
@@ -291,7 +292,8 @@ describe("Production Audit Phase 2: Stock Decrement & Atomic Order Integrity", (
 
       const provincialQuotes = await shippingService.getQuotes({
         toAddress: "456 Tran Phu, Quan Hai Chau, Da Nang",
-        items: [],
+        weightGrams: 1000,
+        insuranceValueVnd: 2000000,
       });
 
       expect(provincialQuotes).toHaveLength(1);
