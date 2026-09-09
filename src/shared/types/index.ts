@@ -144,6 +144,7 @@ export interface Order {
   shipping_provider?: "ghn" | "ghtk" | "express";
   tracking_code?: string;
   custom_build_id?: string;
+  order_access_token?: string;
   notes?: string;
   created_at?: string;
   items?: CartItem[];
