@@ -5,6 +5,8 @@ import { AUTH_COOKIE_NAME } from "@/shared/security/cookies";
 import { verifyJWT } from "@/shared/security/jwt";
 import { ComponentSlot, Product } from "@/shared/types";
 
+import { getServiceSupabase } from "@/shared/db/supabase";
+
 const ALLOWED_SLOTS = new Set<ComponentSlot>([
   "cpu",
   "motherboard",
@@ -16,7 +18,7 @@ const ALLOWED_SLOTS = new Set<ComponentSlot>([
   "cooling",
 ]);
 
-function sanitizeSlots(rawSlots: unknown): Record<ComponentSlot, Product | null> {
+async function rehydrateSlots(rawSlots: unknown): Promise<Record<ComponentSlot, Product | null>> {
   const result: Record<ComponentSlot, Product | null> = {
     cpu: null,
     motherboard: null,
@@ -32,10 +34,39 @@ function sanitizeSlots(rawSlots: unknown): Record<ComponentSlot, Product | null>
     return result;
   }
 
+  const slotToIdMap = new Map<ComponentSlot, string>();
   for (const [key, value] of Object.entries(rawSlots)) {
     if (ALLOWED_SLOTS.has(key as ComponentSlot) && value && typeof value === "object") {
-      result[key as ComponentSlot] = value as Product;
+      const prodId = (value as { id?: string }).id;
+      if (prodId && typeof prodId === "string") {
+        slotToIdMap.set(key as ComponentSlot, prodId);
+      }
     }
+  }
+
+  if (slotToIdMap.size === 0) {
+    return result;
+  }
+
+  try {
+    const productIds = Array.from(new Set(slotToIdMap.values()));
+    const db = getServiceSupabase();
+    const { data: dbProducts, error } = await db
+      .from("products")
+      .select("*")
+      .in("id", productIds);
+
+    if (!error && Array.isArray(dbProducts)) {
+      const productMap = new Map<string, Product>(dbProducts.map((p) => [p.id, p as Product]));
+      for (const [slot, id] of slotToIdMap.entries()) {
+        const authoritativeProduct = productMap.get(id);
+        if (authoritativeProduct) {
+          result[slot] = authoritativeProduct;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("Builder API: Product rehydration fallback notice:", err);
   }
 
   return result;
@@ -47,7 +78,7 @@ export async function POST(request: NextRequest) {
     const { action, slots, build, quoteInput } = body;
 
     if (action === "evaluate") {
-      const sanitizedSlots = sanitizeSlots(slots);
+      const sanitizedSlots = await rehydrateSlots(slots);
       const evaluation = builderService.evaluateBuild(sanitizedSlots);
       return NextResponse.json({ success: true, data: evaluation });
     }
@@ -60,8 +91,8 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Re-evaluate build server-side to guarantee price and wattage integrity
-      const slotsToEvaluate = sanitizeSlots(build.items || slots);
+      // Re-evaluate build authoritatively server-side to guarantee price and wattage integrity
+      const slotsToEvaluate = await rehydrateSlots(build.items || slots);
       const evaluated = builderService.evaluateBuild(slotsToEvaluate);
 
       // Extract verified user id if logged in
