@@ -283,6 +283,10 @@ export interface SiteSettings {
   zalo_url?: string;
   youtube_url?: string;
   free_shipping_threshold_vnd: number;
+  flash_sale_enabled?: boolean;
+  flash_sale_title?: string;
+  flash_sale_subtitle?: string;
+  flash_sale_end_time?: string;
   updated_at?: string;
 }
 
