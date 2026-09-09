@@ -138,3 +138,54 @@
   background-color: #F1F5F9;
 }
 
+/* ========================================================================= */
+/* Flash Sale Flame Border & Aura Animation                                  */
+/* ========================================================================= */
+@keyframes flame-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes flame-glow {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.35), 0 0 24px rgba(245, 158, 11, 0.2), 0 2px 8px rgba(220, 38, 38, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 18px rgba(239, 68, 68, 0.55), 0 0 32px rgba(245, 158, 11, 0.35), 0 4px 14px rgba(220, 38, 38, 0.25);
+  }
+}
+
+.flame-card-wrapper {
+  position: relative;
+  border-radius: 0.875rem;
+  padding: 2px;
+  background: linear-gradient(135deg, #f59e0b, #ea580c, #ef4444, #dc2626, #f97316, #b91c1c);
+  background-size: 300% 300%;
+  animation: flame-shimmer 4s ease infinite, flame-glow 3s ease-in-out infinite;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.flame-card-wrapper:hover {
+  animation: flame-shimmer 2s ease infinite;
+  box-shadow: 0 0 26px rgba(239, 68, 68, 0.65), 0 0 42px rgba(245, 158, 11, 0.45), 0 8px 24px rgba(220, 38, 38, 0.3);
+  transform: translateY(-3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flame-card-wrapper {
+    animation: none;
+    background-position: 50% 50%;
+    box-shadow: 0 0 14px rgba(239, 68, 68, 0.4), 0 0 24px rgba(245, 158, 11, 0.25);
+  }
+  .flame-card-wrapper:hover {
+    transform: none;
+  }
+}
+
