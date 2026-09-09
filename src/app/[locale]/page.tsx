@@ -3,8 +3,12 @@ import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import { catalogService } from "@/modules/catalog/service";
 import { adminService } from "@/modules/admin/service";
+import { settingsService } from "@/modules/settings/service";
 import { ProductCard } from "@/components/product/ProductCard";
 import { HeroCarousel } from "@/components/home/HeroCarousel";
+import { EventPosterCarousel } from "@/components/home/EventPosterCarousel";
+import { FlashSaleCountdown } from "@/components/home/FlashSaleCountdown";
+import { DualFlankSideBanners } from "@/components/common/DualFlankSideBanners";
 import { Button } from "@/components/ui/button";
 import {
   AsusRogLogo,
@@ -32,6 +36,7 @@ import {
   BookOpen,
   Truck,
   Phone,
+  Flame,
 } from "lucide-react";
 
 export default async function HomePage() {
@@ -40,9 +45,11 @@ export default async function HomePage() {
   const { products: allProducts } = await catalogService.getProducts();
   const banners = await adminService.getBanners();
   const prebuiltDeals = await adminService.getPrebuiltDeals();
+  const settings = await settingsService.getSettings();
 
   return (
-    <div className="space-y-6 sm:space-y-10 pb-16">
+    <div className="space-y-6 sm:space-y-10 pb-16 relative">
+      <DualFlankSideBanners banners={banners} />
       {/* ========================================================================= */}
       {/* 1. TOP UTILITY STRIP (GearVN & Modern Tech Retailer Navigation Strip)      */}
       {/* ========================================================================= */}
@@ -110,55 +117,28 @@ export default async function HomePage() {
       {/* ========================================================================= */}
       {/* 3. FLASH SALE & FEATURED COMPONENTS SHOWCASE (Responsive 2-Col on Mobile)  */}
       {/* ========================================================================= */}
-      <section className="mx-auto max-w-7xl px-3 sm:px-6">
-        <div className="rounded-xl sm:rounded-2xl border-2 border-[#0063FD] bg-[#FFFFFF] p-4 sm:p-6 shadow-sm space-y-4 sm:space-y-6">
-          {/* Section Header */}
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E2E8F0] pb-3 sm:pb-4">
-            <div className="flex items-center gap-2.5 sm:gap-3">
-              <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-[#0063FD] text-white shadow-xs">
-                <Tag className="h-5 w-5 sm:h-6 sm:w-6" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-lg sm:text-2xl font-black uppercase tracking-wider text-[#0F172A]">
-                    GIỜ VÀNG GIÁ TỐT
-                  </h2>
-                  <span className="rounded bg-[#0063FD] px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-black text-white">
-                    ĐANG DIỄN RA
-                  </span>
+      {settings.flash_sale_enabled !== false && (
+        <section className="mx-auto max-w-7xl px-3 sm:px-6">
+          <div className="rounded-xl sm:rounded-2xl border-2 border-[#EF4444] bg-[#FFFFFF] p-4 sm:p-6 shadow-sm space-y-4 sm:space-y-6">
+            {/* Countdown Header */}
+            <FlashSaleCountdown
+              title={settings.flash_sale_title || "GIỜ VÀNG GIÁ TỐT"}
+              subtitle={settings.flash_sale_subtitle || "Linh kiện chính hãng • Bảo hành 1 đổi 1 trong 30 ngày • Số lượng ưu đãi có hạn"}
+              endTime={settings.flash_sale_end_time}
+              isEnabled={settings.flash_sale_enabled}
+            />
+
+            {/* Flash Sale Product Cards Grid (2 cols on mobile, 4 on desktop) */}
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 items-stretch">
+              {featuredProducts.slice(0, 4).map((product) => (
+                <div key={product.id} className="relative h-full">
+                  <ProductCard product={product} hideStock={true} isFlashSale={true} />
                 </div>
-                <p className="text-[11px] sm:text-xs text-[#64748B]">Linh kiện chính hãng • Bảo hành 1 đổi 1 trong 30 ngày</p>
-              </div>
+              ))}
             </div>
-
-            <Link href="/khuyen-mai">
-              <Button variant="primary" size="sm" className="gap-1 font-black text-[11px] sm:text-xs">
-                Xem Tất Cả <ArrowRight className="h-3.5 w-3.5" />
-              </Button>
-            </Link>
           </div>
-
-          {/* Flash Sale Product Cards Grid (2 cols on mobile, 4 on desktop) */}
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
-            {featuredProducts.slice(0, 4).map((product) => (
-              <div key={product.id} className="relative flex flex-col justify-between">
-                <ProductCard product={product} />
-                {/* Real Inventory Stock Badge */}
-                <div className="mt-1.5 sm:mt-2 rounded-lg bg-white p-1.5 sm:p-2 border border-[#E2E8F0]">
-                  <div className="flex justify-between text-[9px] sm:text-[10px] font-bold text-[#475569]">
-                    <span className="text-[#0063FD] flex items-center gap-1 font-mono">
-                      Tồn kho thực tế
-                    </span>
-                    <span className="text-[#0F172A] font-semibold">
-                      {product.stock > 0 ? `${product.stock} sản phẩm` : "Tạm hết"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ========================================================================= */}
       {/* 4. PREBUILT PC DEALS (Managed via Admin Dashboard, Electric Blue Accents) */}
@@ -281,6 +261,11 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ========================================================================= */}
+      {/* 4.5 MIDDLE EVENT POSTER CAROUSEL (Quẹt qua kiểu carousel sự kiện)         */}
+      {/* ========================================================================= */}
+      <EventPosterCarousel banners={banners} />
 
       {/* ========================================================================= */}
       {/* 5. HARDWARE CATALOG BY CATEGORIES (Responsive 2-Col on Mobile, 4 on PC)   */}

@@ -6,12 +6,15 @@ export class VNPayAdapter {
   private vnpUrl: string;
 
   constructor() {
-    this.tmnCode = process.env.VNPAY_TMN_CODE || "SANDBOX_TMN";
-    this.hashSecret = process.env.VNPAY_HASH_SECRET || "SANDBOX_SECRET";
+    this.tmnCode = process.env.VNPAY_TMN_CODE || "";
+    this.hashSecret = process.env.VNPAY_HASH_SECRET || "";
     this.vnpUrl = process.env.VNPAY_URL || "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
   }
 
   createPaymentUrl(input: CreatePaymentUrlInput): PaymentUrlResponse {
+    if (!this.tmnCode || !this.hashSecret) {
+      throw new Error("VNPay credentials (VNPAY_TMN_CODE, VNPAY_HASH_SECRET) are not configured.");
+    }
     const createDate = new Date()
       .toISOString()
       .replace(/[-:TZ.]/g, "")

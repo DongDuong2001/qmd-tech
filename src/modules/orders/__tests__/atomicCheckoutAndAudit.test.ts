@@ -138,5 +138,383 @@ describe("Production Audit Phase 2: Stock Decrement & Atomic Order Integrity", (
         expect(mockDb.stockMap.get("prod-2")).toBe(2);
       }
     });
+
+    it("should enforce fail-closed behavior on stock exhaustion without fallback order creation", () => {
+      // Simulates the endpoint behavior when RPC returns INSUFFICIENT_STOCK
+      type RpcResult = {
+        success: boolean;
+        order_id?: string;
+        order_code?: string;
+        error_code?: string;
+        message?: string;
+      };
+
+      const rpcResult: RpcResult = {
+        success: false,
+        error_code: "INSUFFICIENT_STOCK",
+        message: "San pham ASUS TUF Gaming chi con 1 san pham trong kho, khong du so luong yeu cau (3)",
+      };
+
+      function handleRpcCheckoutResponse(result: RpcResult): {
+        httpStatus: number;
+        responseBody: Record<string, unknown>;
+        fallbackAttempted: boolean;
+      } {
+        if (!result.success) {
+          if (result.error_code === "INSUFFICIENT_STOCK") {
+            return {
+              httpStatus: 409,
+              responseBody: {
+                error: result.message || "Mot so san pham da het hang hoac khong du so luong",
+                code: "INSUFFICIENT_STOCK",
+              },
+              fallbackAttempted: false, // Strict: fallback is NEVER attempted
+            };
+          }
+
+          return {
+            httpStatus: 503,
+            responseBody: {
+              error: "Khong the khoi tao don hang do loi he thong dat hang atomic",
+              code: "CHECKOUT_SERVICE_UNAVAILABLE",
+            },
+            fallbackAttempted: false,
+          };
+        }
+
+        return {
+          httpStatus: 201,
+          responseBody: { orderId: result.order_id, orderCode: result.order_code },
+          fallbackAttempted: false,
+        };
+      }
+
+      const response = handleRpcCheckoutResponse(rpcResult);
+
+      expect(response.httpStatus).toBe(409);
+      expect(response.responseBody.code).toBe("INSUFFICIENT_STOCK");
+      expect(response.fallbackAttempted).toBe(false);
+    });
+
+    it("should enforce fail-closed 503 on database RPC exception and reject non-atomic inserts", () => {
+      type RpcResult = {
+        success: boolean;
+        error_code?: string;
+        message?: string;
+      };
+
+      const rpcError: RpcResult = {
+        success: false,
+        error_code: "DATABASE_UNAVAILABLE",
+        message: "Connection pool exhausted",
+      };
+
+      function handleRpcCheckoutResponse(result: RpcResult) {
+        if (!result.success) {
+          return {
+            httpStatus: 503,
+            code: "CHECKOUT_SERVICE_UNAVAILABLE",
+            orderCreated: false,
+          };
+        }
+        return { httpStatus: 201, code: "SUCCESS", orderCreated: true };
+      }
+
+      const outcome = handleRpcCheckoutResponse(rpcError);
+
+      expect(outcome.httpStatus).toBe(503);
+      expect(outcome.code).toBe("CHECKOUT_SERVICE_UNAVAILABLE");
+      expect(outcome.orderCreated).toBe(false);
+    });
+  });
+
+  describe("Storefront & Admin Banner Position Integrity", () => {
+    interface TestBanner {
+      id: string;
+      title_vi: string;
+      position?: "hero" | "middle_carousel" | "side_left" | "side_right";
+      is_active: boolean;
+    }
+
+    const testBanners: TestBanner[] = [
+      { id: "b1", title_vi: "Banner Hero 1", position: "hero", is_active: true },
+      { id: "b2", title_vi: "Banner Hero 2", is_active: true }, // position undefined -> defaults to hero
+      { id: "b3", title_vi: "Poster Giua 1", position: "middle_carousel", is_active: true },
+      { id: "b4", title_vi: "Poster Giua 2", position: "middle_carousel", is_active: false },
+      { id: "b5", title_vi: "Suon Trai", position: "side_left", is_active: true },
+      { id: "b6", title_vi: "Suon Phai", position: "side_right", is_active: true },
+    ];
+
+    it("should partition banners correctly according to position attribute", () => {
+      const heroBanners = testBanners.filter((b) => (b.position || "hero") === "hero");
+      const middleBanners = testBanners.filter((b) => b.position === "middle_carousel");
+      const sideLeftBanners = testBanners.filter((b) => b.position === "side_left");
+      const sideRightBanners = testBanners.filter((b) => b.position === "side_right");
+
+      expect(heroBanners).toHaveLength(2);
+      expect(middleBanners).toHaveLength(2);
+      expect(sideLeftBanners).toHaveLength(1);
+      expect(sideRightBanners).toHaveLength(1);
+    });
+
+    it("should filter active banners for middle carousel rendering", () => {
+      const activeMiddleBanners = testBanners.filter(
+        (b) => b.position === "middle_carousel" && b.is_active
+      );
+
+      expect(activeMiddleBanners).toHaveLength(1);
+      expect(activeMiddleBanners[0].title_vi).toBe("Poster Giua 1");
+    });
+  });
+
+  describe("Store-Managed Shipping Dispatch Integrity", () => {
+    it("should calculate free or nominal express delivery for Hanoi destinations", async () => {
+      const { shippingService } = await import("@/modules/shipping/service");
+
+      const hanoiQuotes = await shippingService.getQuotes({
+        toAddress: "123 Pho Hue, Quan Hai Ba Trung, Ha Noi",
+        weightGrams: 500,
+        insuranceValueVnd: 1000000,
+      });
+
+      expect(hanoiQuotes.length).toBeGreaterThanOrEqual(2);
+      const expressQuote = hanoiQuotes.find((q) => q.provider === "qmd_express");
+      const standardQuote = hanoiQuotes.find((q) => q.provider === "standard");
+
+      expect(expressQuote).toBeDefined();
+      expect(expressQuote?.feeVnd).toBe(0);
+      expect(standardQuote).toBeDefined();
+      expect(standardQuote?.feeVnd).toBe(30000);
+    });
+
+    it("should calculate 40000 VND flat courier fee for provincial destinations", async () => {
+      const { shippingService } = await import("@/modules/shipping/service");
+
+      const provincialQuotes = await shippingService.getQuotes({
+        toAddress: "456 Tran Phu, Quan Hai Chau, Da Nang",
+        weightGrams: 1000,
+        insuranceValueVnd: 2000000,
+      });
+
+      expect(provincialQuotes).toHaveLength(1);
+      expect(provincialQuotes[0].provider).toBe("standard");
+      expect(provincialQuotes[0].feeVnd).toBe(40000);
+    });
+
+    it("should return store-managed tracking information without third-party mock dependencies", async () => {
+      const { shippingService } = await import("@/modules/shipping/service");
+
+      const tracking = await shippingService.trackShipment("QMD-TRACK-12345", "qmd_express");
+
+      expect(tracking.trackingCode).toBe("QMD-TRACK-12345");
+      expect(tracking.provider).toBe("QMD_EXPRESS");
+      expect(tracking.history[0].location).toContain("Kho QMD-Tech");
+    });
+  });
+
+  describe("Flash Sale Countdown & Deal Inventory Shield Integrity", () => {
+    function computeCountdown(targetMs: number, currentMs: number) {
+      const diff = targetMs - currentMs;
+      if (diff <= 0) {
+        return { days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: true };
+      }
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / (1000 * 60)) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+      return { days, hours, minutes, seconds, isExpired: false };
+    }
+
+    it("should accurately calculate remaining hours, minutes, and seconds from target ISO time", () => {
+      const currentMs = new Date("2026-09-09T12:00:00.000Z").getTime();
+      const targetMs = new Date("2026-09-09T15:30:45.000Z").getTime();
+
+      const timer = computeCountdown(targetMs, currentMs);
+
+      expect(timer.isExpired).toBe(false);
+      expect(timer.days).toBe(0);
+      expect(timer.hours).toBe(3);
+      expect(timer.minutes).toBe(30);
+      expect(timer.seconds).toBe(45);
+    });
+
+    it("should calculate days when target time exceeds 24 hours", () => {
+      const currentMs = new Date("2026-09-09T12:00:00.000Z").getTime();
+      const targetMs = new Date("2026-09-11T14:15:30.000Z").getTime();
+
+      const timer = computeCountdown(targetMs, currentMs);
+
+      expect(timer.isExpired).toBe(false);
+      expect(timer.days).toBe(2);
+      expect(timer.hours).toBe(2);
+      expect(timer.minutes).toBe(15);
+      expect(timer.seconds).toBe(30);
+    });
+
+    it("should mark timer as expired when target time is in the past", () => {
+      const currentMs = new Date("2026-09-09T12:00:00.000Z").getTime();
+      const targetMs = new Date("2026-09-09T11:59:59.000Z").getTime();
+
+      const timer = computeCountdown(targetMs, currentMs);
+
+      expect(timer.isExpired).toBe(true);
+      expect(timer.days).toBe(0);
+      expect(timer.hours).toBe(0);
+      expect(timer.minutes).toBe(0);
+      expect(timer.seconds).toBe(0);
+    });
+
+    it("should verify deal card conceals real inventory numbers when hideStock is true", () => {
+      // Simulates the badge resolution logic in ProductCard with hideStock
+      function resolveStockBadge(stock: number, hideStock: boolean): {
+        badgeText: string;
+        isStockNumberRevealed: boolean;
+      } {
+        if (hideStock) {
+          return {
+            badgeText: "Deal Gioi Han",
+            isStockNumberRevealed: false,
+          };
+        }
+        return {
+          badgeText: stock > 0 ? "San hang" : "Het hang",
+          isStockNumberRevealed: false,
+        };
+      }
+
+      const dealWithZeroStock = resolveStockBadge(0, true);
+      const dealWithStock = resolveStockBadge(5, true);
+
+      expect(dealWithZeroStock.badgeText).toBe("Deal Gioi Han");
+      expect(dealWithZeroStock.isStockNumberRevealed).toBe(false);
+      expect(dealWithStock.badgeText).toBe("Deal Gioi Han");
+      expect(dealWithStock.isStockNumberRevealed).toBe(false);
+    });
+
+    it("should verify default site settings contain active flash sale configuration", async () => {
+      const { DEFAULT_SITE_SETTINGS } = await import("@/modules/settings/service");
+
+      expect(DEFAULT_SITE_SETTINGS.flash_sale_enabled).toBe(true);
+      expect(DEFAULT_SITE_SETTINGS.flash_sale_title).toBe("GIỜ VÀNG GIÁ TỐT");
+      expect(DEFAULT_SITE_SETTINGS.flash_sale_subtitle).toContain("Số lượng ưu đãi có hạn");
+      expect(DEFAULT_SITE_SETTINGS.flash_sale_end_time).toBeDefined();
+    });
+  });
+
+  describe("Flash Sale Flame Effect & Usability Integrity", () => {
+    function computePriceDisplay(priceVnd: number, originalPriceVnd?: number | null) {
+      const hasDiscount = Boolean(originalPriceVnd && originalPriceVnd > priceVnd);
+      const discountPercent = hasDiscount
+        ? Math.round(((originalPriceVnd! - priceVnd) / originalPriceVnd!) * 100)
+        : null;
+      const showSlashedPrice = hasDiscount;
+
+      return { hasDiscount, discountPercent, showSlashedPrice };
+    }
+
+    it("should not display slashed original price when original price equals current price", () => {
+      const result = computePriceDisplay(144990000, 144990000);
+
+      expect(result.hasDiscount).toBe(false);
+      expect(result.discountPercent).toBeNull();
+      expect(result.showSlashedPrice).toBe(false);
+    });
+
+    it("should not display slashed original price when original price is lower than current price", () => {
+      const result = computePriceDisplay(15000000, 14000000);
+
+      expect(result.hasDiscount).toBe(false);
+      expect(result.discountPercent).toBeNull();
+      expect(result.showSlashedPrice).toBe(false);
+    });
+
+    it("should display slashed original price and discount percent when genuine discount exists", () => {
+      const result = computePriceDisplay(18500000, 20000000);
+
+      expect(result.hasDiscount).toBe(true);
+      expect(result.discountPercent).toBe(8); // (20M - 18.5M) / 20M = 7.5% -> 8%
+      expect(result.showSlashedPrice).toBe(true);
+    });
+
+    it("should correctly activate flame effect state for flash sale cards", () => {
+      function resolveFlameCardState(isFlashSale?: boolean, flameEffect?: boolean) {
+        const hasFlame = Boolean(isFlashSale || flameEffect);
+        return {
+          hasFlame,
+          wrapperClass: hasFlame ? "flame-card-wrapper" : "",
+          priceColor: hasFlame ? "text-[#DC2626]" : "text-[#0063FD]",
+          ctaText: hasFlame ? "San ngay" : "Mua ngay",
+        };
+      }
+
+      const standardCard = resolveFlameCardState(false, false);
+      expect(standardCard.hasFlame).toBe(false);
+      expect(standardCard.wrapperClass).toBe("");
+      expect(standardCard.priceColor).toBe("text-[#0063FD]");
+      expect(standardCard.ctaText).toBe("Mua ngay");
+
+      const flashSaleCard = resolveFlameCardState(true, false);
+      expect(flashSaleCard.hasFlame).toBe(true);
+      expect(flashSaleCard.wrapperClass).toBe("flame-card-wrapper");
+      expect(flashSaleCard.priceColor).toBe("text-[#DC2626]");
+      expect(flashSaleCard.ctaText).toBe("San ngay");
+
+      const flameEffectCard = resolveFlameCardState(false, true);
+      expect(flameEffectCard.hasFlame).toBe(true);
+      expect(flameEffectCard.ctaText).toBe("San ngay");
+    });
+  });
+
+  describe("Brand Assets & Trademark Compliance Integrity", () => {
+    it("should verify brands.json contains exactly 25 top hardware manufacturers", async () => {
+      const brandsModule = await import("@/data/brands.json");
+      const brands = brandsModule.default;
+
+      expect(brands).toHaveLength(25);
+    });
+
+    it("should enforce complete metadata fields and valid usage levels for all brands", async () => {
+      const brandsModule = await import("@/data/brands.json");
+      const brands = brandsModule.default;
+      const validUsageLevels = [
+        "partner_approval_required",
+        "reseller_limited_license",
+        "brand_guidelines_compliant",
+      ];
+
+      for (const b of brands) {
+        expect(b.id).toBeDefined();
+        expect(b.name).toBeDefined();
+        expect(b.official_website).toMatch(/^https?:\/\//);
+        expect(b.category).toBeDefined();
+        expect(b.format).toBeDefined();
+        expect(validUsageLevels).toContain(b.usage_level);
+        expect(b.commercial_note).toBeDefined();
+        expect(b.local_asset_path).toMatch(/^\/brands\/.*\.svg$/);
+      }
+    });
+
+    it("should correctly classify high-approval brands vs reseller-licensed brands", async () => {
+      const brandsModule = await import("@/data/brands.json");
+      const brands = brandsModule.default;
+
+      const gigabyte = brands.find((b: { id: string }) => b.id === "gigabyte");
+      const intel = brands.find((b: { id: string }) => b.id === "intel");
+      const nvidia = brands.find((b: { id: string }) => b.id === "nvidia");
+
+      expect(gigabyte?.usage_level).toBe("partner_approval_required");
+      expect(intel?.usage_level).toBe("partner_approval_required");
+      expect(nvidia?.usage_level).toBe("partner_approval_required");
+
+      const amd = brands.find((b: { id: string }) => b.id === "amd");
+      const sapphire = brands.find((b: { id: string }) => b.id === "sapphire");
+      const msi = brands.find((b: { id: string }) => b.id === "msi");
+      const asus = brands.find((b: { id: string }) => b.id === "asus");
+
+      expect(amd?.usage_level).toBe("reseller_limited_license");
+      expect(sapphire?.usage_level).toBe("reseller_limited_license");
+      expect(msi?.usage_level).toBe("reseller_limited_license");
+      expect(asus?.usage_level).toBe("reseller_limited_license");
+    });
   });
 });

@@ -14,7 +14,6 @@ import {
   ChevronDown,
   ChevronUp,
   Award,
-  Sparkles,
   Users,
   Send,
   X,
@@ -170,7 +169,7 @@ export default function CareerStorefrontPage() {
       <section className="relative overflow-hidden bg-slate-900 py-16 px-4 sm:px-6 lg:px-8 border-b border-slate-800">
         <div className="mx-auto max-w-5xl text-center space-y-4">
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-500/10 px-3.5 py-1 text-xs font-semibold text-blue-400 uppercase tracking-wider">
-            <Sparkles className="h-3.5 w-3.5 text-blue-400" />
+            <Briefcase className="h-3.5 w-3.5 text-blue-400" />
             Cổng Thông Tin Tuyển Dụng
           </div>
 

@@ -73,6 +73,8 @@ import {
   RotateCcw,
   Briefcase,
   Download,
+  Info,
+  Flame,
 } from "lucide-react";
 import {
   MegaCategoryItem,
@@ -198,8 +200,56 @@ export default function AdminDashboardPage() {
     zalo_url: "https://zalo.me/0988888888",
     youtube_url: "https://youtube.com/@qmdtech",
     free_shipping_threshold_vnd: 5000000,
+    flash_sale_enabled: true,
+    flash_sale_title: "GIỜ VÀNG GIÁ TỐT",
+    flash_sale_subtitle: "Linh kiện chính hãng • Bảo hành 1 đổi 1 trong 30 ngày • Số lượng ưu đãi có hạn",
+    flash_sale_end_time: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
   });
   const [isSavingSettings, setIsSavingSettings] = useState(false);
+
+  const formatForDatetimeLocal = (isoString?: string) => {
+    if (!isoString) return "";
+    try {
+      const d = new Date(isoString);
+      if (isNaN(d.getTime())) return "";
+      const pad = (n: number) => String(n).padStart(2, "0");
+      const year = d.getFullYear();
+      const month = pad(d.getMonth() + 1);
+      const day = pad(d.getDate());
+      const hours = pad(d.getHours());
+      const minutes = pad(d.getMinutes());
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    } catch {
+      return "";
+    }
+  };
+
+  const handleQuickUpdateFlashSale = async (endTimeIso: string, isEnabled?: boolean) => {
+    setIsSavingSettings(true);
+    const updatedSettings: SiteSettings = {
+      ...siteSettings,
+      flash_sale_end_time: endTimeIso,
+      ...(isEnabled !== undefined ? { flash_sale_enabled: isEnabled } : {}),
+    };
+    setSiteSettings(updatedSettings);
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedSettings),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Lỗi lưu cấu hình Giờ Vàng");
+      }
+      showNotification("success", "Đã cập nhật thời gian đếm ngược Giờ Vàng Giá Tốt thành công!");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Lỗi lưu cấu hình Giờ Vàng";
+      showNotification("error", msg);
+    } finally {
+      setIsSavingSettings(false);
+    }
+  };
   const [newShowroom, setNewShowroom] = useState<ShowroomLocation>({
     id: "",
     city: "Hà Nội",
@@ -271,6 +321,24 @@ export default function AdminDashboardPage() {
     reading_time_mins: 5,
   });
 
+  // Banner Position Filter & Forms
+  const [bannerPositionFilter, setBannerPositionFilter] = useState<string>("all");
+
+  const bannerPositionCounts = useMemo(() => {
+    return {
+      all: banners.length,
+      hero: banners.filter((b) => (b.position || "hero") === "hero").length,
+      middle_carousel: banners.filter((b) => b.position === "middle_carousel").length,
+      side_left: banners.filter((b) => b.position === "side_left").length,
+      side_right: banners.filter((b) => b.position === "side_right").length,
+    };
+  }, [banners]);
+
+  const filteredBanners = useMemo(() => {
+    if (bannerPositionFilter === "all") return banners;
+    return banners.filter((b) => (b.position || "hero") === bannerPositionFilter);
+  }, [banners, bannerPositionFilter]);
+
   // Edit Banner Form State
   const [editBannerForm, setEditBannerForm] = useState<CreateBannerInput>({
     title_vi: "",
@@ -282,6 +350,7 @@ export default function AdminDashboardPage() {
     target_url: "/danh-muc",
     display_order: 1,
     is_active: true,
+    position: "hero",
   });
 
   // Product Form State
@@ -363,6 +432,7 @@ export default function AdminDashboardPage() {
     target_url: "/danh-muc",
     display_order: 1,
     is_active: true,
+    position: "hero",
   });
 
   // Prebuilt Deal Form State
@@ -942,6 +1012,7 @@ export default function AdminDashboardPage() {
         target_url: "/danh-muc",
         display_order: banners.length + 1,
         is_active: true,
+        position: "hero",
       });
       loadAllData();
     } catch (err: unknown) {
@@ -962,6 +1033,7 @@ export default function AdminDashboardPage() {
       target_url: banner.target_url,
       display_order: banner.display_order,
       is_active: banner.is_active,
+      position: banner.position || "hero",
     });
     setIsEditBannerOpen(true);
   };
@@ -1569,7 +1641,7 @@ export default function AdminDashboardPage() {
             >
               <div className="flex items-center gap-2.5">
                 <ImageIcon className="h-4 w-4" />
-                <span>Banner & Sự kiện</span>
+                <span>Banner & Poster Sự Kiện</span>
               </div>
               <span className={`rounded-full px-2 py-0.5 text-[10px] font-mono ${
                 activeTab === "banners"
@@ -2948,100 +3020,234 @@ export default function AdminDashboardPage() {
           {/* TAB 4: EVENT BANNERS & POSTERS */}
           {/* ========================================================================= */}
           {activeTab === "banners" && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-black uppercase tracking-wider text-[#64748B]">
-                  Danh sách Banner & Poster sự kiện trang chủ ({banners.length} poster)
-                </h3>
+            <div className="space-y-5">
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-black uppercase tracking-wider text-[#0F172A] flex items-center gap-2">
+                    <span>Quản Lý Banner & Poster Sự Kiện Trang Chủ</span>
+                    <span className="rounded-full bg-[#E0EDFF] px-2.5 py-0.5 text-xs font-mono font-bold text-[#0063FD]">
+                      {banners.length} poster
+                    </span>
+                  </h3>
+                  <p className="text-xs text-[#64748B] mt-0.5">
+                    Điều phối banner Hero đầu trang, Poster sự kiện vuốt ngang giữa trang và Banner dọc hai bên sườn màn hình desktop.
+                  </p>
+                </div>
                 <Button
-                  onClick={() => setIsAddBannerOpen(true)}
+                  onClick={() => {
+                    if (bannerPositionFilter !== "all") {
+                      setBannerForm((prev) => ({ ...prev, position: bannerPositionFilter as any }));
+                    }
+                    setIsAddBannerOpen(true);
+                  }}
                   variant="primary"
                   size="sm"
-                  className="gap-1 text-xs font-bold"
+                  className="gap-1 text-xs font-bold shrink-0"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   Đăng Poster Mới
                 </Button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {banners.map((b) => (
-                  <div
-                    key={b.id}
-                    className="rounded-xl border border-[#E2E8F0] bg-white overflow-hidden shadow-xs flex flex-col justify-between hover:border-[#0063FD] transition-all"
-                  >
-                    <div className="relative h-44 w-full bg-[#F1F5F9]">
-                      <Image
-                        src={b.image_url}
-                        alt={b.title_vi}
-                        fill
-                        sizes="(max-width: 768px) 100vw, 33vw"
-                        className="object-cover"
-                      />
-                      <div className="absolute top-2 left-2 rounded bg-[#0063FD] px-2 py-0.5 text-[10px] font-black text-white uppercase shadow-sm">
-                        {b.tag || "SỰ KIỆN"}
-                      </div>
-                      <div className="absolute top-2 right-2">
-                        <span
-                          className={`rounded px-2 py-0.5 text-[10px] font-bold shadow-sm ${
-                            b.is_active
-                              ? "bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC]"
-                              : "bg-[#F1F5F9] text-[#64748B] border border-[#CBD5E1]"
-                          }`}
-                        >
-                          {b.is_active ? "Đang hiển thị" : "Tạm ẩn"}
-                        </span>
-                      </div>
+              {/* Explanatory Guide Box */}
+              <div className="rounded-xl border border-[#BFDBFE] bg-[#EFF6FF] p-4 text-xs text-[#1E3A8A]">
+                <div className="flex items-center gap-2 font-bold text-sm mb-2 text-[#1D4ED8]">
+                  <Info className="h-4 w-4 shrink-0" />
+                  <span>Hướng Dẫn Phân Bổ Vị Trí Banner & Poster Trên Trang Chủ</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                  <div className="rounded-lg bg-white/80 p-3 border border-[#DBEAFE]">
+                    <div className="flex items-center gap-1.5 font-bold text-[#1E40AF] mb-1">
+                      <span className="h-2 w-2 rounded-full bg-[#0063FD]" />
+                      <span>1. Hero đầu trang (hero)</span>
                     </div>
-
-                    <div className="p-4 space-y-2 flex-1">
-                      <div className="flex items-center justify-between text-[10px] font-mono font-bold text-[#64748B]">
-                        <span>Thứ tự: #{b.display_order}</span>
-                        <span className="truncate max-w-[140px] text-[#0063FD]">Link: {b.target_url}</span>
-                      </div>
-                      <h4 className="text-sm font-black text-[#0F172A] line-clamp-1">{b.title_vi}</h4>
-                      {b.subtitle_vi && (
-                        <p className="text-xs text-[#64748B] line-clamp-2">{b.subtitle_vi}</p>
-                      )}
-                    </div>
-
-                    <div className="p-3 border-t border-[#E2E8F0] bg-[#F8FAFC] flex items-center justify-between gap-2">
-                      <button
-                        onClick={() => handleToggleBannerActive(b)}
-                        className={`text-xs font-bold flex items-center gap-1 px-2.5 py-1 rounded-lg border transition-colors ${
-                          b.is_active
-                            ? "border-[#CBD5E1] bg-white text-[#64748B] hover:text-[#0F172A]"
-                            : "border-[#86EFAC] bg-[#DCFCE7] text-[#15803D]"
-                        }`}
-                        title={b.is_active ? "Ẩn khỏi trang chủ" : "Bật hiển thị"}
-                      >
-                        {b.is_active ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                        <span>{b.is_active ? "Ẩn" : "Hiện"}</span>
-                      </button>
-
-                      <div className="flex items-center gap-1.5">
-                        <Button
-                          onClick={() => handleStartEditBanner(b)}
-                          variant="secondary"
-                          size="sm"
-                          className="gap-1 text-xs font-bold"
-                        >
-                          <Pencil className="h-3.5 w-3.5 text-[#0063FD]" />
-                          Sửa
-                        </Button>
-
-                        <button
-                          onClick={() => handleDeleteBanner(b.id)}
-                          className="rounded p-1.5 text-[#DC2626] hover:bg-[#FEE2E2] transition-colors"
-                          title="Xóa poster"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
+                    <p className="text-[11px] text-[#475569] leading-relaxed">
+                      Xuất hiện ở Carousel đầu trang chủ. Chuyển slide tự động, tỷ lệ khuyến nghị 16:9 hoặc 21:9 ngang lớn. Phục vụ các chiến dịch chủ đạo, siêu sale linh kiện và ra mắt sản phẩm.
+                    </p>
                   </div>
-                ))}
+
+                  <div className="rounded-lg bg-white/80 p-3 border border-[#DBEAFE]">
+                    <div className="flex items-center gap-1.5 font-bold text-[#6B21A8] mb-1">
+                      <span className="h-2 w-2 rounded-full bg-[#9333EA]" />
+                      <span>2. Poster giữa trang (middle_carousel)</span>
+                    </div>
+                    <p className="text-[11px] text-[#475569] leading-relaxed">
+                      Đặt ở khu vực giữa trang chủ (ngay sau danh mục và máy ráp sẵn). Hỗ trợ vuốt chạm cảm ứng trên mobile và kéo chuột trên desktop để xem nhiều poster sự kiện liên tiếp.
+                    </p>
+                  </div>
+
+                  <div className="rounded-lg bg-white/80 p-3 border border-[#DBEAFE]">
+                    <div className="flex items-center gap-1.5 font-bold text-[#065F46] mb-1">
+                      <span className="h-2 w-2 rounded-full bg-[#059669]" />
+                      <span>3. Banner sườn desktop (side_left / side_right)</span>
+                    </div>
+                    <p className="text-[11px] text-[#475569] leading-relaxed">
+                      Cố định hai bên rìa mép màn hình desktop (rộng từ 1280px trở lên). Tỷ lệ dọc 1:3 hoặc 1:4. Khách hàng có thể bấm nút X để đóng nhanh, rất tốt cho deal giờ vàng.
+                    </p>
+                  </div>
+                </div>
               </div>
+
+              {/* 5 Position Filter Tabs */}
+              <div className="flex flex-wrap items-center gap-2 border-b border-[#E2E8F0] pb-3">
+                {[
+                  { key: "all", label: "Tất Cả", count: bannerPositionCounts.all },
+                  { key: "hero", label: "Banner Hero Đầu Trang", count: bannerPositionCounts.hero },
+                  { key: "middle_carousel", label: "Poster Giữa Trang (Carousel)", count: bannerPositionCounts.middle_carousel },
+                  { key: "side_left", label: "Sườn Trái Desktop", count: bannerPositionCounts.side_left },
+                  { key: "side_right", label: "Sườn Phải Desktop", count: bannerPositionCounts.side_right },
+                ].map((tab) => {
+                  const isActive = bannerPositionFilter === tab.key;
+                  return (
+                    <button
+                      key={tab.key}
+                      onClick={() => setBannerPositionFilter(tab.key)}
+                      className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${
+                        isActive
+                          ? "bg-[#0063FD] text-white shadow-xs"
+                          : "bg-[#F1F5F9] text-[#64748B] hover:bg-[#E2E8F0] hover:text-[#0F172A]"
+                      }`}
+                    >
+                      <span>{tab.label}</span>
+                      <span
+                        className={`rounded-full px-1.5 py-0.2 text-[10px] font-mono ${
+                          isActive ? "bg-white/20 text-white" : "bg-white text-[#64748B] border border-[#CBD5E1]"
+                        }`}
+                      >
+                        {tab.count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Banner Cards Grid */}
+              {filteredBanners.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-[#CBD5E1] bg-[#F8FAFC] p-12 text-center">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#E2E8F0] text-[#64748B] mb-3">
+                    <ImageIcon className="h-6 w-6" />
+                  </div>
+                  <h4 className="text-sm font-bold text-[#0F172A] mb-1">
+                    Chưa có banner nào ở khu vực này
+                  </h4>
+                  <p className="text-xs text-[#64748B] max-w-md mx-auto mb-4">
+                    Hãy thêm poster sự kiện để làm phong phú giao diện trang chủ và thu hút khách hàng.
+                  </p>
+                  <Button
+                    onClick={() => {
+                      if (bannerPositionFilter !== "all") {
+                        setBannerForm((prev) => ({ ...prev, position: bannerPositionFilter as any }));
+                      }
+                      setIsAddBannerOpen(true);
+                    }}
+                    variant="primary"
+                    size="sm"
+                    className="gap-1 text-xs font-bold"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    Thêm Poster Cho Vị Trí Này
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredBanners.map((b) => {
+                    const pos = b.position || "hero";
+                    const posInfo =
+                      pos === "middle_carousel"
+                        ? { label: "Poster giữa trang (Carousel)", badge: "bg-purple-50 text-purple-700 border-purple-200" }
+                        : pos === "side_left"
+                        ? { label: "Sườn trái desktop", badge: "bg-amber-50 text-amber-700 border-amber-200" }
+                        : pos === "side_right"
+                        ? { label: "Sườn phải desktop", badge: "bg-emerald-50 text-emerald-700 border-emerald-200" }
+                        : { label: "Hero đầu trang", badge: "bg-blue-50 text-blue-700 border-blue-200" };
+
+                    return (
+                      <div
+                        key={b.id}
+                        className="rounded-xl border border-[#E2E8F0] bg-white overflow-hidden shadow-xs flex flex-col justify-between hover:border-[#0063FD] transition-all"
+                      >
+                        <div className="relative h-44 w-full bg-[#F1F5F9]">
+                          <Image
+                            src={b.image_url}
+                            alt={b.title_vi}
+                            fill
+                            sizes="(max-width: 768px) 100vw, 33vw"
+                            className="object-cover"
+                          />
+                          <div className="absolute top-2 left-2 rounded bg-[#0063FD] px-2 py-0.5 text-[10px] font-black text-white uppercase shadow-sm">
+                            {b.tag || "SỰ KIỆN"}
+                          </div>
+                          <div className="absolute top-2 right-2">
+                            <span
+                              className={`rounded px-2 py-0.5 text-[10px] font-bold shadow-sm ${
+                                b.is_active
+                                  ? "bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC]"
+                                  : "bg-[#F1F5F9] text-[#64748B] border border-[#CBD5E1]"
+                              }`}
+                            >
+                              {b.is_active ? "Đang hiển thị" : "Tạm ẩn"}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="p-4 space-y-2 flex-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className={`rounded px-2 py-0.5 text-[10px] font-bold border ${posInfo.badge}`}>
+                              {posInfo.label}
+                            </span>
+                            <span className="text-[10px] font-mono font-bold text-[#64748B]">
+                              Thứ tự: #{b.display_order}
+                            </span>
+                          </div>
+                          <h4 className="text-sm font-black text-[#0F172A] line-clamp-1">{b.title_vi}</h4>
+                          {b.subtitle_vi && (
+                            <p className="text-xs text-[#64748B] line-clamp-2">{b.subtitle_vi}</p>
+                          )}
+                          <div className="text-[10px] font-mono text-[#0063FD] truncate pt-1">
+                            Link: {b.target_url}
+                          </div>
+                        </div>
+
+                        <div className="p-3 border-t border-[#E2E8F0] bg-[#F8FAFC] flex items-center justify-between gap-2">
+                          <button
+                            onClick={() => handleToggleBannerActive(b)}
+                            className={`text-xs font-bold flex items-center gap-1 px-2.5 py-1 rounded-lg border transition-colors ${
+                              b.is_active
+                                ? "border-[#CBD5E1] bg-white text-[#64748B] hover:text-[#0F172A]"
+                                : "border-[#86EFAC] bg-[#DCFCE7] text-[#15803D]"
+                            }`}
+                            title={b.is_active ? "Ẩn khỏi trang chủ" : "Bật hiển thị"}
+                          >
+                            {b.is_active ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                            <span>{b.is_active ? "Ẩn" : "Hiện"}</span>
+                          </button>
+
+                          <div className="flex items-center gap-1.5">
+                            <Button
+                              onClick={() => handleStartEditBanner(b)}
+                              variant="secondary"
+                              size="sm"
+                              className="gap-1 text-xs font-bold"
+                            >
+                              <Pencil className="h-3.5 w-3.5 text-[#0063FD]" />
+                              Sửa
+                            </Button>
+
+                            <button
+                              onClick={() => handleDeleteBanner(b.id)}
+                              className="rounded p-1.5 text-[#DC2626] hover:bg-[#FEE2E2] transition-colors"
+                              title="Xóa poster"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
@@ -3049,7 +3255,141 @@ export default function AdminDashboardPage() {
           {/* TAB 5: PREBUILT PC DEALS (Bố Trí & Sắp Xếp Deal Máy Ráp Sẵn) */}
           {/* ========================================================================= */}
           {activeTab === "deals" && (
-            <div className="space-y-4">
+            <div className="space-y-6">
+              {/* FLASH SALE & COUNTDOWN TIMER MANAGER */}
+              <div className="rounded-xl border border-[#FECDD3] bg-gradient-to-br from-[#FFF1F2] to-[#FFE4E6] p-5 shadow-xs space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#FECDD3] pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#EF4444] text-white shadow-xs">
+                      <Flame className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-sm font-black uppercase tracking-wider text-[#9F1239]">
+                          Điều Phối Giờ Vàng Giá Tốt (Flash Sale)
+                        </h4>
+                        <span
+                          className={`rounded px-2 py-0.5 text-[10px] font-bold ${
+                            siteSettings.flash_sale_enabled
+                              ? "bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC]"
+                              : "bg-[#F1F5F9] text-[#64748B] border border-[#CBD5E1]"
+                          }`}
+                        >
+                          {siteSettings.flash_sale_enabled ? "Đang Hoạt Động" : "Tạm Tắt"}
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#BE123C]">
+                        Tùy chỉnh thời gian kết thúc đếm ngược hiển thị trên trang chủ cho khách hàng.
+                      </p>
+                    </div>
+                  </div>
+
+                  <label className="flex items-center gap-2 cursor-pointer font-bold text-xs text-[#9F1239] self-start sm:self-auto bg-white/80 px-3 py-1.5 rounded-lg border border-[#FECDD3]">
+                    <input
+                      type="checkbox"
+                      checked={siteSettings.flash_sale_enabled ?? true}
+                      onChange={(e) => {
+                        const enabled = e.target.checked;
+                        setSiteSettings((prev) => ({ ...prev, flash_sale_enabled: enabled }));
+                        handleQuickUpdateFlashSale(siteSettings.flash_sale_end_time || new Date().toISOString(), enabled);
+                      }}
+                      className="rounded border-[#CBD5E1] text-[#EF4444] focus:ring-[#EF4444] h-4 w-4"
+                    />
+                    <span>Kích hoạt Giờ Vàng trên trang chủ</span>
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white/90 p-4 rounded-xl border border-[#FECDD3]">
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">
+                      Thời gian kết thúc đếm ngược (End Time) *
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={formatForDatetimeLocal(siteSettings.flash_sale_end_time)}
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          const iso = new Date(e.target.value).toISOString();
+                          setSiteSettings((prev) => ({ ...prev, flash_sale_end_time: iso }));
+                        }
+                      }}
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] font-mono focus:border-[#EF4444] focus:outline-none shadow-2xs font-bold"
+                    />
+                    <p className="text-[11px] text-[#64748B] mt-1">
+                      Đồng hồ đếm ngược trên trang chủ sẽ tự động đếm lùi về mốc thời gian này.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">
+                      Chọn nhanh mốc thời gian kết thúc:
+                    </label>
+                    <div className="flex flex-wrap gap-1.5 pt-0.5">
+                      <button
+                        type="button"
+                        onClick={() => handleQuickUpdateFlashSale(new Date(Date.now() + 2 * 3600 * 1000).toISOString())}
+                        className="rounded-lg border border-[#CBD5E1] bg-white px-2.5 py-1.5 text-xs font-bold text-[#0F172A] hover:border-[#EF4444] hover:text-[#EF4444] transition-colors"
+                      >
+                        +2 Giờ
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleQuickUpdateFlashSale(new Date(Date.now() + 6 * 3600 * 1000).toISOString())}
+                        className="rounded-lg border border-[#CBD5E1] bg-white px-2.5 py-1.5 text-xs font-bold text-[#0F172A] hover:border-[#EF4444] hover:text-[#EF4444] transition-colors"
+                      >
+                        +6 Giờ
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleQuickUpdateFlashSale(new Date(Date.now() + 12 * 3600 * 1000).toISOString())}
+                        className="rounded-lg border border-[#CBD5E1] bg-white px-2.5 py-1.5 text-xs font-bold text-[#0F172A] hover:border-[#EF4444] hover:text-[#EF4444] transition-colors"
+                      >
+                        +12 Giờ
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleQuickUpdateFlashSale(new Date(Date.now() + 24 * 3600 * 1000).toISOString())}
+                        className="rounded-lg border border-[#CBD5E1] bg-white px-2.5 py-1.5 text-xs font-bold text-[#0F172A] hover:border-[#EF4444] hover:text-[#EF4444] transition-colors"
+                      >
+                        +24 Giờ
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const now = new Date();
+                          const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+                          handleQuickUpdateFlashSale(endOfDay.toISOString());
+                        }}
+                        className="rounded-lg border border-[#CBD5E1] bg-white px-2.5 py-1.5 text-xs font-bold text-[#0F172A] hover:border-[#EF4444] hover:text-[#EF4444] transition-colors"
+                      >
+                        Hôm nay 23:59
+                      </button>
+                    </div>
+
+                    <div className="pt-2">
+                      <Button
+                        type="button"
+                        onClick={() => handleQuickUpdateFlashSale(siteSettings.flash_sale_end_time || new Date().toISOString(), siteSettings.flash_sale_enabled)}
+                        disabled={isSavingSettings}
+                        variant="primary"
+                        size="sm"
+                        className="bg-[#EF4444] hover:bg-[#DC2626] font-bold text-xs"
+                      >
+                        {isSavingSettings ? "Đang lưu..." : "Cập Nhật Ngay Lên Trang Khách"}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-lg bg-white/70 p-2.5 border border-[#FECDD3] text-[11px] text-[#9F1239] flex items-center gap-2">
+                  <Info className="h-4 w-4 shrink-0 text-[#EF4444]" />
+                  <span>
+                    Chính sách hiển thị: Toàn bộ số lượng tồn kho thực tế của sản phẩm deal trong Giờ Vàng đều được hệ thống ẩn hoàn toàn đối với khách hàng (chỉ hiển thị nhãn "Deal Giới Hạn").
+                  </span>
+                </div>
+              </div>
+
+              {/* Header */}
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-xs font-black uppercase tracking-wider text-[#64748B]">
@@ -4373,11 +4713,110 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              {/* Grid 3: Bo Cong Thuong Legal Registration */}
+              {/* Grid 3: Flash Sale / Golden Hour Settings */}
+              <div className="rounded-xl border border-[#FECDD3] bg-[#FFF1F2] p-6 shadow-xs space-y-4">
+                <div className="flex items-center justify-between border-b border-[#FECDD3] pb-3">
+                  <div className="flex items-center gap-2 text-[#9F1239] font-black uppercase text-xs">
+                    <Flame className="h-4 w-4 text-[#EF4444]" />
+                    <span>3. Cấu Hình Giờ Vàng Giá Tốt (Flash Sale & Countdown Timer)</span>
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer font-bold text-xs text-[#9F1239]">
+                    <input
+                      type="checkbox"
+                      checked={siteSettings.flash_sale_enabled ?? true}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, flash_sale_enabled: e.target.checked })}
+                      className="rounded border-[#CBD5E1] text-[#EF4444] focus:ring-[#EF4444] h-4 w-4"
+                    />
+                    <span>Kích hoạt hiển thị trên trang chủ</span>
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">Tiêu Đề Chương Trình *</label>
+                    <input
+                      required
+                      type="text"
+                      value={siteSettings.flash_sale_title || "GIỜ VÀNG GIÁ TỐT"}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, flash_sale_title: e.target.value })}
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] focus:border-[#EF4444] focus:outline-none shadow-2xs font-bold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#1E293B] mb-1">Thời Gian Kết Thúc Đếm Ngược (End Time) *</label>
+                    <input
+                      type="datetime-local"
+                      value={formatForDatetimeLocal(siteSettings.flash_sale_end_time)}
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          setSiteSettings({ ...siteSettings, flash_sale_end_time: new Date(e.target.value).toISOString() });
+                        }
+                      }}
+                      className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] font-mono focus:border-[#EF4444] focus:outline-none shadow-2xs font-bold"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#1E293B] mb-1">Thông Điệp Phụ / Thể Lệ Chương Trình</label>
+                  <input
+                    type="text"
+                    value={siteSettings.flash_sale_subtitle || ""}
+                    onChange={(e) => setSiteSettings({ ...siteSettings, flash_sale_subtitle: e.target.value })}
+                    className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2.5 text-xs text-[#0F172A] focus:border-[#EF4444] focus:outline-none shadow-2xs"
+                  />
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <span className="text-[11px] font-bold text-[#9F1239]">Chọn nhanh mốc thời gian:</span>
+                  <button
+                    type="button"
+                    onClick={() => setSiteSettings({ ...siteSettings, flash_sale_end_time: new Date(Date.now() + 2 * 3600 * 1000).toISOString() })}
+                    className="rounded-lg border border-[#FECDD3] bg-white px-2.5 py-1 text-xs font-bold text-[#0F172A] hover:text-[#EF4444] shadow-2xs"
+                  >
+                    +2 Giờ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSiteSettings({ ...siteSettings, flash_sale_end_time: new Date(Date.now() + 6 * 3600 * 1000).toISOString() })}
+                    className="rounded-lg border border-[#FECDD3] bg-white px-2.5 py-1 text-xs font-bold text-[#0F172A] hover:text-[#EF4444] shadow-2xs"
+                  >
+                    +6 Giờ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSiteSettings({ ...siteSettings, flash_sale_end_time: new Date(Date.now() + 12 * 3600 * 1000).toISOString() })}
+                    className="rounded-lg border border-[#FECDD3] bg-white px-2.5 py-1 text-xs font-bold text-[#0F172A] hover:text-[#EF4444] shadow-2xs"
+                  >
+                    +12 Giờ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSiteSettings({ ...siteSettings, flash_sale_end_time: new Date(Date.now() + 24 * 3600 * 1000).toISOString() })}
+                    className="rounded-lg border border-[#FECDD3] bg-white px-2.5 py-1 text-xs font-bold text-[#0F172A] hover:text-[#EF4444] shadow-2xs"
+                  >
+                    +24 Giờ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const now = new Date();
+                      const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+                      setSiteSettings({ ...siteSettings, flash_sale_end_time: endOfDay.toISOString() });
+                    }}
+                    className="rounded-lg border border-[#FECDD3] bg-white px-2.5 py-1 text-xs font-bold text-[#0F172A] hover:text-[#EF4444] shadow-2xs"
+                  >
+                    Hôm nay 23:59
+                  </button>
+                </div>
+              </div>
+
+              {/* Grid 4: Bo Cong Thuong Legal Registration */}
               <div className="rounded-xl border border-[#CBD5E1] bg-white p-6 shadow-xs space-y-4">
                 <div className="flex items-center gap-2 text-[#0063FD] font-black uppercase text-xs border-b border-[#E2E8F0] pb-3">
                   <ShieldCheck className="h-4 w-4" />
-                  <span>3. Pháp Lý Website & Đăng Ký Bộ Công Thương</span>
+                  <span>4. Pháp Lý Website & Đăng Ký Bộ Công Thương</span>
                 </div>
 
                 <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 space-y-3">
@@ -5156,6 +5595,20 @@ export default function AdminDashboardPage() {
       >
         <form onSubmit={handleCreateBanner} className="space-y-3 text-xs">
           <div>
+            <label className="block font-bold text-[#1E293B] mb-1">Vị trí hiển thị trên website *</label>
+            <select
+              value={bannerForm.position || "hero"}
+              onChange={(e) => setBannerForm({ ...bannerForm, position: e.target.value as any })}
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs font-semibold text-xs"
+            >
+              <option value="hero">Banner Hero đầu trang (Carousel lớn trên cùng)</option>
+              <option value="middle_carousel">Poster sự kiện giữa trang (Carousel vuốt ngang tương tác)</option>
+              <option value="side_left">Banner dọc sườn trái (Cố định góc trái desktop)</option>
+              <option value="side_right">Banner dọc sườn phải (Cố định góc phải desktop)</option>
+            </select>
+          </div>
+
+          <div>
             <label className="block font-bold text-[#1E293B] mb-1">Tiêu đề Poster (Tiếng Việt) *</label>
             <input
               required
@@ -5228,6 +5681,20 @@ export default function AdminDashboardPage() {
         maxWidth="lg"
       >
         <form onSubmit={handleUpdateBanner} className="space-y-3 text-xs">
+          <div>
+            <label className="block font-bold text-[#1E293B] mb-1">Vị trí hiển thị trên website *</label>
+            <select
+              value={editBannerForm.position || "hero"}
+              onChange={(e) => setEditBannerForm({ ...editBannerForm, position: e.target.value as any })}
+              className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs font-semibold text-xs"
+            >
+              <option value="hero">Banner Hero đầu trang (Carousel lớn trên cùng)</option>
+              <option value="middle_carousel">Poster sự kiện giữa trang (Carousel vuốt ngang tương tác)</option>
+              <option value="side_left">Banner dọc sườn trái (Cố định góc trái desktop)</option>
+              <option value="side_right">Banner dọc sườn phải (Cố định góc phải desktop)</option>
+            </select>
+          </div>
+
           <div>
             <label className="block font-bold text-[#1E293B] mb-1">Tiêu đề Poster (Tiếng Việt) *</label>
             <input

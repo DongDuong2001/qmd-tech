@@ -7,7 +7,7 @@ export interface ShippingFeeCalculationInput {
 }
 
 export interface ShippingFeeResult {
-  provider: "ghn" | "ghtk";
+  provider: "qmd_express" | "standard" | "ghn" | "ghtk";
   serviceName: string;
   feeVnd: number;
   expectedDeliveryDays: number;

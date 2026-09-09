@@ -104,11 +104,13 @@ DECLARE
     v_total_price BIGINT;
     v_rows INT;
 BEGIN
+    SET search_path = public, extensions;
+
     -- Extract order id or generate new one
     IF p_order->>'id' IS NOT NULL AND p_order->>'id' <> '' THEN
         v_order_id := (p_order->>'id')::UUID;
     ELSE
-        v_order_id := uuid_generate_v4();
+        v_order_id := gen_random_uuid();
     END IF;
 
     -- Step A: Validate and atomically decrement stock for all items
@@ -198,7 +200,7 @@ BEGIN
             total_price_vnd,
             created_at
         ) VALUES (
-            CASE WHEN v_item.value->>'id' IS NOT NULL AND v_item.value->>'id' <> '' THEN (v_item.value->>'id')::UUID ELSE uuid_generate_v4() END,
+            CASE WHEN v_item.value->>'id' IS NOT NULL AND v_item.value->>'id' <> '' THEN (v_item.value->>'id')::UUID ELSE gen_random_uuid() END,
             v_order_id,
             v_product_id,
             v_quantity,

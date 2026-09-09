@@ -171,7 +171,7 @@ export async function POST(req: NextRequest) {
       shippingCity,
       shippingDistrict,
       paymentMethod = "sepay",
-      shippingProvider = "ghn",
+      shippingProvider = "standard",
       items = [],
       notes,
       customBuildId,
@@ -335,58 +335,50 @@ export async function POST(req: NextRequest) {
       total_price_vnd: item.total_price_vnd,
     }));
 
-    // 6. Attempt atomic transaction via create_order_atomic RPC (Single DB Transaction)
-    let atomicSuccess = false;
+    // 6. Execute atomic transaction via create_order_atomic RPC (Single DB Transaction)
     const { data: rpcData, error: rpcError } = await db.rpc("create_order_atomic", {
       p_order: orderPayload,
       p_items: orderItemsPayload,
     });
 
-    if (!rpcError && rpcData) {
-      atomicSuccess = true;
-    } else if (rpcError) {
+    if (rpcError) {
+      console.error("create_order_atomic RPC error:", rpcError);
       // Check for business validation errors from RPC (e.g. stock exhaustion or invalid quantity)
-      if (rpcError.message?.includes("ton kho") || rpcError.message?.includes("So luong")) {
+      if (
+        rpcError.message?.includes("ton kho") ||
+        rpcError.message?.includes("So luong") ||
+        rpcError.message?.includes("khong ton tai")
+      ) {
         return NextResponse.json(
           { success: false, error: rpcError.message },
           { status: 409 }
         );
       }
-      console.warn("Atomic RPC unavailable or returned error, executing fail-safe transactional path:", rpcError.message);
+
+      // Fail-closed: Never fallback to partial non-atomic insert
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Hệ thống xử lý đơn hàng đang bận hoặc gặp sự cố tạm thời. Vui lòng thử lại sau.",
+        },
+        { status: 503 }
+      );
     }
 
-    if (!atomicSuccess) {
-      // Fail-safe transactional fallback with automatic rollback capability
-      const { error: orderError } = await db.from("orders").insert(orderPayload);
-      if (orderError) {
-        console.error("Supabase insert order error:", orderError);
-        return NextResponse.json(
-          { success: false, error: "Không thể lưu đơn hàng vào hệ thống. Vui lòng thử lại sau." },
-          { status: 500 }
-        );
-      }
+    if (!rpcData) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Không thể khởi tạo đơn hàng. Giao dịch đã được hủy an toàn.",
+        },
+        { status: 500 }
+      );
+    }
 
-      const { error: itemsError } = await db.from("order_items").insert(orderItemsPayload);
-      if (itemsError) {
-        console.error("Supabase insert order_items failed, rolling back order:", itemsError);
-        // Clean rollback: delete created order to avoid dangling orphan order records
-        await db.from("orders").delete().eq("id", order.id);
-        return NextResponse.json(
-          { success: false, error: "Không thể lưu chi tiết đơn hàng. Giao dịch đã được hủy an toàn." },
-          { status: 500 }
-        );
-      }
-
-      // Concurrency-safe stock decrement with boundary check
-      for (const item of verifiedItems) {
-        const { data: stockOk, error: decrError } = await db.rpc("decrement_product_stock", {
-          p_product_id: item.product_id,
-          p_quantity: item.quantity,
-        });
-
-        if (decrError || stockOk === false) {
-          console.warn(`Stock decrement notice for product ${item.product_id}:`, decrError?.message);
-        }
+    if (typeof rpcData === "object" && rpcData !== null && "total_vnd" in rpcData) {
+      const canonicalTotal = Number((rpcData as Record<string, unknown>).total_vnd);
+      if (!Number.isNaN(canonicalTotal) && canonicalTotal > 0) {
+        order.total_vnd = canonicalTotal;
       }
     }
 
