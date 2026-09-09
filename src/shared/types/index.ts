@@ -141,7 +141,7 @@ export interface Order {
   payment_method: "sepay" | "vnpay" | "momo" | "zalopay" | "stripe" | "cod" | "bank_transfer";
   payment_status: "unpaid" | "paid" | "failed" | "refunded";
   payment_transaction_id?: string;
-  shipping_provider?: "ghn" | "ghtk" | "express";
+  shipping_provider?: "ghn" | "ghtk" | "express" | "qmd_express" | "standard";
   tracking_code?: string;
   custom_build_id?: string;
   order_access_token?: string;
@@ -175,6 +175,7 @@ export interface EventBanner {
   target_url: string;
   display_order: number;
   is_active: boolean;
+  position?: "hero" | "middle_carousel" | "side_left" | "side_right";
   created_at?: string;
 }
 
