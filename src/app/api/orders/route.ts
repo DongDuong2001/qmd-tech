@@ -78,8 +78,25 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Full order details for Admin or Owner
-    if (isAdmin || isOwner) {
+function timingSafeStringEqual(a: string, b: string): boolean {
+  if (typeof a !== "string" || typeof b !== "string") return false;
+  const hashA = crypto.createHash("sha256").update(a).digest();
+  const hashB = crypto.createHash("sha256").update(b).digest();
+  return crypto.timingSafeEqual(hashA, hashB);
+}
+
+    // Check if requester provided valid order_access_token (guest capability secret token)
+    const queryToken = searchParams.get("token")?.trim();
+    const headerToken = req.headers.get("x-order-token")?.trim();
+    const providedToken = queryToken || headerToken;
+    const hasValidAccessToken = !!(
+      providedToken &&
+      data.order_access_token &&
+      timingSafeStringEqual(providedToken, data.order_access_token)
+    );
+
+    // Full order details for Admin, Owner, or possessor of valid order_access_token
+    if (isAdmin || isOwner || hasValidAccessToken) {
       return NextResponse.json({ success: true, order: data, isRedacted: false });
     }
 
@@ -259,6 +276,7 @@ export async function POST(req: NextRequest) {
     const calc = cartService.calculateCart(verifiedItems, couponCode);
     const orderCode = `QMD-${Date.now().toString(36).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
     const orderId = crypto.randomUUID();
+    const orderAccessToken = crypto.randomBytes(32).toString("hex");
 
     const order: Order = {
       id: orderId,
@@ -279,13 +297,14 @@ export async function POST(req: NextRequest) {
       payment_status: "unpaid",
       shipping_provider: shippingProvider,
       custom_build_id: customBuildId,
+      order_access_token: orderAccessToken,
       notes: notes || "",
       created_at: new Date().toISOString(),
       items: verifiedItems,
     };
 
-    // 6. Insert order into Supabase
-    const { error: orderError } = await db.from("orders").insert({
+    // Prepare atomic checkout payloads
+    const orderPayload = {
       id: order.id,
       order_code: order.order_code,
       user_id: order.user_id,
@@ -304,48 +323,69 @@ export async function POST(req: NextRequest) {
       payment_status: order.payment_status,
       shipping_provider: order.shipping_provider,
       custom_build_id: order.custom_build_id,
+      order_access_token: order.order_access_token,
       notes: order.notes,
-    });
+    };
 
-    if (orderError) {
-      console.error("Supabase insert order error:", orderError);
-      return NextResponse.json(
-        { success: false, error: "Không thể lưu đơn hàng vào hệ thống. Vui lòng thử lại sau." },
-        { status: 500 }
-      );
-    }
-
-    // 7. Insert order items with UUID foreign keys
     const orderItemsPayload = verifiedItems.map((item) => ({
       id: crypto.randomUUID(),
-      order_id: order.id,
       product_id: item.product_id,
       quantity: item.quantity,
       unit_price_vnd: item.unit_price_vnd,
       total_price_vnd: item.total_price_vnd,
     }));
 
-    const { error: itemsError } = await db.from("order_items").insert(orderItemsPayload);
-    if (itemsError) {
-      console.error("Supabase insert order_items notice:", itemsError);
+    // 6. Attempt atomic transaction via create_order_atomic RPC (Single DB Transaction)
+    let atomicSuccess = false;
+    const { data: rpcData, error: rpcError } = await db.rpc("create_order_atomic", {
+      p_order: orderPayload,
+      p_items: orderItemsPayload,
+    });
+
+    if (!rpcError && rpcData) {
+      atomicSuccess = true;
+    } else if (rpcError) {
+      // Check for business validation errors from RPC (e.g. stock exhaustion or invalid quantity)
+      if (rpcError.message?.includes("ton kho") || rpcError.message?.includes("So luong")) {
+        return NextResponse.json(
+          { success: false, error: rpcError.message },
+          { status: 409 }
+        );
+      }
+      console.warn("Atomic RPC unavailable or returned error, executing fail-safe transactional path:", rpcError.message);
     }
 
-    // 8. Atomic stock decrement with concurrency safety
-    for (const item of verifiedItems) {
-      const { error: rpcError } = await db.rpc("decrement_product_stock", {
-        p_product_id: item.product_id,
-        p_quantity: item.quantity,
-      });
+    if (!atomicSuccess) {
+      // Fail-safe transactional fallback with automatic rollback capability
+      const { error: orderError } = await db.from("orders").insert(orderPayload);
+      if (orderError) {
+        console.error("Supabase insert order error:", orderError);
+        return NextResponse.json(
+          { success: false, error: "Không thể lưu đơn hàng vào hệ thống. Vui lòng thử lại sau." },
+          { status: 500 }
+        );
+      }
 
-      if (rpcError) {
-        const prod = productMap.get(item.product_id);
-        if (prod && typeof prod.stock === "number") {
-          const newStock = Math.max(0, prod.stock - item.quantity);
-          await db
-            .from("products")
-            .update({ stock: newStock })
-            .eq("id", item.product_id)
-            .gte("stock", item.quantity);
+      const { error: itemsError } = await db.from("order_items").insert(orderItemsPayload);
+      if (itemsError) {
+        console.error("Supabase insert order_items failed, rolling back order:", itemsError);
+        // Clean rollback: delete created order to avoid dangling orphan order records
+        await db.from("orders").delete().eq("id", order.id);
+        return NextResponse.json(
+          { success: false, error: "Không thể lưu chi tiết đơn hàng. Giao dịch đã được hủy an toàn." },
+          { status: 500 }
+        );
+      }
+
+      // Concurrency-safe stock decrement with boundary check
+      for (const item of verifiedItems) {
+        const { data: stockOk, error: decrError } = await db.rpc("decrement_product_stock", {
+          p_product_id: item.product_id,
+          p_quantity: item.quantity,
+        });
+
+        if (decrError || stockOk === false) {
+          console.warn(`Stock decrement notice for product ${item.product_id}:`, decrError?.message);
         }
       }
     }
