@@ -300,3 +300,5 @@ export type {
   UpdateApplicationStatusInput,
 } from "@/modules/careers/types";
 
+export * from "./brand";
+
