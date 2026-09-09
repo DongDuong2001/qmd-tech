@@ -98,7 +98,12 @@ describe("Production Audit Phase 2: Stock Decrement & Atomic Order Integrity", (
         ]),
       };
 
-      const requestedItems: CartItem[] = [
+      const requestedItems: Array<{
+        product_id: string;
+        quantity: number;
+        unit_price_vnd: number;
+        total_price_vnd: number;
+      }> = [
         {
           product_id: "prod-1",
           quantity: 2,
