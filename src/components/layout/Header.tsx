@@ -1,15 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Link, useRouter } from "@/i18n/routing";
 import { useCart } from "@/shared/context/CartContext";
 import { Button } from "@/components/ui/button";
 import {
-  Search,
-  ShoppingCart,
-  Wrench,
   Phone,
   ShieldCheck,
   User,
@@ -23,6 +20,14 @@ import {
   BookOpen,
 } from "lucide-react";
 import {
+  CartIcon,
+  type CartIconHandle,
+  WrenchIcon,
+  type WrenchIconHandle,
+  SearchIcon,
+  type SearchIconHandle,
+} from "@/components/icons";
+import {
   CategoryMegaMenu,
   MobileCategoryAccordion,
 } from "@/components/navigation/CategoryMegaMenu";
@@ -33,6 +38,13 @@ export function Header() {
   const { cartCount } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const desktopCartRef = useRef<CartIconHandle>(null);
+  const desktopWrenchRef = useRef<WrenchIconHandle>(null);
+  const desktopSearchRef = useRef<SearchIconHandle>(null);
+  const mobileCartRef = useRef<CartIconHandle>(null);
+  const mobileWrenchRef = useRef<WrenchIconHandle>(null);
+  const mobileSearchRef = useRef<SearchIconHandle>(null);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -132,15 +144,26 @@ export function Header() {
 
           {/* Search Bar (Desktop) */}
           <div className="hidden lg:flex flex-1 max-w-lg xl:max-w-xl mx-2 xl:mx-4">
-            <form onSubmit={handleSearch} className="relative w-full">
+            <form
+              onSubmit={handleSearch}
+              className="relative w-full"
+              onMouseEnter={() => desktopSearchRef.current?.startAnimation()}
+              onMouseLeave={() => desktopSearchRef.current?.stopAnimation()}
+            >
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => desktopSearchRef.current?.startAnimation()}
+                onBlur={() => desktopSearchRef.current?.stopAnimation()}
                 placeholder="Tìm kiếm linh kiện, CPU, RTX 4070 Ti, Mainboard, RAM..."
                 className="w-full rounded-xl border border-[#CBD5E1] bg-[#F8FAFC] py-2.5 pl-10 pr-4 text-xs sm:text-sm text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0063FD] transition-all shadow-2xs"
               />
-              <Search className="absolute left-3.5 top-3 h-4 w-4 text-[#64748B]" />
+              <SearchIcon
+                ref={desktopSearchRef}
+                size={16}
+                className="absolute left-3.5 top-3 text-[#64748B] pointer-events-none"
+              />
             </form>
           </div>
 
@@ -158,13 +181,18 @@ export function Header() {
             </div>
 
             {/* Custom PC Builder CTA in Electric Blue */}
-            <Link href="/build-pc" className="hidden sm:inline-flex">
+            <Link
+              href="/build-pc"
+              className="hidden sm:inline-flex"
+              onMouseEnter={() => desktopWrenchRef.current?.startAnimation()}
+              onMouseLeave={() => desktopWrenchRef.current?.stopAnimation()}
+            >
               <Button
                 variant="primary"
                 size="sm"
                 className="gap-1.5 text-xs font-black uppercase tracking-wider py-2 shadow-xs"
               >
-                <Wrench className="h-4 w-4 text-white" />
+                <WrenchIcon ref={desktopWrenchRef} size={16} className="text-white" />
                 <span>Xây Dựng Cấu Hình PC</span>
               </Button>
             </Link>
@@ -173,8 +201,10 @@ export function Header() {
             <Link
               href="/gio-hang"
               className="relative flex items-center gap-1.5 rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-xs font-bold text-[#0F172A] hover:border-[#0063FD] hover:text-[#0063FD] transition-colors shadow-2xs"
+              onMouseEnter={() => desktopCartRef.current?.startAnimation()}
+              onMouseLeave={() => desktopCartRef.current?.stopAnimation()}
             >
-              <ShoppingCart className="h-4 w-4 text-[#0063FD]" />
+              <CartIcon ref={desktopCartRef} size={16} className="text-[#0063FD]" />
               <span className="hidden md:inline font-bold">Giỏ hàng</span>
               {cartCount > 0 && (
                 <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#0063FD] px-1 text-[10px] font-black text-white shadow-xs">
@@ -205,15 +235,26 @@ export function Header() {
 
         {/* Mobile Inline Search Bar */}
         <div className="mt-2.5 lg:hidden">
-          <form onSubmit={handleSearch} className="relative w-full">
+          <form
+            onSubmit={handleSearch}
+            className="relative w-full"
+            onMouseEnter={() => mobileSearchRef.current?.startAnimation()}
+            onMouseLeave={() => mobileSearchRef.current?.stopAnimation()}
+          >
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => mobileSearchRef.current?.startAnimation()}
+              onBlur={() => mobileSearchRef.current?.stopAnimation()}
               placeholder="Tìm CPU, RTX 4070 Ti, B650, RAM..."
               className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2 pl-9 pr-3 text-xs text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
             />
-            <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-[#64748B]" />
+            <SearchIcon
+              ref={mobileSearchRef}
+              size={14}
+              className="absolute left-3 top-2.5 text-[#64748B] pointer-events-none"
+            />
           </form>
         </div>
       </div>
@@ -253,17 +294,21 @@ export function Header() {
               href="/build-pc"
               onClick={() => setMobileMenuOpen(false)}
               className="flex items-center gap-2 rounded-lg bg-[#0063FD] p-2.5 text-white"
+              onMouseEnter={() => mobileWrenchRef.current?.startAnimation()}
+              onMouseLeave={() => mobileWrenchRef.current?.stopAnimation()}
             >
-              <Wrench className="h-4 w-4" />
+              <WrenchIcon ref={mobileWrenchRef} size={16} />
               Build PC
             </Link>
             <Link
               href="/gio-hang"
               onClick={() => setMobileMenuOpen(false)}
               className="flex items-center justify-between rounded-lg bg-[#F8FAFC] border border-[#CBD5E1] p-2.5 text-[#0F172A]"
+              onMouseEnter={() => mobileCartRef.current?.startAnimation()}
+              onMouseLeave={() => mobileCartRef.current?.stopAnimation()}
             >
               <div className="flex items-center gap-2">
-                <ShoppingCart className="h-4 w-4 text-[#0063FD]" />
+                <CartIcon ref={mobileCartRef} size={16} className="text-[#0063FD]" />
                 Giỏ hàng
               </div>
               {cartCount > 0 && (
