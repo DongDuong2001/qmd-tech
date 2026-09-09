@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import { EventBanner } from "@/shared/types";
-import { ChevronLeft, ChevronRight, Sparkles, ArrowRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Tag, ArrowRight } from "lucide-react";
 
 interface EventPosterCarouselProps {
   banners: EventBanner[];
@@ -106,7 +106,7 @@ export function EventPosterCarousel({ banners }: EventPosterCarouselProps) {
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E2E8F0] pb-3">
           <div className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0063FD] text-white shadow-xs">
-              <Sparkles className="h-5 w-5" />
+              <Tag className="h-5 w-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
