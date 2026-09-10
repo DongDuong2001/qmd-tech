@@ -7,6 +7,7 @@ import { reviewService } from "@/modules/reviews/service";
 import { i18nService } from "@/modules/i18n/service";
 import { Badge } from "@/components/ui/badge";
 import { ProductDetailActions } from "./ProductDetailActions";
+import { DynamicProductSpecs } from "@/components/product/DynamicProductSpecs";
 import { escapeJsonLd } from "@/shared/lib/sanitize";
 import {
   ShieldCheck,
@@ -181,47 +182,8 @@ export default async function ProductDetailPage({
         </div>
       </div>
 
-      {/* Specifications Table */}
-      <div className="rounded-2xl border border-[#E4E7EC] bg-[#FFFFFF] p-6 sm:p-8 shadow-xs space-y-6">
-        <h2 className="text-xl font-bold text-[#0F172A] border-b border-[#E4E7EC] pb-4">
-          {t("common.specs")} Chi Tiết
-        </h2>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs font-mono">
-            <tbody>
-              {Object.entries(product.specs).map(([key, value], idx) => {
-                if (value === undefined || value === null) return null;
-                const formattedKey = key
-                  .replace(/_/g, " ")
-                  .replace(/\b\w/g, (l) => l.toUpperCase());
-
-                const displayValue = Array.isArray(value)
-                  ? value.join(", ")
-                  : typeof value === "boolean"
-                  ? value ? "Có (Yes)" : "Không (No)"
-                  : String(value);
-
-                return (
-                  <tr
-                    key={key}
-                    className={`border-b border-[#E4E7EC] ${
-                      idx % 2 === 0 ? "bg-[#F8FAFC]" : "bg-white"
-                    }`}
-                  >
-                    <td className="py-3 px-4 font-semibold text-[#64748B] w-1/3">
-                      {formattedKey}
-                    </td>
-                    <td className="py-3 px-4 text-[#0F172A] font-bold">
-                      {displayValue}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      {/* Dynamic Specifications Table */}
+      <DynamicProductSpecs product={product} locale={locale as "vi" | "en"} />
 
       {/* Customer Reviews Section */}
       <div className="rounded-2xl border border-[#E4E7EC] bg-[#FFFFFF] p-6 sm:p-8 shadow-xs space-y-6">
