@@ -3,6 +3,8 @@ import { getServiceSupabase } from "@/shared/db/supabase";
 import { requireAdmin } from "@/shared/security/adminAuth";
 import { Product } from "@/shared/types";
 import { slugifyVietnamese } from "@/shared/lib/sanitize";
+import { validateAndNormalizeSpecs } from "@/modules/catalog/specRegistry";
+import { DEFAULT_HARDWARE_CATEGORIES } from "@/modules/admin/service";
 
 export async function GET(req: NextRequest) {
   try {
@@ -44,6 +46,7 @@ export async function POST(req: NextRequest) {
       sku,
       brand,
       category_id,
+      category_slug,
       price_vnd,
       original_price_vnd,
       price_usd,
@@ -74,6 +77,38 @@ export async function POST(req: NextRequest) {
     }
 
     const cleanSlug = slugifyVietnamese(slug || name_vi, "product");
+    const db = getServiceSupabase();
+
+    // Determine category slug for spec validation
+    let resolvedCategorySlug = category_slug || "";
+    if (!resolvedCategorySlug && category_id) {
+      const match = DEFAULT_HARDWARE_CATEGORIES.find((c) => c.id === category_id);
+      if (match) {
+        resolvedCategorySlug = match.slug;
+      } else {
+        const { data: catData } = await db
+          .from("categories")
+          .select("slug")
+          .eq("id", category_id)
+          .maybeSingle();
+        if (catData?.slug) resolvedCategorySlug = catData.slug;
+      }
+    }
+
+    let finalSpecs = typeof specs === "object" && specs !== null ? specs : {};
+    if (resolvedCategorySlug) {
+      const specValidation = validateAndNormalizeSpecs(resolvedCategorySlug, finalSpecs);
+      if (!specValidation.isValid) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Thông số kỹ thuật không hợp lệ: ${specValidation.errors.join("; ")}`,
+          },
+          { status: 400 }
+        );
+      }
+      finalSpecs = specValidation.normalizedSpecs;
+    }
 
     const newProductPayload = {
       name_vi: name_vi.trim(),
@@ -87,12 +122,11 @@ export async function POST(req: NextRequest) {
       price_usd: price_usd ? Number(price_usd) : Math.round(parsedPrice / 25400),
       stock: parsedStock,
       images: Array.isArray(images) && images.length > 0 ? images : ["https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea"],
-      specs: typeof specs === "object" && specs !== null ? specs : {},
+      specs: finalSpecs,
       warranty_months: Number(warranty_months) || 36,
       is_featured: Boolean(is_featured),
     };
 
-    const db = getServiceSupabase();
     const { data, error } = await db
       .from("products")
       .insert([newProductPayload])
@@ -130,6 +164,54 @@ export async function PUT(req: NextRequest) {
     }
 
     const db = getServiceSupabase();
+
+    if (updates.specs && typeof updates.specs === "object") {
+      let resolvedCategorySlug = updates.category_slug || "";
+      if (!resolvedCategorySlug) {
+        const effectiveCatId = updates.category_id;
+        if (effectiveCatId) {
+          const match = DEFAULT_HARDWARE_CATEGORIES.find((c) => c.id === effectiveCatId);
+          if (match) resolvedCategorySlug = match.slug;
+        }
+        if (!resolvedCategorySlug) {
+          const { data: prodData } = await db
+            .from("products")
+            .select("category_id")
+            .eq("id", id)
+            .maybeSingle();
+          if (prodData?.category_id) {
+            const match = DEFAULT_HARDWARE_CATEGORIES.find((c) => c.id === prodData.category_id);
+            if (match) {
+              resolvedCategorySlug = match.slug;
+            } else {
+              const { data: catData } = await db
+                .from("categories")
+                .select("slug")
+                .eq("id", prodData.category_id)
+                .maybeSingle();
+              if (catData?.slug) resolvedCategorySlug = catData.slug;
+            }
+          }
+        }
+      }
+
+      if (resolvedCategorySlug) {
+        const specValidation = validateAndNormalizeSpecs(resolvedCategorySlug, updates.specs);
+        if (!specValidation.isValid) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: `Thông số kỹ thuật không hợp lệ: ${specValidation.errors.join("; ")}`,
+            },
+            { status: 400 }
+          );
+        }
+        updates.specs = specValidation.normalizedSpecs;
+      }
+    }
+
+    delete updates.category_slug;
+
     const { data, error } = await db
       .from("products")
       .update({
