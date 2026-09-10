@@ -611,6 +611,48 @@ export class AdminService {
     return true;
   }
 
+  async deleteOrder(orderId: string): Promise<boolean> {
+    if (typeof window !== "undefined") {
+      try {
+        const res = await fetch(`/api/admin/orders?id=${encodeURIComponent(orderId)}`, {
+          method: "DELETE",
+        });
+        const json = await res.json();
+        if (json.success) {
+          return true;
+        }
+        if (!json.success && json.error) {
+          throw new Error(json.error);
+        }
+      } catch (err: unknown) {
+        if (err instanceof Error && err.message && !err.message.includes("fetch")) {
+          throw err;
+        }
+        console.warn("AdminService.deleteOrder API notice:", err);
+      }
+    }
+
+    // Direct fallback (e.g. in server execution or fallback environment)
+    const { error: itemsError } = await supabase
+      .from("order_items")
+      .delete()
+      .eq("order_id", orderId);
+
+    if (itemsError) {
+      console.warn("AdminService.deleteOrder items fallback error:", itemsError);
+    }
+
+    const { error } = await supabase
+      .from("orders")
+      .delete()
+      .eq("id", orderId);
+
+    if (error) {
+      throw error;
+    }
+    return true;
+  }
+
   // ===================== REVIEWS =====================
   async getReviews(): Promise<Review[]> {
     const { data, error } = await supabase
