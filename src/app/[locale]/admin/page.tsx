@@ -1199,6 +1199,29 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const handleDeleteOrder = async (orderId: string, orderCode?: string) => {
+    const displayCode = orderCode || orderId.slice(0, 8);
+    if (
+      !confirm(
+        `Bạn có chắc chắn muốn xóa vĩnh viễn đơn hàng ${displayCode} khỏi hệ thống? Hành động này sẽ xóa toàn bộ sản phẩm trong đơn và không thể hoàn tác.`
+      )
+    ) {
+      return;
+    }
+    try {
+      await adminService.deleteOrder(orderId);
+      showNotification("success", `Đã xóa đơn hàng ${displayCode} thành công!`);
+      if (isOrderDetailOpen && selectedOrder?.id === orderId) {
+        setIsOrderDetailOpen(false);
+        setSelectedOrder(null);
+      }
+      loadAllData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi xóa đơn hàng: " + msg);
+    }
+  };
+
   // Blog Posts Handlers
   const handleCreateBlogPost = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -4396,6 +4419,14 @@ export default function AdminDashboardPage() {
                                     Hoàn thành
                                   </button>
                                 )}
+                                <button
+                                  onClick={() => handleDeleteOrder(order.id, order.order_code)}
+                                  className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-bold text-[#DC2626] bg-[#FEF2F2] border border-[#FECACA] hover:bg-[#FEE2E2] transition-colors"
+                                  title="Xóa vĩnh viễn đơn hàng"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                  <span>Xóa</span>
+                                </button>
                               </div>
                             </td>
                           </tr>
@@ -6901,7 +6932,16 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Modal Footer */}
-            <div className="pt-3 border-t border-[#E2E8F0] flex justify-end">
+            <div className="pt-3 border-t border-[#E2E8F0] flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => handleDeleteOrder(selectedOrder.id, selectedOrder.order_code)}
+                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold text-[#DC2626] bg-[#FEF2F2] border border-[#FECACA] hover:bg-[#FEE2E2] transition-colors"
+                title="Xóa vĩnh viễn đơn hàng này"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span>Xóa vĩnh viễn đơn hàng</span>
+              </button>
               <Button
                 variant="outline"
                 size="sm"
