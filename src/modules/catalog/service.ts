@@ -1,5 +1,10 @@
 import { supabase } from "@/shared/db/supabase";
 import { Category, Product } from "@/shared/types";
+import { DEFAULT_HARDWARE_CATEGORIES } from "@/modules/admin/service";
+import {
+  validateAndNormalizeSpecs,
+  normalizeCategorySlug,
+} from "./specRegistry";
 
 export interface ProductFilter {
   categorySlug?: string;
@@ -14,9 +19,21 @@ export interface ProductFilter {
   limit?: number;
 }
 
-import { DEFAULT_HARDWARE_CATEGORIES } from "@/modules/admin/service";
-
 export class CatalogService {
+  private normalizeProduct(p: Product, categorySlug?: string): Product {
+    if (!p) return p;
+    let catSlug = categorySlug || p.category?.slug || "";
+    if (!catSlug && p.category_id) {
+      const match = DEFAULT_HARDWARE_CATEGORIES.find((c) => c.id === p.category_id);
+      if (match) catSlug = match.slug;
+    }
+    const { normalizedSpecs } = validateAndNormalizeSpecs(catSlug, p.specs || {});
+    return {
+      ...p,
+      specs: normalizedSpecs as Product["specs"],
+    };
+  }
+
   async getCategories(): Promise<Category[]> {
     try {
       const { data, error } = await supabase
@@ -33,21 +50,7 @@ export class CatalogService {
   }
 
   private normalizeCategorySlug(slug: string): string {
-    const s = slug.trim().toLowerCase();
-    const map: Record<string, string> = {
-      gpu: "vga",
-      "card-man-hinh": "vga",
-      motherboard: "mainboard",
-      "bo-mach-chu": "mainboard",
-      storage: "ssd",
-      hdd: "ssd",
-      "o-cung": "ssd",
-      "nguon-may-tinh": "psu",
-      "vo-case": "case",
-      "tan-nhiet": "cooling",
-      "man-hinh": "monitor",
-    };
-    return map[s] || s;
+    return normalizeCategorySlug(slug);
   }
 
   async getCategoryBySlug(slug: string): Promise<Category | null> {
@@ -130,7 +133,7 @@ export class CatalogService {
       }
 
       return {
-        products: data as Product[],
+        products: (data as Product[]).map((p) => this.normalizeProduct(p, filter.categorySlug)),
         total: count || data.length,
       };
     } catch (err) {
@@ -150,7 +153,7 @@ export class CatalogService {
       if (error || !data) {
         return null;
       }
-      return data as Product;
+      return this.normalizeProduct(data as Product);
     } catch (err) {
       console.warn("CatalogService.getProductBySlug exception:", err);
       return null;
@@ -172,9 +175,9 @@ export class CatalogService {
           .select("*")
           .limit(8);
 
-        return (fallbackData || []) as Product[];
+        return ((fallbackData || []) as Product[]).map((p) => this.normalizeProduct(p));
       }
-      return data as Product[];
+      return (data as Product[]).map((p) => this.normalizeProduct(p));
     } catch (err) {
       console.warn("CatalogService.getFeaturedProducts exception:", err);
       return [];
@@ -192,7 +195,7 @@ export class CatalogService {
       if (error || !data) {
         return [];
       }
-      return data as Product[];
+      return (data as Product[]).map((p) => this.normalizeProduct(p));
     } catch (err) {
       console.warn("CatalogService.getProductsByIds exception:", err);
       return [];
