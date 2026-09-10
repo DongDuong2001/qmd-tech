@@ -1,3 +1,19 @@
+# [1.10.0](https://github.com/DongDuong2001/qmd-tech/compare/v1.9.0...v1.10.0) (2026-09-10)
+
+
+### Features
+
+* **admin:** add delete order action in orders table and order details modal ([ac2e36d](https://github.com/DongDuong2001/qmd-tech/commit/ac2e36d122c80a8489cdaa31eaad1c3e944d8b39))
+* **admin:** add deleteOrder method in AdminService ([202759e](https://github.com/DongDuong2001/qmd-tech/commit/202759e53bfb84e537ebf6f1945e290aeecb69a0))
+* **admin:** add dynamic category specs form in product creation and editing ([e66546e](https://github.com/DongDuong2001/qmd-tech/commit/e66546e678fa419f878535ee28ea32ef44c3bc6d))
+* **api:** add DELETE endpoint for administrative order deletion ([d8aaff5](https://github.com/DongDuong2001/qmd-tech/commit/d8aaff5828c43396aaf24f36c240c784fa695883))
+* **api:** validate category-specific specs in admin product endpoints ([16c33fe](https://github.com/DongDuong2001/qmd-tech/commit/16c33fed2a2b4c494bc7257c72dd9123fa7a486c))
+* **catalog:** implement spec definition registry and validation engine ([4f673df](https://github.com/DongDuong2001/qmd-tech/commit/4f673df950729bd726ad94734505ead2b591dc1c))
+* **catalog:** integrate runtime spec normalization in catalog service ([72ba00e](https://github.com/DongDuong2001/qmd-tech/commit/72ba00e98ab801081f5ba935c5b1437882b107a9))
+* **db:** add product_spec_definitions table and seed data ([1b5beef](https://github.com/DongDuong2001/qmd-tech/commit/1b5beefcc8658c201a5f61c8fb06b027897cb109))
+* **product:** add responsive dynamic specifications table component ([b5a6b4e](https://github.com/DongDuong2001/qmd-tech/commit/b5a6b4e445a0a68f45576266d3f5131695475c34))
+* **types:** add category-specific spec schemas and compatibility types ([3883b30](https://github.com/DongDuong2001/qmd-tech/commit/3883b30724a8b76e48f24494310cf0984ad39dd6))
+
 # [1.9.0](https://github.com/DongDuong2001/qmd-tech/compare/v1.8.0...v1.9.0) (2026-09-09)
 
 
