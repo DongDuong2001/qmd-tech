@@ -25,12 +25,19 @@ export type ComponentSlot =
   | "case"
   | "cooling";
 
-export interface ProductSpecs {
+export * from "./specs";
+import type {
+  CategoryProductSpecsMap,
+  KnownCategorySlug,
+} from "./specs";
+
+export interface BaseCompatibilitySpecs {
   socket?: string;
   cores?: number;
   threads?: number;
   base_clock_ghz?: number;
   boost_clock_ghz?: number;
+  cache_mb?: number;
   tdp_watts?: number;
   ram_type?: "DDR4" | "DDR5" | string;
   ram_slots?: number;
@@ -53,10 +60,17 @@ export interface ProductSpecs {
   supported_sockets?: string[];
   read_speed_mb?: number;
   write_speed_mb?: number;
+  height_mm?: number;
+  height?: number;
+  socket_support?: string[];
+  form_factor_support?: string[];
+  supported_radiators?: number[];
   [key: string]: unknown;
 }
 
-export interface Product {
+export type ProductSpecs = BaseCompatibilitySpecs;
+
+export interface Product<TSpecs extends Record<string, unknown> = ProductSpecs> {
   id: string;
   sku: string;
   category_id: string;
@@ -70,7 +84,7 @@ export interface Product {
   price_usd?: number;
   stock: number;
   brand: string;
-  specs: ProductSpecs;
+  specs: TSpecs;
   images: string[];
   is_featured?: boolean;
   is_active?: boolean;
@@ -79,6 +93,10 @@ export interface Product {
   created_at?: string;
   updated_at?: string;
 }
+
+export type TypedProduct<T extends KnownCategorySlug = KnownCategorySlug> = Omit<Product, "specs"> & {
+  specs: CategoryProductSpecsMap[T];
+};
 
 export type PerformanceTier = "budget" | "mid_range" | "high_end" | "enthusiast";
 export type CompatibilityStatus = "compatible" | "warning" | "incompatible";

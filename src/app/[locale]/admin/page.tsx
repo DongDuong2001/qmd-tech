@@ -27,6 +27,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
+import { CategorySpecsForm } from "@/components/admin/CategorySpecsForm";
 import { CloudinaryImageUpload } from "@/components/common/CloudinaryImageUpload";
 import {
   LayoutDashboard,
@@ -591,11 +592,11 @@ export default function AdminDashboardPage() {
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const specs: Record<string, unknown> = {};
-      if (socketInput) specs.socket = socketInput;
-      if (ramTypeInput) specs.ram_type = ramTypeInput;
-      if (tdpInput) specs.tdp_watts = parseInt(tdpInput, 10);
-      if (vramInput) specs.vram_gb = parseInt(vramInput, 10);
+      const specs: Record<string, unknown> = { ...(productForm.specs || {}) };
+      if (socketInput.trim() && !specs.socket) specs.socket = socketInput.trim();
+      if (ramTypeInput.trim() && !specs.ram_type) specs.ram_type = ramTypeInput.trim();
+      if (tdpInput.trim() && !specs.tdp_watts) specs.tdp_watts = parseInt(tdpInput.trim(), 10);
+      if (vramInput.trim() && !specs.vram_gb) specs.vram_gb = parseInt(vramInput.trim(), 10);
 
       const generatedSlug =
         productForm.slug ||
@@ -624,6 +625,10 @@ export default function AdminDashboardPage() {
         warranty_months: 36,
         is_featured: false,
       });
+      setSocketInput("");
+      setRamTypeInput("");
+      setTdpInput("");
+      setVramInput("");
       loadAllData();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -672,10 +677,10 @@ export default function AdminDashboardPage() {
     if (!editingProductId) return;
     try {
       const specs: Record<string, unknown> = { ...(editProductForm.specs || {}) };
-      if (editSocketInput.trim()) specs.socket = editSocketInput.trim();
-      if (editRamTypeInput.trim()) specs.ram_type = editRamTypeInput.trim();
-      if (editTdpInput.trim()) specs.tdp_watts = parseInt(editTdpInput.trim(), 10);
-      if (editVramInput.trim()) specs.vram_gb = parseInt(editVramInput.trim(), 10);
+      if (editSocketInput.trim() && !specs.socket) specs.socket = editSocketInput.trim();
+      if (editRamTypeInput.trim() && !specs.ram_type) specs.ram_type = editRamTypeInput.trim();
+      if (editTdpInput.trim() && !specs.tdp_watts) specs.tdp_watts = parseInt(editTdpInput.trim(), 10);
+      if (editVramInput.trim() && !specs.vram_gb) specs.vram_gb = parseInt(editVramInput.trim(), 10);
 
       const generatedSlug =
         editProductForm.slug ||
@@ -1191,6 +1196,29 @@ export default function AdminDashboardPage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       showNotification("error", "Lỗi cập nhật đơn hàng: " + msg);
+    }
+  };
+
+  const handleDeleteOrder = async (orderId: string, orderCode?: string) => {
+    const displayCode = orderCode || orderId.slice(0, 8);
+    if (
+      !confirm(
+        `Bạn có chắc chắn muốn xóa vĩnh viễn đơn hàng ${displayCode} khỏi hệ thống? Hành động này sẽ xóa toàn bộ sản phẩm trong đơn và không thể hoàn tác.`
+      )
+    ) {
+      return;
+    }
+    try {
+      await adminService.deleteOrder(orderId);
+      showNotification("success", `Đã xóa đơn hàng ${displayCode} thành công!`);
+      if (isOrderDetailOpen && selectedOrder?.id === orderId) {
+        setIsOrderDetailOpen(false);
+        setSelectedOrder(null);
+      }
+      loadAllData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      showNotification("error", "Lỗi xóa đơn hàng: " + msg);
     }
   };
 
@@ -4391,6 +4419,14 @@ export default function AdminDashboardPage() {
                                     Hoàn thành
                                   </button>
                                 )}
+                                <button
+                                  onClick={() => handleDeleteOrder(order.id, order.order_code)}
+                                  className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-bold text-[#DC2626] bg-[#FEF2F2] border border-[#FECACA] hover:bg-[#FEE2E2] transition-colors"
+                                  title="Xóa vĩnh viễn đơn hàng"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                  <span>Xóa</span>
+                                </button>
                               </div>
                             </td>
                           </tr>
@@ -5105,55 +5141,12 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          {/* PC Builder Compatibility Specs */}
-          <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-3.5 space-y-2">
-            <div className="font-black text-[#0F172A] uppercase text-[11px] flex items-center gap-1.5">
-              <Activity className="h-3.5 w-3.5 text-[#0063FD]" />
-              Thông số tương thích công cụ Custom PC Builder
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              <div>
-                <label className="block text-[10px] font-bold text-[#475569]">Socket (VD: LGA1700, AM5)</label>
-                <input
-                  type="text"
-                  placeholder="LGA1700"
-                  value={socketInput}
-                  onChange={(e) => setSocketInput(e.target.value)}
-                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-[#475569]">RAM Type (VD: DDR5, DDR4)</label>
-                <input
-                  type="text"
-                  placeholder="DDR5"
-                  value={ramTypeInput}
-                  onChange={(e) => setRamTypeInput(e.target.value)}
-                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-[#475569]">Công suất TDP (W)</label>
-                <input
-                  type="number"
-                  placeholder="250"
-                  value={tdpInput}
-                  onChange={(e) => setTdpInput(e.target.value)}
-                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs font-mono"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-[#475569]">VRAM (GB)</label>
-                <input
-                  type="number"
-                  placeholder="16"
-                  value={vramInput}
-                  onChange={(e) => setVramInput(e.target.value)}
-                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs font-mono"
-                />
-              </div>
-            </div>
-          </div>
+          {/* Dynamic Category-Specific Product Specs */}
+          <CategorySpecsForm
+            categorySlug={categories.find((c) => c.id === productForm.category_id)?.slug || ""}
+            specs={(productForm.specs as Record<string, unknown>) || {}}
+            onChange={(newSpecs) => setProductForm({ ...productForm, specs: newSpecs })}
+          />
 
           <div>
             <CloudinaryImageUpload
@@ -5305,55 +5298,12 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          {/* PC Builder Compatibility Specs */}
-          <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-3.5 space-y-2">
-            <div className="font-black text-[#0F172A] uppercase text-[11px] flex items-center gap-1.5">
-              <Activity className="h-3.5 w-3.5 text-[#0063FD]" />
-              Thông số tương thích công cụ Custom PC Builder
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              <div>
-                <label className="block text-[10px] font-bold text-[#475569]">Socket (VD: LGA1700, AM5)</label>
-                <input
-                  type="text"
-                  placeholder="LGA1700"
-                  value={editSocketInput}
-                  onChange={(e) => setEditSocketInput(e.target.value)}
-                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-[#475569]">RAM Type (VD: DDR5, DDR4)</label>
-                <input
-                  type="text"
-                  placeholder="DDR5"
-                  value={editRamTypeInput}
-                  onChange={(e) => setEditRamTypeInput(e.target.value)}
-                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-[#475569]">Công suất TDP (W)</label>
-                <input
-                  type="number"
-                  placeholder="250"
-                  value={editTdpInput}
-                  onChange={(e) => setEditTdpInput(e.target.value)}
-                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs font-mono"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-[#475569]">VRAM (GB)</label>
-                <input
-                  type="number"
-                  placeholder="16"
-                  value={editVramInput}
-                  onChange={(e) => setEditVramInput(e.target.value)}
-                  className="w-full rounded border border-[#CBD5E1] bg-white p-1.5 text-xs text-[#0F172A] focus:border-[#0063FD] focus:outline-none shadow-2xs font-mono"
-                />
-              </div>
-            </div>
-          </div>
+          {/* Dynamic Category-Specific Product Specs */}
+          <CategorySpecsForm
+            categorySlug={categories.find((c) => c.id === editProductForm.category_id)?.slug || ""}
+            specs={(editProductForm.specs as Record<string, unknown>) || {}}
+            onChange={(newSpecs) => setEditProductForm({ ...editProductForm, specs: newSpecs })}
+          />
 
           <div>
             <CloudinaryImageUpload
@@ -6982,7 +6932,16 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Modal Footer */}
-            <div className="pt-3 border-t border-[#E2E8F0] flex justify-end">
+            <div className="pt-3 border-t border-[#E2E8F0] flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => handleDeleteOrder(selectedOrder.id, selectedOrder.order_code)}
+                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold text-[#DC2626] bg-[#FEF2F2] border border-[#FECACA] hover:bg-[#FEE2E2] transition-colors"
+                title="Xóa vĩnh viễn đơn hàng này"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span>Xóa vĩnh viễn đơn hàng</span>
+              </button>
               <Button
                 variant="outline"
                 size="sm"

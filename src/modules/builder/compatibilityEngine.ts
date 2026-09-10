@@ -39,7 +39,7 @@ export class CompatibilityEngine {
     // 2. Cooler Socket Compatibility (Cooler <-> CPU / Motherboard)
     if (cooler && (cpu || mb)) {
       const targetSocket = cpu?.specs.socket || mb?.specs.socket;
-      const rawSupportedSockets = (cooler.specs.supported_sockets || (cooler.specs as Record<string, unknown>).socket_support || []) as string[];
+      const rawSupportedSockets = (cooler.specs.supported_sockets || cooler.specs.socket_support || []) as string[];
       const normTarget = normalizeSocket(targetSocket);
       const normSupported = rawSupportedSockets.map(normalizeSocket);
 
@@ -71,7 +71,7 @@ export class CompatibilityEngine {
     // 4. Form Factor (Motherboard <-> Case)
     if (mb && pcCase) {
       const mbFormFactor = mb.specs.form_factor;
-      const supportedCases = (pcCase.specs.supported_motherboards || (pcCase.specs as Record<string, unknown>).form_factor_support || []) as string[];
+      const supportedCases = (pcCase.specs.supported_motherboards || pcCase.specs.form_factor_support || []) as string[];
 
       if (mbFormFactor && supportedCases.length > 0 && !supportedCases.includes(mbFormFactor)) {
         issues.push({
@@ -100,7 +100,7 @@ export class CompatibilityEngine {
 
     // 6. Cooler Height & Radiator Clearance
     if (cooler && pcCase) {
-      const coolerHeight = typeof cooler.specs.height_mm === "number" ? cooler.specs.height_mm : (typeof (cooler.specs as Record<string, unknown>).height === "number" ? ((cooler.specs as Record<string, unknown>).height as number) : undefined);
+      const coolerHeight = typeof cooler.specs.height_mm === "number" ? cooler.specs.height_mm : (typeof cooler.specs.height === "number" ? cooler.specs.height : undefined);
       const maxCoolerHeight = pcCase.specs.max_cpu_cooler_height_mm;
 
       if (coolerHeight !== undefined && maxCoolerHeight !== undefined && coolerHeight > maxCoolerHeight) {
@@ -113,7 +113,7 @@ export class CompatibilityEngine {
       }
 
       const radSize = cooler.specs.radiator_size_mm;
-      const supportedRads = pcCase.specs.radiator_support_mm || (pcCase.specs as Record<string, unknown>).supported_radiators as number[] | undefined;
+      const supportedRads = pcCase.specs.radiator_support_mm || pcCase.specs.supported_radiators;
       if (radSize && Array.isArray(supportedRads) && supportedRads.length > 0 && !supportedRads.includes(radSize)) {
         issues.push({
           type: "radiator_clearance",
