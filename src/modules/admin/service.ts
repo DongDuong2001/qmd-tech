@@ -5,6 +5,7 @@ import {
   Order,
   Review,
   EventBanner,
+  BannerPosition,
   PrebuiltDeal,
   Supplier,
   BlogPost,
@@ -67,7 +68,7 @@ export interface CreateBannerInput {
   target_url: string;
   display_order?: number;
   is_active?: boolean;
-  position?: "hero" | "middle_carousel" | "side_left" | "side_right";
+  position?: BannerPosition;
 }
 
 export interface CreatePrebuiltDealInput {

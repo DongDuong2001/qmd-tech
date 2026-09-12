@@ -46,6 +46,11 @@ vi.mock("@/shared/db/supabase", () => ({
           delete: () => ({
             eq: mockOrdersEq,
           }),
+          select: () => ({
+            eq: () => ({
+              single: vi.fn().mockResolvedValue({ data: null, error: null }),
+            }),
+          }),
         };
       }
       return {

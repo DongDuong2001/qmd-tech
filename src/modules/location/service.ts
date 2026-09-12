@@ -60,7 +60,7 @@ export class LocationService {
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
-          const list: Province34[] = data.map((p: any) => ({
+          const list: Province34[] = (data as Array<Record<string, unknown>>).map((p) => ({
             code: Number(p.code),
             name: String(p.name || "").trim(),
             division_type: String(p.division_type || "tỉnh"),
@@ -110,7 +110,7 @@ export class LocationService {
       if (res.ok) {
         const data = await res.json();
         if (data && Array.isArray(data.wards)) {
-          const wards: WardItem[] = data.wards.map((w: any) => ({
+          const wards: WardItem[] = (data.wards as Array<Record<string, unknown>>).map((w) => ({
             code: Number(w.code),
             name: String(w.name || "").trim(),
             division_type: String(w.division_type || "phường"),

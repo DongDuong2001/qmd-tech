@@ -44,3 +44,18 @@ export interface SePayWebhookPayload {
   referenceCode: string;
   description: string;
 }
+
+export interface PaymentTransaction {
+  id: string;
+  order_id?: string | null;
+  order_code: string;
+  provider: PaymentProvider;
+  transaction_id: string;
+  amount_vnd: number;
+  transfer_type: "in" | "out";
+  account_number?: string | null;
+  content?: string | null;
+  raw_payload?: Record<string, unknown> | null;
+  status: "success" | "duplicate" | "amount_mismatch" | "failed";
+  created_at?: string;
+}

@@ -178,12 +178,12 @@ export async function verifyJWT<T extends JWTPayload = JWTPayload>(
 }
 
 /**
- * Creates a signed Admin Session Token
+ * Creates a signed Admin Session Token with departmental role
  */
-export async function createAdminToken(username: string): Promise<string> {
+export async function createAdminToken(username: string, role = "super_admin"): Promise<string> {
   return await signJWT(
     {
-      role: "admin",
+      role: role || "super_admin",
       user: username,
     },
     undefined,
@@ -192,19 +192,30 @@ export async function createAdminToken(username: string): Promise<string> {
 }
 
 /**
- * Verifies an Admin Session Token
+ * Verifies an Admin Session Token and extracts role
  */
 export async function verifyAdminToken(
   token: string
-): Promise<{ valid: boolean; user?: string; error?: string }> {
+): Promise<{ valid: boolean; user?: string; role?: string; error?: string }> {
   const result = await verifyJWT(token);
   if (!result.valid || !result.payload) {
     return { valid: false, error: result.error };
   }
 
-  if (result.payload.role !== "admin") {
+  const role = ((result.payload.role as string) || "").toLowerCase();
+  const validAdminRoles = [
+    "admin",
+    "super_admin",
+    "warehouse",
+    "technician",
+    "support",
+    "accountant",
+    "marketing",
+  ];
+
+  if (!validAdminRoles.includes(role)) {
     return { valid: false, error: "Không có quyền quản trị viên." };
   }
 
-  return { valid: true, user: result.payload.user as string };
+  return { valid: true, user: result.payload.user as string, role };
 }

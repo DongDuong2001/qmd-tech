@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import crypto from "crypto";
-import { Order, CartItem } from "@/shared/types";
+import { Order } from "@/shared/types";
 
 describe("Production Audit Phase 2: Stock Decrement & Atomic Order Integrity", () => {
   describe("Hardened Stock Decrement Boundaries (PostgreSQL Function Logic)", () => {

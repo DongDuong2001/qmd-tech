@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { sanitizeSlug, blogService } from "@/modules/blog/service";
+import { sanitizeSlug } from "@/modules/blog/service";
 
 describe("blogService - sanitizeSlug helper", () => {
   it("converts Vietnamese title to clean lowercase slug", () => {

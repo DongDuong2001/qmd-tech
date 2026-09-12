@@ -23,7 +23,10 @@ import {
   CreateBlogPostInput,
   SiteSettings,
   ShowroomLocation,
+  AuditLogEntry,
+  BannerPosition,
 } from "@/shared/types";
+import { WarrantyTicket } from "@/modules/warranty/types";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
@@ -77,6 +80,7 @@ import {
   Download01Icon,
   InfoIcon,
   FlameIcon,
+  Wrench01Icon,
 } from "@hugeicons/core-free-icons";
 
 const LayoutDashboard = createHugeIconComponent(LayoutDashboardIcon);
@@ -125,18 +129,17 @@ const Briefcase = createHugeIconComponent(Briefcase01Icon);
 const Download = createHugeIconComponent(Download01Icon);
 const Info = createHugeIconComponent(InfoIcon);
 const Flame = createHugeIconComponent(FlameIcon);
+const Wrench = createHugeIconComponent(Wrench01Icon);
 import {
   MegaCategoryItem,
   MegaSubItem,
   AVAILABLE_ICON_NAMES,
   resolveMegaCategoryIcon,
-  DEFAULT_MEGA_MENU_CATEGORIES,
 } from "@/components/navigation/megaMenuData";
 import { sanitizeSlug } from "@/modules/blog/service";
 import {
   CareerJob,
   CreateCareerInput,
-  UpdateCareerInput,
   CareerApplication,
   ApplicationStatus,
 } from "@/modules/careers/types";
@@ -144,7 +147,21 @@ import { sanitizeCareerSlug } from "@/modules/careers/service";
 
 export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState<
-    "overview" | "products" | "categories" | "menu" | "banners" | "deals" | "suppliers" | "blogs" | "careers" | "orders" | "reviews" | "settings" | "security"
+    | "overview"
+    | "products"
+    | "categories"
+    | "menu"
+    | "banners"
+    | "deals"
+    | "suppliers"
+    | "blogs"
+    | "careers"
+    | "orders"
+    | "reviews"
+    | "settings"
+    | "security"
+    | "warranty"
+    | "audit"
   >("overview");
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -156,6 +173,8 @@ export default function AdminDashboardPage() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [careers, setCareers] = useState<CareerJob[]>([]);
+  const [rmaTickets, setRmaTickets] = useState<WarrantyTicket[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
   const [isAddCareerOpen, setIsAddCareerOpen] = useState(false);
   const [isEditCareerOpen, setIsEditCareerOpen] = useState(false);
   const [editingCareerId, setEditingCareerId] = useState<string | null>(null);
@@ -371,7 +390,7 @@ export default function AdminDashboardPage() {
   });
 
   // Banner Position Filter & Forms
-  const [bannerPositionFilter, setBannerPositionFilter] = useState<string>("all");
+  const [bannerPositionFilter, setBannerPositionFilter] = useState<"all" | BannerPosition>("all");
 
   const bannerPositionCounts = useMemo(() => {
     return {
@@ -559,6 +578,28 @@ export default function AdminDashboardPage() {
         }
       } catch {
         // Fallback to initial state
+      }
+
+      // Fetch RMA tickets
+      try {
+        const rmaRes = await fetch("/api/admin/warranty");
+        const rmaJson = await rmaRes.json();
+        if (rmaJson.success && rmaJson.tickets) {
+          setRmaTickets(rmaJson.tickets);
+        }
+      } catch {
+        // Non-blocking
+      }
+
+      // Fetch audit logs
+      try {
+        const auditRes = await fetch("/api/admin/audit-logs?limit=50");
+        const auditJson = await auditRes.json();
+        if (auditJson.success && auditJson.logs) {
+          setAuditLogs(auditJson.logs);
+        }
+      } catch {
+        // Non-blocking
       }
 
       if (c.length > 0 && !productForm.category_id) {
@@ -1896,6 +1937,44 @@ export default function AdminDashboardPage() {
               </div>
               <span className="flex h-2 w-2 rounded-full bg-[#10B981]" />
             </button>
+
+            {/* WARRANTY & RMA TAB */}
+            <button
+              onClick={() => setActiveTab("warranty")}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
+                activeTab === "warranty"
+                  ? "bg-[#0063FD] text-white shadow-xs font-black"
+                  : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <Wrench className="h-4 w-4" />
+                <span>Bảo hành & RMA</span>
+              </div>
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-mono ${
+                activeTab === "warranty"
+                  ? "bg-white/20 text-white font-bold"
+                  : "bg-[#EFF6FF] text-[#0063FD] border border-[#BFDBFE]"
+              }`}>
+                {rmaTickets.length}
+              </span>
+            </button>
+
+            {/* AUDIT LOGS TAB */}
+            <button
+              onClick={() => setActiveTab("audit")}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${
+                activeTab === "audit"
+                  ? "bg-[#0063FD] text-white shadow-xs font-black"
+                  : "text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <Activity className="h-4 w-4" />
+                <span>Nhật ký kiểm toán</span>
+              </div>
+              <span className="flex h-2 w-2 rounded-full bg-[#8B5CF6]" />
+            </button>
           </nav>
         </div>
 
@@ -3113,7 +3192,7 @@ export default function AdminDashboardPage() {
                 <Button
                   onClick={() => {
                     if (bannerPositionFilter !== "all") {
-                      setBannerForm((prev) => ({ ...prev, position: bannerPositionFilter as any }));
+                      setBannerForm((prev) => ({ ...prev, position: bannerPositionFilter }));
                     }
                     setIsAddBannerOpen(true);
                   }}
@@ -3167,13 +3246,15 @@ export default function AdminDashboardPage() {
 
               {/* 5 Position Filter Tabs */}
               <div className="flex flex-wrap items-center gap-2 border-b border-[#E2E8F0] pb-3">
-                {[
-                  { key: "all", label: "Tất Cả", count: bannerPositionCounts.all },
-                  { key: "hero", label: "Banner Hero Đầu Trang", count: bannerPositionCounts.hero },
-                  { key: "middle_carousel", label: "Poster Giữa Trang (Carousel)", count: bannerPositionCounts.middle_carousel },
-                  { key: "side_left", label: "Sườn Trái Desktop", count: bannerPositionCounts.side_left },
-                  { key: "side_right", label: "Sườn Phải Desktop", count: bannerPositionCounts.side_right },
-                ].map((tab) => {
+                {(
+                  [
+                    { key: "all", label: "Tất Cả", count: bannerPositionCounts.all },
+                    { key: "hero", label: "Banner Hero Đầu Trang", count: bannerPositionCounts.hero },
+                    { key: "middle_carousel", label: "Poster Giữa Trang (Carousel)", count: bannerPositionCounts.middle_carousel },
+                    { key: "side_left", label: "Sườn Trái Desktop", count: bannerPositionCounts.side_left },
+                    { key: "side_right", label: "Sườn Phải Desktop", count: bannerPositionCounts.side_right },
+                  ] as const
+                ).map((tab) => {
                   const isActive = bannerPositionFilter === tab.key;
                   return (
                     <button
@@ -3213,7 +3294,7 @@ export default function AdminDashboardPage() {
                   <Button
                     onClick={() => {
                       if (bannerPositionFilter !== "all") {
-                        setBannerForm((prev) => ({ ...prev, position: bannerPositionFilter as any }));
+                        setBannerForm((prev) => ({ ...prev, position: bannerPositionFilter }));
                       }
                       setIsAddBannerOpen(true);
                     }}
@@ -5057,6 +5138,158 @@ export default function AdminDashboardPage() {
               </div>
             </div>
           )}
+
+          {/* ========================================================================= */}
+          {/* TAB 10: WARRANTY & RMA MANAGEMENT */}
+          {/* ========================================================================= */}
+          {activeTab === "warranty" && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#E2E8F0] pb-4">
+                <div>
+                  <h2 className="text-xl font-black uppercase text-[#0F172A] flex items-center gap-2">
+                    <Wrench className="h-5 w-5 text-[#0063FD]" />
+                    QUẢN LÝ BẢO HÀNH & PHIẾU TIẾP NHẬN RMA
+                  </h2>
+                  <p className="mt-0.5 text-xs text-[#64748B]">
+                    Theo dõi vòng đời bảo hành phần cứng, tình trạng gửi hãng và bàn giao khách hàng.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="rounded-xl border border-[#BFDBFE] bg-[#EFF6FF] p-4 space-y-1">
+                  <div className="text-[10px] font-bold uppercase text-[#2563EB]">Tổng số phiếu tiếp nhận</div>
+                  <div className="text-2xl font-black text-[#0F172A]">{rmaTickets.length}</div>
+                </div>
+                <div className="rounded-xl border border-[#FDE68A] bg-[#FEF3C7] p-4 space-y-1">
+                  <div className="text-[10px] font-bold uppercase text-[#B45309]">Đang xử lý / Gửi hãng</div>
+                  <div className="text-2xl font-black text-[#B45309]">
+                    {rmaTickets.filter((t) => t.status !== "completed" && t.status !== "rejected").length}
+                  </div>
+                </div>
+                <div className="rounded-xl border border-[#86EFAC] bg-[#DCFCE7] p-4 space-y-1">
+                  <div className="text-[10px] font-bold uppercase text-[#15803D]">Đã hoàn tất bàn giao</div>
+                  <div className="text-2xl font-black text-[#15803D]">
+                    {rmaTickets.filter((t) => t.status === "completed").length}
+                  </div>
+                </div>
+              </div>
+
+              <div className="overflow-hidden rounded-xl border border-[#CBD5E1] bg-white shadow-xs">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs text-[#0F172A]">
+                    <thead className="border-b border-[#CBD5E1] bg-[#F8FAFC] text-[11px] font-bold uppercase text-[#64748B]">
+                      <tr>
+                        <th className="p-3">Mã RMA</th>
+                        <th className="p-3">Khách hàng</th>
+                        <th className="p-3">Số Serial</th>
+                        <th className="p-3">Linh kiện</th>
+                        <th className="p-3">Mô tả lỗi</th>
+                        <th className="p-3">Trạng thái</th>
+                        <th className="p-3 text-right">Ngày tiếp nhận</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#E2E8F0]">
+                      {rmaTickets.length === 0 ? (
+                        <tr>
+                          <td colSpan={7} className="p-8 text-center text-xs text-[#64748B]">
+                            Chưa có phiếu bảo hành RMA nào trong hệ thống.
+                          </td>
+                        </tr>
+                      ) : (
+                        rmaTickets.map((ticket) => (
+                          <tr key={ticket.id} className="hover:bg-[#F8FAFC]">
+                            <td className="p-3 font-mono font-bold text-[#0063FD]">{ticket.ticket_code}</td>
+                            <td className="p-3">
+                              <div className="font-bold">{ticket.customer_name}</div>
+                              <div className="text-[11px] text-[#64748B]">{ticket.customer_phone}</div>
+                            </td>
+                            <td className="p-3 font-mono text-[11px] text-[#B45309]">{ticket.serial_number}</td>
+                            <td className="p-3 font-medium">{ticket.product_name}</td>
+                            <td className="p-3 text-[#64748B] max-w-xs truncate">{ticket.issue_description}</td>
+                            <td className="p-3">
+                              <span className="rounded px-2 py-0.5 text-[10px] font-bold uppercase bg-blue-100 text-blue-800">
+                                {ticket.status}
+                              </span>
+                            </td>
+                            <td className="p-3 text-right text-[11px] text-[#94A3B8]">
+                              {new Date(ticket.created_at).toLocaleDateString("vi-VN")}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* TAB 11: AUDIT LOGS */}
+          {/* ========================================================================= */}
+          {activeTab === "audit" && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#E2E8F0] pb-4">
+                <div>
+                  <h2 className="text-xl font-black uppercase text-[#0F172A] flex items-center gap-2">
+                    <Activity className="h-5 w-5 text-[#8B5CF6]" />
+                    NHẬT KÝ KIỂM TOÁN HỆ THỐNG (AUDIT LOGS)
+                  </h2>
+                  <p className="mt-0.5 text-xs text-[#64748B]">
+                    Lưu vết bất biến toàn bộ thao tác của đội ngũ quản trị viên phục vụ đối soát và an ninh thông tin.
+                  </p>
+                </div>
+              </div>
+
+              <div className="overflow-hidden rounded-xl border border-[#CBD5E1] bg-white shadow-xs">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs text-[#0F172A]">
+                    <thead className="border-b border-[#CBD5E1] bg-[#F8FAFC] text-[11px] font-bold uppercase text-[#64748B]">
+                      <tr>
+                        <th className="p-3">Thời gian</th>
+                        <th className="p-3">Quản trị viên</th>
+                        <th className="p-3">Vai trò</th>
+                        <th className="p-3">Thao tác</th>
+                        <th className="p-3">Đối tượng</th>
+                        <th className="p-3">Mã ID</th>
+                        <th className="p-3 text-right">IP Nguồn</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#E2E8F0]">
+                      {auditLogs.length === 0 ? (
+                        <tr>
+                          <td colSpan={7} className="p-8 text-center text-xs text-[#64748B]">
+                            Chưa có bản ghi nhật ký kiểm toán nào được lưu vết.
+                          </td>
+                        </tr>
+                      ) : (
+                        auditLogs.map((log) => (
+                          <tr key={log.id} className="hover:bg-[#F8FAFC]">
+                            <td className="p-3 text-[11px] font-mono text-[#64748B]">
+                              {new Date(log.created_at).toLocaleString("vi-VN")}
+                            </td>
+                            <td className="p-3 font-bold">{log.admin_user_email || "System Operator"}</td>
+                            <td className="p-3">
+                              <span className="rounded bg-purple-100 text-purple-800 px-2 py-0.5 text-[10px] font-bold uppercase">
+                                {log.admin_role || "admin"}
+                              </span>
+                            </td>
+                            <td className="p-3 font-mono font-bold text-[#2563EB]">{log.action}</td>
+                            <td className="p-3 uppercase text-[11px] text-[#64748B]">{log.entity_type}</td>
+                            <td className="p-3 font-mono text-[11px] text-[#64748B]">{log.entity_id || "N/A"}</td>
+                            <td className="p-3 text-right font-mono text-[11px] text-[#94A3B8]">
+                              {log.ip_address || "127.0.0.1"}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </main>
 
@@ -5596,7 +5829,7 @@ export default function AdminDashboardPage() {
             <label className="block font-bold text-[#1E293B] mb-1">Vị trí hiển thị trên website *</label>
             <select
               value={bannerForm.position || "hero"}
-              onChange={(e) => setBannerForm({ ...bannerForm, position: e.target.value as any })}
+              onChange={(e) => setBannerForm({ ...bannerForm, position: e.target.value as BannerPosition })}
               className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs font-semibold text-xs"
             >
               <option value="hero">Banner Hero đầu trang (Carousel lớn trên cùng)</option>
@@ -5683,7 +5916,7 @@ export default function AdminDashboardPage() {
             <label className="block font-bold text-[#1E293B] mb-1">Vị trí hiển thị trên website *</label>
             <select
               value={editBannerForm.position || "hero"}
-              onChange={(e) => setEditBannerForm({ ...editBannerForm, position: e.target.value as any })}
+              onChange={(e) => setEditBannerForm({ ...editBannerForm, position: e.target.value as BannerPosition })}
               className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs font-semibold text-xs"
             >
               <option value="hero">Banner Hero đầu trang (Carousel lớn trên cùng)</option>
