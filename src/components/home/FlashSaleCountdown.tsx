@@ -3,7 +3,12 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
-import { Flame, ArrowRight, Clock } from "lucide-react";
+import {
+  FlameIcon,
+  ArrowRight01Icon,
+  Clock01Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeIcon } from "@/components/ui/HugeIcon";
 
 interface FlashSaleCountdownProps {
   title?: string;
@@ -75,7 +80,7 @@ export function FlashSaleCountdown({
       {/* Title & Badge */}
       <div className="flex items-center gap-2.5 sm:gap-3">
         <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[#EF4444] to-[#DC2626] text-white shadow-md shadow-red-500/20">
-          <Flame className="h-5 w-5 sm:h-6 sm:w-6 animate-pulse" />
+          <HugeIcon icon={FlameIcon} className="h-5 w-5 sm:h-6 sm:w-6 animate-pulse" />
         </div>
         <div>
           <div className="flex items-center gap-2 flex-wrap">
@@ -98,7 +103,7 @@ export function FlashSaleCountdown({
         {/* Countdown digits */}
         <div className="flex items-center gap-1.5 sm:gap-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-2.5 sm:px-3.5 py-1.5 sm:py-2 shadow-2xs">
           <div className="flex items-center gap-1 text-[10px] sm:text-xs font-bold text-[#64748B] mr-1 hidden xs:flex">
-            <Clock className="h-3.5 w-3.5 text-[#EF4444]" />
+            <HugeIcon icon={Clock01Icon} className="h-3.5 w-3.5 text-[#EF4444]" />
             <span>Kết thúc sau:</span>
           </div>
 
@@ -154,7 +159,7 @@ export function FlashSaleCountdown({
         <Link href="/khuyen-mai">
           <Button variant="primary" size="sm" className="gap-1 font-black text-[11px] sm:text-xs">
             <span>Xem Tất Cả</span>
-            <ArrowRight className="h-3.5 w-3.5" />
+            <HugeIcon icon={ArrowRight01Icon} className="h-3.5 w-3.5" />
           </Button>
         </Link>
       </div>

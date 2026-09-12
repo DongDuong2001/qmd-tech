@@ -10,11 +10,12 @@ import { ProductDetailActions } from "./ProductDetailActions";
 import { DynamicProductSpecs } from "@/components/product/DynamicProductSpecs";
 import { escapeJsonLd } from "@/shared/lib/sanitize";
 import {
-  ShieldCheck,
-  Truck,
-  RotateCcw,
-  Star,
-} from "lucide-react";
+  ShieldCheckIcon,
+  TruckIcon,
+  RotateCcwIcon,
+  StarIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeIcon } from "@/components/ui/HugeIcon";
 
 interface ProductDetailPageProps {
   params: Promise<{ slug: string; locale: string }>;
@@ -167,15 +168,15 @@ export default async function ProductDetailPage({
           {/* Trust Guarantees */}
           <div className="rounded-xl border border-[#E4E7EC] bg-[#F8FAFC] p-4 grid grid-cols-3 gap-3 text-xs">
             <div className="flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-[#16A34A]" />
+              <HugeIcon icon={ShieldCheckIcon} className="h-4 w-4 text-[#16A34A]" />
               <span className="text-[#0F172A] font-medium">Chính hãng 100%</span>
             </div>
             <div className="flex items-center gap-2">
-              <Truck className="h-4 w-4 text-[#2563EB]" />
+              <HugeIcon icon={TruckIcon} className="h-4 w-4 text-[#2563EB]" />
               <span className="text-[#0F172A] font-medium">Freeship từ 5Tr</span>
             </div>
             <div className="flex items-center gap-2">
-              <RotateCcw className="h-4 w-4 text-[#D97706]" />
+              <HugeIcon icon={RotateCcwIcon} className="h-4 w-4 text-[#D97706]" />
               <span className="text-[#0F172A] font-medium">1 đổi 1 30 ngày</span>
             </div>
           </div>
@@ -197,7 +198,7 @@ export default async function ProductDetailPage({
             </p>
           </div>
           <span className="flex items-center gap-1 text-sm font-bold text-[#B45309]">
-            <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+            <HugeIcon icon={StarIcon} className="h-4 w-4 fill-amber-400 text-amber-400" />
             5.0 / 5.0
           </span>
         </div>
@@ -221,7 +222,7 @@ export default async function ProductDetailPage({
                 </div>
                 <div className="flex gap-0.5">
                   {Array.from({ length: rev.rating }).map((_, i) => (
-                    <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                    <HugeIcon key={i} icon={StarIcon} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                   ))}
                 </div>
               </div>

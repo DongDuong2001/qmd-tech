@@ -4,7 +4,18 @@ import { getTranslations } from "next-intl/server";
 import { catalogService } from "@/modules/catalog/service";
 import { ProductCard } from "@/components/product/ProductCard";
 import { Button } from "@/components/ui/button";
-import { Cpu, CircuitBoard, MemoryStick, Layers, HardDrive, Zap, Box, Fan, Boxes } from "lucide-react";
+import {
+  CpuIcon,
+  CircuitBoardIcon,
+  MemoryStickIcon,
+  Layers01Icon,
+  HardDriveIcon,
+  ZapIcon,
+  BoxIcon,
+  Fan01Icon,
+  BoxesIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeIcon } from "@/components/ui/HugeIcon";
 
 export const metadata = {
   title: "Danh Mục Linh Kiện Máy Tính | QMD-Tech",
@@ -32,15 +43,15 @@ export default async function CategoriesPage({
 
   const getCategoryIcon = (slug: string) => {
     switch (slug) {
-      case "cpu": return Cpu;
-      case "motherboard": return CircuitBoard;
-      case "ram": return MemoryStick;
-      case "gpu": return Layers;
-      case "storage": return HardDrive;
-      case "psu": return Zap;
-      case "case": return Box;
-      case "cooling": return Fan;
-      default: return Cpu;
+      case "cpu": return CpuIcon;
+      case "motherboard": return CircuitBoardIcon;
+      case "ram": return MemoryStickIcon;
+      case "gpu": return Layers01Icon;
+      case "storage": return HardDriveIcon;
+      case "psu": return ZapIcon;
+      case "case": return BoxIcon;
+      case "cooling": return Fan01Icon;
+      default: return CpuIcon;
     }
   };
 
@@ -64,14 +75,14 @@ export default async function CategoriesPage({
           {t("common.all")}
         </Link>
         {categories.map((cat) => {
-          const Icon = getCategoryIcon(cat.slug);
+          const iconData = getCategoryIcon(cat.slug);
           return (
             <Link
               key={cat.id}
               href={`/danh-muc/${cat.slug}`}
               className="flex items-center gap-1.5 rounded-lg border border-[#E2E8F0] bg-[#FFFFFF] px-4 py-2 text-xs font-semibold text-[#0F172A] hover:border-[#0063FD] hover:bg-[#EFF6FF] transition-colors shadow-xs"
             >
-              <Icon className="h-3.5 w-3.5 text-[#0063FD]" />
+              <HugeIcon icon={iconData} className="h-3.5 w-3.5 text-[#0063FD]" />
               {cat.name_vi}
             </Link>
           );
@@ -104,7 +115,7 @@ export default async function CategoriesPage({
       {/* Products Grid / Empty State */}
       {products.length === 0 ? (
         <div className="rounded-2xl border border-[#E2E8F0] bg-[#FFFFFF] p-12 text-center space-y-4 shadow-xs">
-          <Boxes className="mx-auto h-12 w-12 text-[#CBD5E1]" />
+          <HugeIcon icon={BoxesIcon} className="mx-auto h-12 w-12 text-[#CBD5E1]" />
           <h3 className="text-lg font-bold text-[#0F172A]">
             {query || brand
               ? `Không tìm thấy linh kiện nào phù hợp với "${query || brand}"`
