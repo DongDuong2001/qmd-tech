@@ -6,7 +6,20 @@ import {
   normalizeCategorySlug,
 } from "@/modules/catalog/specRegistry";
 import { ProductSpecDefinition } from "@/shared/types/specs";
-import { Activity, Plus, Trash2, Info, AlertCircle } from "lucide-react";
+import { createHugeIconComponent } from "@/components/ui/HugeIcon";
+import {
+  Activity01Icon,
+  PlusIcon,
+  Delete02Icon,
+  InfoIcon,
+  AlertCircleIcon,
+} from "@hugeicons/core-free-icons";
+
+const Activity = createHugeIconComponent(Activity01Icon);
+const Plus = createHugeIconComponent(PlusIcon);
+const Trash2 = createHugeIconComponent(Delete02Icon);
+const Info = createHugeIconComponent(InfoIcon);
+const AlertCircle = createHugeIconComponent(AlertCircleIcon);
 
 export interface CategorySpecsFormProps {
   categorySlug: string;

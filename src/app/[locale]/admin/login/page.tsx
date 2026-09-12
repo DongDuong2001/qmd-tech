@@ -5,7 +5,26 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, Lock, User, AlertTriangle, ArrowRight, CheckCircle2, Eye, EyeOff } from "lucide-react";
+import { createHugeIconComponent } from "@/components/ui/HugeIcon";
+import {
+  ShieldCheckIcon,
+  LockIcon,
+  UserIcon,
+  Alert02Icon,
+  ArrowRight01Icon,
+  CheckmarkCircle02Icon,
+  EyeIcon,
+  EyeOffIcon,
+} from "@hugeicons/core-free-icons";
+
+const ShieldCheck = createHugeIconComponent(ShieldCheckIcon);
+const Lock = createHugeIconComponent(LockIcon);
+const User = createHugeIconComponent(UserIcon);
+const AlertTriangle = createHugeIconComponent(Alert02Icon);
+const ArrowRight = createHugeIconComponent(ArrowRight01Icon);
+const CheckCircle2 = createHugeIconComponent(CheckmarkCircle02Icon);
+const Eye = createHugeIconComponent(EyeIcon);
+const EyeOff = createHugeIconComponent(EyeOffIcon);
 
 export default function AdminLoginPage() {
   const router = useRouter();

@@ -29,54 +29,102 @@ import { Modal } from "@/components/ui/modal";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { CategorySpecsForm } from "@/components/admin/CategorySpecsForm";
 import { CloudinaryImageUpload } from "@/components/common/CloudinaryImageUpload";
+import { createHugeIconComponent } from "@/components/ui/HugeIcon";
 import {
-  LayoutDashboard,
-  Package,
-  Layers,
-  ShoppingBag,
-  Star,
-  MessageSquareText,
-  Plus,
-  Trash2,
-  Search,
-  CheckCircle2,
-  AlertTriangle,
-  ExternalLink,
-  DollarSign,
-  Boxes,
-  RefreshCw,
-  ShieldCheck,
-  Server,
-  Activity,
-  UserCheck,
-  TrendingUp,
-  Clock,
-  ChevronRight,
-  Image as ImageIcon,
-  Monitor,
-  ArrowUp,
-  ArrowDown,
-  Building,
-  Phone,
-  Mail,
-  Pencil,
-  Eye,
-  EyeOff,
-  LogOut,
-  X,
-  BookOpen,
-  FileText,
-  Sliders,
-  Globe,
-  Store,
-  LayoutGrid,
-  Save,
-  RotateCcw,
-  Briefcase,
-  Download,
-  Info,
-  Flame,
-} from "lucide-react";
+  LayoutDashboardIcon,
+  Package01Icon,
+  Layers01Icon,
+  ShoppingBag01Icon,
+  StarIcon,
+  MessageSquareTextIcon,
+  PlusIcon,
+  Delete02Icon,
+  Search01Icon,
+  CheckmarkCircle02Icon,
+  Alert02Icon,
+  ExternalLinkIcon,
+  DollarSignIcon,
+  BoxesIcon,
+  RefreshCwIcon,
+  ShieldCheckIcon,
+  ServerIcon,
+  Activity01Icon,
+  UserCheck01Icon,
+  TrendingUpIcon,
+  Clock01Icon,
+  ChevronRightIcon,
+  Image01Icon,
+  MonitorIcon,
+  ArrowUp01Icon,
+  ArrowDown01Icon,
+  Building01Icon,
+  PhoneIcon,
+  Mail01Icon,
+  PencilIcon,
+  EyeIcon,
+  EyeOffIcon,
+  LogOutIcon,
+  XIcon,
+  BookOpen01Icon,
+  FileTextIcon,
+  SlidersHorizontalIcon,
+  GlobeIcon,
+  Store01Icon,
+  LayoutGridIcon,
+  SaveIcon,
+  RotateCcwIcon,
+  Briefcase01Icon,
+  Download01Icon,
+  InfoIcon,
+  FlameIcon,
+} from "@hugeicons/core-free-icons";
+
+const LayoutDashboard = createHugeIconComponent(LayoutDashboardIcon);
+const Package = createHugeIconComponent(Package01Icon);
+const Layers = createHugeIconComponent(Layers01Icon);
+const ShoppingBag = createHugeIconComponent(ShoppingBag01Icon);
+const Star = createHugeIconComponent(StarIcon);
+const MessageSquareText = createHugeIconComponent(MessageSquareTextIcon);
+const Plus = createHugeIconComponent(PlusIcon);
+const Trash2 = createHugeIconComponent(Delete02Icon);
+const Search = createHugeIconComponent(Search01Icon);
+const CheckCircle2 = createHugeIconComponent(CheckmarkCircle02Icon);
+const AlertTriangle = createHugeIconComponent(Alert02Icon);
+const ExternalLink = createHugeIconComponent(ExternalLinkIcon);
+const DollarSign = createHugeIconComponent(DollarSignIcon);
+const Boxes = createHugeIconComponent(BoxesIcon);
+const RefreshCw = createHugeIconComponent(RefreshCwIcon);
+const ShieldCheck = createHugeIconComponent(ShieldCheckIcon);
+const Server = createHugeIconComponent(ServerIcon);
+const Activity = createHugeIconComponent(Activity01Icon);
+const UserCheck = createHugeIconComponent(UserCheck01Icon);
+const TrendingUp = createHugeIconComponent(TrendingUpIcon);
+const Clock = createHugeIconComponent(Clock01Icon);
+const ChevronRight = createHugeIconComponent(ChevronRightIcon);
+const ImageIcon = createHugeIconComponent(Image01Icon);
+const Monitor = createHugeIconComponent(MonitorIcon);
+const ArrowUp = createHugeIconComponent(ArrowUp01Icon);
+const ArrowDown = createHugeIconComponent(ArrowDown01Icon);
+const Building = createHugeIconComponent(Building01Icon);
+const Phone = createHugeIconComponent(PhoneIcon);
+const Mail = createHugeIconComponent(Mail01Icon);
+const Pencil = createHugeIconComponent(PencilIcon);
+const Eye = createHugeIconComponent(EyeIcon);
+const EyeOff = createHugeIconComponent(EyeOffIcon);
+const LogOut = createHugeIconComponent(LogOutIcon);
+const X = createHugeIconComponent(XIcon);
+const BookOpen = createHugeIconComponent(BookOpen01Icon);
+const FileText = createHugeIconComponent(FileTextIcon);
+const Sliders = createHugeIconComponent(SlidersHorizontalIcon);
+const Globe = createHugeIconComponent(GlobeIcon);
+const Store = createHugeIconComponent(Store01Icon);
+const LayoutGrid = createHugeIconComponent(LayoutGridIcon);
+const Save = createHugeIconComponent(SaveIcon);
+const RotateCcw = createHugeIconComponent(RotateCcwIcon);
+const Briefcase = createHugeIconComponent(Briefcase01Icon);
+const Download = createHugeIconComponent(Download01Icon);
+const Info = createHugeIconComponent(InfoIcon);
+const Flame = createHugeIconComponent(FlameIcon);
 import {
   MegaCategoryItem,
   MegaSubItem,

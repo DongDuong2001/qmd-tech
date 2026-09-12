@@ -1,26 +1,45 @@
 "use client";
 
 import React, { useState, useRef } from "react";
+import { createHugeIconComponent } from "@/components/ui/HugeIcon";
 import {
-  Bold,
-  Italic,
-  Underline,
-  Strikethrough,
-  Heading2,
-  Heading3,
-  List,
-  ListOrdered,
-  Quote,
-  Code,
-  Link as LinkIcon,
-  Image as ImageIcon,
-  Eye,
-  Edit3,
-  Code2,
-  RotateCcw,
-  X,
-  Check,
-} from "lucide-react";
+  BoldIcon,
+  ItalicIcon,
+  UnderlineIcon,
+  StrikethroughIcon,
+  Heading02Icon,
+  Heading03Icon,
+  ListIcon,
+  ListOrderedIcon,
+  QuoteIcon,
+  CodeIcon,
+  Link01Icon,
+  Image01Icon,
+  EyeIcon,
+  PencilEdit02Icon,
+  RotateCcwIcon,
+  XIcon,
+  CheckIcon,
+} from "@hugeicons/core-free-icons";
+
+const Bold = createHugeIconComponent(BoldIcon);
+const Italic = createHugeIconComponent(ItalicIcon);
+const Underline = createHugeIconComponent(UnderlineIcon);
+const Strikethrough = createHugeIconComponent(StrikethroughIcon);
+const Heading2 = createHugeIconComponent(Heading02Icon);
+const Heading3 = createHugeIconComponent(Heading03Icon);
+const List = createHugeIconComponent(ListIcon);
+const ListOrdered = createHugeIconComponent(ListOrderedIcon);
+const Quote = createHugeIconComponent(QuoteIcon);
+const Code = createHugeIconComponent(CodeIcon);
+const LinkIcon = createHugeIconComponent(Link01Icon);
+const ImageIcon = createHugeIconComponent(Image01Icon);
+const Eye = createHugeIconComponent(EyeIcon);
+const Edit3 = createHugeIconComponent(PencilEdit02Icon);
+const Code2 = createHugeIconComponent(CodeIcon);
+const RotateCcw = createHugeIconComponent(RotateCcwIcon);
+const X = createHugeIconComponent(XIcon);
+const Check = createHugeIconComponent(CheckIcon);
 import { CloudinaryImageUpload } from "@/components/common/CloudinaryImageUpload";
 
 interface RichTextEditorProps {
