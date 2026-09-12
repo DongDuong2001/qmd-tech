@@ -16,7 +16,6 @@ import {
   BanknoteIcon,
   QrCode01Icon,
   ChevronDownIcon,
-  MapPinIcon,
   TruckIcon,
 } from "@hugeicons/core-free-icons";
 
@@ -25,7 +24,6 @@ const ShieldCheck = createHugeIconComponent(ShieldCheckIcon);
 const Banknote = createHugeIconComponent(BanknoteIcon);
 const QrCode = createHugeIconComponent(QrCode01Icon);
 const ChevronDown = createHugeIconComponent(ChevronDownIcon);
-const MapPin = createHugeIconComponent(MapPinIcon);
 const Truck = createHugeIconComponent(TruckIcon);
 
 export default function CheckoutPage() {

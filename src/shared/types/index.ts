@@ -182,6 +182,8 @@ export interface Review {
   created_at?: string;
 }
 
+export type BannerPosition = "hero" | "middle_carousel" | "side_left" | "side_right";
+
 export interface EventBanner {
   id: string;
   title_vi: string;
@@ -193,7 +195,7 @@ export interface EventBanner {
   target_url: string;
   display_order: number;
   is_active: boolean;
-  position?: "hero" | "middle_carousel" | "side_left" | "side_right";
+  position?: BannerPosition;
   created_at?: string;
 }
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { hasPermission, getRolePermissions, AdminRole } from "../../types/rbac";
+import { hasPermission } from "../../types/rbac";
 import { requirePermission, requireRole } from "../adminAuth";
 import { auditService } from "../../services/auditService";
 import { NextRequest } from "next/server";

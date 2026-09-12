@@ -24,6 +24,7 @@ import {
   SiteSettings,
   ShowroomLocation,
   AuditLogEntry,
+  BannerPosition,
 } from "@/shared/types";
 import { WarrantyTicket } from "@/modules/warranty/types";
 import { Button } from "@/components/ui/button";
@@ -134,13 +135,11 @@ import {
   MegaSubItem,
   AVAILABLE_ICON_NAMES,
   resolveMegaCategoryIcon,
-  DEFAULT_MEGA_MENU_CATEGORIES,
 } from "@/components/navigation/megaMenuData";
 import { sanitizeSlug } from "@/modules/blog/service";
 import {
   CareerJob,
   CreateCareerInput,
-  UpdateCareerInput,
   CareerApplication,
   ApplicationStatus,
 } from "@/modules/careers/types";
@@ -391,7 +390,7 @@ export default function AdminDashboardPage() {
   });
 
   // Banner Position Filter & Forms
-  const [bannerPositionFilter, setBannerPositionFilter] = useState<string>("all");
+  const [bannerPositionFilter, setBannerPositionFilter] = useState<"all" | BannerPosition>("all");
 
   const bannerPositionCounts = useMemo(() => {
     return {
@@ -3193,7 +3192,7 @@ export default function AdminDashboardPage() {
                 <Button
                   onClick={() => {
                     if (bannerPositionFilter !== "all") {
-                      setBannerForm((prev) => ({ ...prev, position: bannerPositionFilter as any }));
+                      setBannerForm((prev) => ({ ...prev, position: bannerPositionFilter }));
                     }
                     setIsAddBannerOpen(true);
                   }}
@@ -3247,13 +3246,15 @@ export default function AdminDashboardPage() {
 
               {/* 5 Position Filter Tabs */}
               <div className="flex flex-wrap items-center gap-2 border-b border-[#E2E8F0] pb-3">
-                {[
-                  { key: "all", label: "Tất Cả", count: bannerPositionCounts.all },
-                  { key: "hero", label: "Banner Hero Đầu Trang", count: bannerPositionCounts.hero },
-                  { key: "middle_carousel", label: "Poster Giữa Trang (Carousel)", count: bannerPositionCounts.middle_carousel },
-                  { key: "side_left", label: "Sườn Trái Desktop", count: bannerPositionCounts.side_left },
-                  { key: "side_right", label: "Sườn Phải Desktop", count: bannerPositionCounts.side_right },
-                ].map((tab) => {
+                {(
+                  [
+                    { key: "all", label: "Tất Cả", count: bannerPositionCounts.all },
+                    { key: "hero", label: "Banner Hero Đầu Trang", count: bannerPositionCounts.hero },
+                    { key: "middle_carousel", label: "Poster Giữa Trang (Carousel)", count: bannerPositionCounts.middle_carousel },
+                    { key: "side_left", label: "Sườn Trái Desktop", count: bannerPositionCounts.side_left },
+                    { key: "side_right", label: "Sườn Phải Desktop", count: bannerPositionCounts.side_right },
+                  ] as const
+                ).map((tab) => {
                   const isActive = bannerPositionFilter === tab.key;
                   return (
                     <button
@@ -3293,7 +3294,7 @@ export default function AdminDashboardPage() {
                   <Button
                     onClick={() => {
                       if (bannerPositionFilter !== "all") {
-                        setBannerForm((prev) => ({ ...prev, position: bannerPositionFilter as any }));
+                        setBannerForm((prev) => ({ ...prev, position: bannerPositionFilter }));
                       }
                       setIsAddBannerOpen(true);
                     }}
@@ -5828,7 +5829,7 @@ export default function AdminDashboardPage() {
             <label className="block font-bold text-[#1E293B] mb-1">Vị trí hiển thị trên website *</label>
             <select
               value={bannerForm.position || "hero"}
-              onChange={(e) => setBannerForm({ ...bannerForm, position: e.target.value as any })}
+              onChange={(e) => setBannerForm({ ...bannerForm, position: e.target.value as BannerPosition })}
               className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs font-semibold text-xs"
             >
               <option value="hero">Banner Hero đầu trang (Carousel lớn trên cùng)</option>
@@ -5915,7 +5916,7 @@ export default function AdminDashboardPage() {
             <label className="block font-bold text-[#1E293B] mb-1">Vị trí hiển thị trên website *</label>
             <select
               value={editBannerForm.position || "hero"}
-              onChange={(e) => setEditBannerForm({ ...editBannerForm, position: e.target.value as any })}
+              onChange={(e) => setEditBannerForm({ ...editBannerForm, position: e.target.value as BannerPosition })}
               className="w-full rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#0F172A] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs font-semibold text-xs"
             >
               <option value="hero">Banner Hero đầu trang (Carousel lớn trên cùng)</option>
