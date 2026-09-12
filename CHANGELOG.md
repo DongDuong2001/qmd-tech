@@ -1,3 +1,15 @@
+# [1.11.0](https://github.com/DongDuong2001/qmd-tech/compare/v1.10.0...v1.11.0) (2026-09-12)
+
+
+### Features
+
+* **admin:** migrate admin dashboard and editor to hugeicons ([04bc3fc](https://github.com/DongDuong2001/qmd-tech/commit/04bc3fc720dec0f02c182f639dafee48a63417e8))
+* **builder:** migrate pc builder cart and checkout to hugeicons ([7695739](https://github.com/DongDuong2001/qmd-tech/commit/7695739a02397f149b9f9269f4c0db106b062ee5))
+* **navigation:** migrate layout and navigation components to hugeicons ([5604232](https://github.com/DongDuong2001/qmd-tech/commit/5604232f5f52dd12a90217d9d3849cf5e8dc90e1))
+* **pages:** migrate content and error pages to hugeicons ([67ebaca](https://github.com/DongDuong2001/qmd-tech/commit/67ebaca99f6741b1acc557550c57f4071b83dfab))
+* **storefront:** migrate home and product components to hugeicons ([33aa117](https://github.com/DongDuong2001/qmd-tech/commit/33aa117522bc5fe00bc6784d7ba7027b45c73c0a))
+* **ui:** install hugeicons and create HugeIcon component wrapper ([e88044e](https://github.com/DongDuong2001/qmd-tech/commit/e88044eaac603e758056ce59af024147f212514f))
+
 # [1.10.0](https://github.com/DongDuong2001/qmd-tech/compare/v1.9.0...v1.10.0) (2026-09-10)
 
 
