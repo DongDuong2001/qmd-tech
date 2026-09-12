@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Moon, Sun } from "lucide-react";
+import { Moon01Icon, Sun01Icon } from "@hugeicons/core-free-icons";
+import { HugeIcon } from "@/components/ui/HugeIcon";
 
 export function ThemeToggle() {
   const [isLight, setIsLight] = useState(false);
@@ -30,7 +31,11 @@ export function ThemeToggle() {
       title={isLight ? "Chuyen sang Dark Mode" : "Switch to Light Mode"}
       aria-label="Toggle theme"
     >
-      {isLight ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+      {isLight ? (
+        <HugeIcon icon={Moon01Icon} className="h-4 w-4" />
+      ) : (
+        <HugeIcon icon={Sun01Icon} className="h-4 w-4" />
+      )}
     </button>
   );
 }

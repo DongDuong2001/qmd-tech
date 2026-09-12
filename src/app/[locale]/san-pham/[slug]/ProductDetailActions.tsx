@@ -6,7 +6,15 @@ import { Link } from "@/i18n/routing";
 import { Product } from "@/shared/types";
 import { useCart } from "@/shared/context/CartContext";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Zap, Wrench, Plus, Minus, Check } from "lucide-react";
+import {
+  ShoppingCart01Icon,
+  ZapIcon,
+  Wrench01Icon,
+  PlusIcon,
+  MinusIcon,
+  CheckIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeIcon } from "@/components/ui/HugeIcon";
 
 interface ProductDetailActionsProps {
   product: Product;
@@ -50,7 +58,7 @@ export function ProductDetailActions({
               disabled={quantity <= 1}
               aria-label="Giảm số lượng"
             >
-              <Minus className="h-3.5 w-3.5" />
+              <HugeIcon icon={MinusIcon} className="h-3.5 w-3.5" />
             </button>
             <span className="w-10 text-center text-xs font-mono font-bold text-[#0F172A]">
               {quantity}
@@ -62,7 +70,7 @@ export function ProductDetailActions({
               disabled={quantity >= product.stock}
               aria-label="Tăng số lượng"
             >
-              <Plus className="h-3.5 w-3.5" />
+              <HugeIcon icon={PlusIcon} className="h-3.5 w-3.5" />
             </button>
           </div>
           <span className="text-[11px] text-[#64748B]">
@@ -84,12 +92,12 @@ export function ProductDetailActions({
         >
           {isAdded ? (
             <>
-              <Check className="h-5 w-5 text-[#16A34A]" />
+              <HugeIcon icon={CheckIcon} className="h-5 w-5 text-[#16A34A]" />
               Đã thêm giỏ hàng
             </>
           ) : (
             <>
-              <ShoppingCart className="h-5 w-5" />
+              <HugeIcon icon={ShoppingCart01Icon} className="h-5 w-5" />
               {addToCartText}
             </>
           )}
@@ -102,7 +110,7 @@ export function ProductDetailActions({
           size="lg"
           className="gap-2 font-black shadow-xs bg-[#0063FD] hover:bg-[#0052D4]"
         >
-          <Zap className="h-5 w-5 fill-current" />
+          <HugeIcon icon={ZapIcon} className="h-5 w-5 fill-current" />
           Mua ngay
         </Button>
 
@@ -112,7 +120,7 @@ export function ProductDetailActions({
             size="lg"
             className="w-full gap-2 font-bold shadow-xs"
           >
-            <Wrench className="h-5 w-5" />
+            <HugeIcon icon={Wrench01Icon} className="h-5 w-5" />
             Custom PC Build
           </Button>
         </Link>

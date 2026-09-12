@@ -1,6 +1,9 @@
 import React from "react";
 import { Link } from "@/i18n/routing";
-import { Tag } from "lucide-react";
+import { createHugeIconComponent } from "@/components/ui/HugeIcon";
+import { Tag01Icon } from "@hugeicons/core-free-icons";
+
+const Tag = createHugeIconComponent(Tag01Icon);
 import { Button } from "@/components/ui/button";
 
 export const metadata = {

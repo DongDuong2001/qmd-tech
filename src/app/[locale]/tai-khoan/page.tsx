@@ -7,20 +7,34 @@ import { authService, AuthUser } from "@/modules/auth/service";
 import { supabase } from "@/shared/db/supabase";
 import { Order, CustomBuild } from "@/shared/types";
 import { Button } from "@/components/ui/button";
+import { createHugeIconComponent } from "@/components/ui/HugeIcon";
 import {
-  User as UserIcon,
-  ShoppingBag,
-  Wrench,
-  LogOut,
-  CheckCircle2,
-  AlertTriangle,
-  Mail,
-  Lock,
-  Phone,
-  Eye,
-  EyeOff,
-  ArrowLeft,
-} from "lucide-react";
+  UserIcon as HugeUserIcon,
+  ShoppingBag01Icon,
+  Wrench01Icon,
+  LogOutIcon,
+  CheckmarkCircle02Icon,
+  Alert02Icon,
+  Mail01Icon,
+  LockIcon,
+  PhoneIcon,
+  EyeIcon,
+  EyeOffIcon,
+  ArrowLeft01Icon,
+} from "@hugeicons/core-free-icons";
+
+const UserIcon = createHugeIconComponent(HugeUserIcon);
+const ShoppingBag = createHugeIconComponent(ShoppingBag01Icon);
+const Wrench = createHugeIconComponent(Wrench01Icon);
+const LogOut = createHugeIconComponent(LogOutIcon);
+const CheckCircle2 = createHugeIconComponent(CheckmarkCircle02Icon);
+const AlertTriangle = createHugeIconComponent(Alert02Icon);
+const Mail = createHugeIconComponent(Mail01Icon);
+const Lock = createHugeIconComponent(LockIcon);
+const Phone = createHugeIconComponent(PhoneIcon);
+const Eye = createHugeIconComponent(EyeIcon);
+const EyeOff = createHugeIconComponent(EyeOffIcon);
+const ArrowLeft = createHugeIconComponent(ArrowLeft01Icon);
 
 export default function AccountPage() {
   return (

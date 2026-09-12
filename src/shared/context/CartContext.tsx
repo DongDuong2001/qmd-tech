@@ -3,7 +3,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { CartItem, Product } from "@/shared/types";
 import { cartService } from "@/modules/cart/service";
-import { CheckCircle2, X } from "lucide-react";
+import { CheckmarkCircle02Icon, XIcon } from "@hugeicons/core-free-icons";
+import { HugeIcon } from "@/components/ui/HugeIcon";
 
 interface CartContextType {
   items: CartItem[];
@@ -146,14 +147,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
       {/* Global Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-5 right-5 z-50 flex items-center gap-3 rounded-xl border border-[#86EFAC] bg-[#DCFCE7] px-4 py-3 text-xs font-bold text-[#15803D] shadow-xl animate-in fade-in slide-in-from-bottom-5">
-          <CheckCircle2 className="h-5 w-5 shrink-0 text-[#16A34A]" />
+          <HugeIcon icon={CheckmarkCircle02Icon} className="h-5 w-5 shrink-0 text-[#16A34A]" />
           <span className="max-w-xs truncate">{toastMessage}</span>
           <button
             onClick={() => setToastMessage(null)}
             className="ml-1 rounded p-1 text-[#15803D] hover:bg-[#BBF7D0]"
             aria-label="Đóng thông báo"
           >
-            <X className="h-3.5 w-3.5" />
+            <HugeIcon icon={XIcon} className="h-3.5 w-3.5" />
           </button>
         </div>
       )}

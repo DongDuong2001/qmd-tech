@@ -3,11 +3,12 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link } from "@/i18n/routing";
 import {
-  LayoutGrid,
-  ChevronDown,
-  ChevronRight,
-  ArrowRight,
-} from "lucide-react";
+  LayoutGridIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+  ArrowRight01Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeIcon } from "@/components/ui/HugeIcon";
 import {
   MEGA_MENU_CATEGORIES,
   MegaCategoryItem,
@@ -117,9 +118,10 @@ export function CategoryMegaMenu({
             : "bg-white hover:border-[#0063FD] text-[#0F172A] hover:text-[#0063FD] px-3 py-2 text-xs border border-[#CBD5E1]"
         } ${isOpen ? "bg-[#0063FD] text-white ring-2 ring-[#0063FD]/30" : ""}`}
       >
-        <LayoutGrid className="h-4 w-4 shrink-0 transition-transform group-hover:scale-110" />
+        <HugeIcon icon={LayoutGridIcon} className="h-4 w-4 shrink-0 transition-transform group-hover:scale-110" />
         <span className="truncate">Danh mục</span>
-        <ChevronDown
+        <HugeIcon
+          icon={ChevronDownIcon}
           className={`h-3.5 w-3.5 shrink-0 transition-transform duration-200 ${
             isOpen ? "rotate-180" : ""
           }`}
@@ -166,7 +168,8 @@ export function CategoryMegaMenu({
                       </div>
 
                       <div className="flex items-center shrink-0">
-                        <ChevronRight
+                        <HugeIcon
+                          icon={ChevronRightIcon}
                           className={`h-3 w-3 transition-transform ${
                             isActive
                               ? "text-[#0063FD] translate-x-0.5"
@@ -187,7 +190,7 @@ export function CategoryMegaMenu({
                   className="flex items-center justify-center gap-1.5 rounded-lg bg-white border border-[#CBD5E1] py-2 text-[11px] font-bold text-[#0F172A] hover:bg-[#EFF6FF] hover:border-[#0063FD] hover:text-[#0063FD] transition-colors shadow-2xs"
                 >
                   <span>Xem tất cả danh mục</span>
-                  <ArrowRight className="h-3 w-3" />
+                  <HugeIcon icon={ArrowRight01Icon} className="h-3 w-3" />
                 </Link>
               </div>
             </div>
@@ -222,7 +225,7 @@ export function CategoryMegaMenu({
                     className="inline-flex items-center gap-1 text-xs font-black text-[#0063FD] hover:text-[#0052D4] hover:underline"
                   >
                     <span>Xem tất cả</span>
-                    <ChevronRight className="h-3.5 w-3.5" />
+                    <HugeIcon icon={ChevronRightIcon} className="h-3.5 w-3.5" />
                   </Link>
                 </div>
 
@@ -372,7 +375,8 @@ export function MobileCategoryAccordion({
                   <span>{cat.name}</span>
                 </div>
                 <div className="flex items-center">
-                  <ChevronDown
+                  <HugeIcon
+                    icon={ChevronDownIcon}
                     className={`h-3.5 w-3.5 text-[#64748B] transition-transform ${
                       isExpanded ? "rotate-180" : ""
                     }`}

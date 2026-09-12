@@ -25,19 +25,18 @@ import {
   WdBlackLogo,
 } from "@/components/common/BrandLogos";
 import {
-  CircuitBoard,
-  ArrowRight,
-  Wrench,
-  Award,
-  Gift,
-  CheckCircle2,
-  Tag,
-  ShieldCheck,
-  BookOpen,
-  Truck,
-  Phone,
-  Flame,
-} from "lucide-react";
+  CircuitBoardIcon,
+  Wrench01Icon,
+  Award01Icon,
+  GiftIcon,
+  CheckmarkCircle02Icon,
+  Tag01Icon,
+  ShieldCheckIcon,
+  BookOpen01Icon,
+  TruckIcon,
+  PhoneIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeIcon } from "@/components/ui/HugeIcon";
 
 export default async function HomePage() {
   const categories = await catalogService.getCategories();
@@ -60,7 +59,7 @@ export default async function HomePage() {
               href="/khuyen-mai"
               className="flex items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-lg text-[#0F172A] font-bold hover:text-[#0063FD] hover:bg-[#EFF6FF] transition-colors"
             >
-              <Tag className="h-4 w-4 text-[#EF4444]" />
+              <HugeIcon icon={Tag01Icon} className="h-4 w-4 text-[#EF4444]" />
               <span>Tất Cả Khuyến Mãi</span>
             </Link>
             <span className="text-[#E2E8F0] hidden sm:inline">•</span>
@@ -68,7 +67,7 @@ export default async function HomePage() {
               href="/build-pc"
               className="flex items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-lg text-[#0F172A] font-bold hover:text-[#0063FD] hover:bg-[#EFF6FF] transition-colors"
             >
-              <Wrench className="h-4 w-4 text-[#0063FD]" />
+              <HugeIcon icon={Wrench01Icon} className="h-4 w-4 text-[#0063FD]" />
               <span>Xây Dựng Cấu Hình PC</span>
             </Link>
             <span className="text-[#E2E8F0] hidden sm:inline">•</span>
@@ -76,7 +75,7 @@ export default async function HomePage() {
               href="/bao-hanh"
               className="flex items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-lg text-[#0F172A] font-bold hover:text-[#0063FD] hover:bg-[#EFF6FF] transition-colors"
             >
-              <ShieldCheck className="h-4 w-4 text-[#16A34A]" />
+              <HugeIcon icon={ShieldCheckIcon} className="h-4 w-4 text-[#16A34A]" />
               <span>Tra Cứu Bảo Hành</span>
             </Link>
             <span className="text-[#E2E8F0] hidden md:inline">•</span>
@@ -84,7 +83,7 @@ export default async function HomePage() {
               href="/blog"
               className="hidden md:flex items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-lg text-[#0F172A] font-bold hover:text-[#0063FD] hover:bg-[#EFF6FF] transition-colors"
             >
-              <BookOpen className="h-4 w-4 text-[#8B5CF6]" />
+              <HugeIcon icon={BookOpen01Icon} className="h-4 w-4 text-[#8B5CF6]" />
               <span>Tin Tức & Review</span>
             </Link>
             <span className="text-[#E2E8F0] hidden lg:inline">•</span>
@@ -92,7 +91,7 @@ export default async function HomePage() {
               href="/lien-he"
               className="hidden lg:flex items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-lg text-[#0F172A] font-bold hover:text-[#0063FD] hover:bg-[#EFF6FF] transition-colors"
             >
-              <Truck className="h-4 w-4 text-[#0063FD]" />
+              <HugeIcon icon={TruckIcon} className="h-4 w-4 text-[#0063FD]" />
               <span>Giao Hàng Toàn Quốc 34 Tỉnh Thành</span>
             </Link>
             <span className="text-[#E2E8F0] hidden xl:inline">•</span>
@@ -100,7 +99,7 @@ export default async function HomePage() {
               href="/lien-he"
               className="hidden xl:flex items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-lg text-[#0F172A] font-bold hover:text-[#0063FD] hover:bg-[#EFF6FF] transition-colors"
             >
-              <Phone className="h-4 w-4 text-[#0D9488]" />
+              <HugeIcon icon={PhoneIcon} className="h-4 w-4 text-[#0D9488]" />
               <span>Hỗ Trợ Kỹ Thuật 24/7</span>
             </Link>
           </div>
@@ -148,7 +147,7 @@ export default async function HomePage() {
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E2E8F0] pb-3 sm:pb-4">
             <div>
               <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-black text-[#0063FD] uppercase tracking-wider mb-0.5 sm:mb-1">
-                <Award className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <HugeIcon icon={Award01Icon} className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 Cấu hình tối ưu bởi kỹ sư QMD-Tech
               </div>
               <h2 className="text-lg sm:text-2xl font-black uppercase text-[#0F172A]">
@@ -157,7 +156,7 @@ export default async function HomePage() {
             </div>
             <Link href="/build-pc">
               <Button variant="primary" size="sm" className="font-black text-[11px] sm:text-xs gap-1.5">
-                <Wrench className="h-3.5 w-3.5" />
+                <HugeIcon icon={Wrench01Icon} className="h-3.5 w-3.5" />
                 Tự Tùy Biến Cấu Hình
               </Button>
             </Link>
@@ -196,24 +195,24 @@ export default async function HomePage() {
                   {/* Spec List */}
                   <div className="space-y-1 sm:space-y-1.5 mb-3 sm:mb-4 rounded-lg bg-[#F8FAFC] p-2.5 sm:p-3 text-[10px] sm:text-[11px] font-mono text-[#475569] border border-[#E2E8F0]">
                     <div className="flex items-center gap-1.5">
-                      <CheckCircle2 className="h-3 w-3 text-[#16A34A] shrink-0" />
+                      <HugeIcon icon={CheckmarkCircle02Icon} className="h-3 w-3 text-[#16A34A] shrink-0" />
                       <span className="truncate">{deal.cpu}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <CheckCircle2 className="h-3 w-3 text-[#16A34A] shrink-0" />
+                      <HugeIcon icon={CheckmarkCircle02Icon} className="h-3 w-3 text-[#16A34A] shrink-0" />
                       <span className="truncate">{deal.vga}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <CheckCircle2 className="h-3 w-3 text-[#16A34A] shrink-0" />
+                      <HugeIcon icon={CheckmarkCircle02Icon} className="h-3 w-3 text-[#16A34A] shrink-0" />
                       <span className="truncate">{deal.ram}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <CheckCircle2 className="h-3 w-3 text-[#16A34A] shrink-0" />
+                      <HugeIcon icon={CheckmarkCircle02Icon} className="h-3 w-3 text-[#16A34A] shrink-0" />
                       <span className="truncate">{deal.ssd}</span>
                     </div>
                     {deal.psu && (
                       <div className="flex items-center gap-1.5">
-                        <CheckCircle2 className="h-3 w-3 text-[#16A34A] shrink-0" />
+                        <HugeIcon icon={CheckmarkCircle02Icon} className="h-3 w-3 text-[#16A34A] shrink-0" />
                         <span className="truncate">{deal.psu}</span>
                       </div>
                     )}
@@ -221,7 +220,7 @@ export default async function HomePage() {
 
                   {/* Gift Tag */}
                   <div className="rounded bg-[#EFF6FF] border border-[#BFDBFE] p-1.5 sm:p-2 text-[10px] sm:text-[11px] text-[#0063FD] flex items-center gap-1.5 mb-3 sm:mb-4 font-semibold">
-                    <Gift className="h-3.5 w-3.5 text-[#0063FD] shrink-0" />
+                    <HugeIcon icon={GiftIcon} className="h-3.5 w-3.5 text-[#0063FD] shrink-0" />
                     <span className="truncate">Tặng kèm gói vệ sinh + Lót chuột Gaming</span>
                   </div>
                 </div>
@@ -274,7 +273,7 @@ export default async function HomePage() {
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E2E8F0] pb-3 sm:pb-4">
           <div>
             <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-black text-[#0063FD] uppercase tracking-wider mb-0.5 sm:mb-1">
-              <CircuitBoard className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <HugeIcon icon={CircuitBoardIcon} className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               Linh kiện thế hệ mới
             </div>
             <h2 className="text-lg sm:text-2xl font-black uppercase text-[#0F172A]">

@@ -4,18 +4,31 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import {
-  QrCode,
-  Copy,
-  Check,
-  RefreshCw,
-  CheckCircle2,
-  Building,
-  CreditCard,
-  User,
-  DollarSign,
-  FileText,
-  Clock,
-} from "lucide-react";
+  QrCode01Icon,
+  Copy01Icon,
+  CheckIcon,
+  RefreshCwIcon,
+  CheckmarkCircle02Icon,
+  Building01Icon,
+  CreditCardIcon,
+  UserIcon,
+  DollarSignIcon,
+  FileTextIcon,
+  Clock01Icon,
+} from "@hugeicons/core-free-icons";
+import { createHugeIconComponent } from "@/components/ui/HugeIcon";
+
+const QrCode = createHugeIconComponent(QrCode01Icon);
+const Copy = createHugeIconComponent(Copy01Icon);
+const Check = createHugeIconComponent(CheckIcon);
+const RefreshCw = createHugeIconComponent(RefreshCwIcon);
+const CheckCircle2 = createHugeIconComponent(CheckmarkCircle02Icon);
+const Building = createHugeIconComponent(Building01Icon);
+const CreditCard = createHugeIconComponent(CreditCardIcon);
+const User = createHugeIconComponent(UserIcon);
+const DollarSign = createHugeIconComponent(DollarSignIcon);
+const FileText = createHugeIconComponent(FileTextIcon);
+const Clock = createHugeIconComponent(Clock01Icon);
 
 interface SePayVietQRModalProps {
   orderCode: string;

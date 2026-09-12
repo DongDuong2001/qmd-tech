@@ -7,18 +7,19 @@ import { Link, useRouter } from "@/i18n/routing";
 import { useCart } from "@/shared/context/CartContext";
 import { Button } from "@/components/ui/button";
 import {
-  Phone,
-  ShieldCheck,
-  User,
-  UserPlus,
-  LogIn,
-  Menu,
-  X,
-  Truck,
-  Award,
-  Tag,
-  BookOpen,
-} from "lucide-react";
+  PhoneIcon,
+  ShieldCheckIcon,
+  UserIcon,
+  UserPlusIcon,
+  LogInIcon,
+  Menu01Icon,
+  XIcon,
+  TruckIcon,
+  Award01Icon,
+  Tag01Icon,
+  BookOpen01Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeIcon } from "@/components/ui/HugeIcon";
 import {
   CartIcon,
   type CartIconHandle,
@@ -72,7 +73,7 @@ export function Header() {
             </span>
             <span className="hidden md:inline-block text-[#CBD5E1]">|</span>
             <span className="hidden md:flex items-center gap-1 text-[#0063FD] font-semibold">
-              <Truck className="h-3.5 w-3.5 text-[#0063FD]" />
+              <HugeIcon icon={TruckIcon} className="h-3.5 w-3.5 text-[#0063FD]" />
               Freeship từ 5.000.000₫
             </span>
           </div>
@@ -82,7 +83,7 @@ export function Header() {
               href="/blog"
               className="hidden sm:flex items-center gap-1 text-[#475569] hover:text-[#0063FD] transition-colors font-medium"
             >
-              <BookOpen className="h-3.5 w-3.5 text-[#0063FD]" />
+              <HugeIcon icon={BookOpen01Icon} className="h-3.5 w-3.5 text-[#0063FD]" />
               Blog Công Nghệ
             </Link>
             <span className="hidden sm:inline-block text-[#CBD5E1]">|</span>
@@ -90,7 +91,7 @@ export function Header() {
               href="/bao-hanh"
               className="hidden md:flex items-center gap-1 text-[#475569] hover:text-[#0063FD] transition-colors"
             >
-              <ShieldCheck className="h-3.5 w-3.5 text-[#16A34A]" />
+              <HugeIcon icon={ShieldCheckIcon} className="h-3.5 w-3.5 text-[#16A34A]" />
               Tra cứu bảo hành
             </Link>
             <span className="hidden md:inline-block text-[#CBD5E1]">|</span>
@@ -98,14 +99,14 @@ export function Header() {
               href="/tai-khoan?mode=login"
               className="hidden sm:flex items-center gap-1 text-[#475569] hover:text-[#0063FD] transition-colors font-medium"
             >
-              <LogIn className="h-3.5 w-3.5 text-[#0063FD]" />
+              <HugeIcon icon={LogInIcon} className="h-3.5 w-3.5 text-[#0063FD]" />
               Đăng nhập
             </Link>
             <Link
               href="/tai-khoan?mode=register"
               className="hidden sm:flex items-center gap-1 rounded-md bg-[#0063FD] px-2 py-0.5 text-[11px] font-bold text-white hover:bg-[#0052D4] transition-colors"
             >
-              <UserPlus className="h-3 w-3" />
+              <HugeIcon icon={UserPlusIcon} className="h-3 w-3" />
               Đăng ký
             </Link>
           </div>
@@ -172,7 +173,7 @@ export function Header() {
             {/* Hotline Pill (Desktop only) */}
             <div className="hidden xl:flex items-center gap-2 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-1.5 text-xs">
               <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#EFF6FF] text-[#0063FD]">
-                <Phone className="h-3.5 w-3.5" />
+                <HugeIcon icon={PhoneIcon} className="h-3.5 w-3.5" />
               </div>
               <div className="flex flex-col">
                 <span className="text-[10px] text-[#64748B]">Hotline 24/7</span>
@@ -219,7 +220,7 @@ export function Header() {
               className="sm:hidden flex items-center justify-center rounded-lg border border-[#CBD5E1] bg-white p-2 text-[#475569] hover:text-[#0063FD]"
               aria-label="Tài khoản"
             >
-              <User className="h-4 w-4" />
+              <HugeIcon icon={UserIcon} className="h-4 w-4" />
             </Link>
 
             {/* Mobile Hamburger Toggle */}
@@ -228,7 +229,11 @@ export function Header() {
               className="lg:hidden rounded-lg border border-[#CBD5E1] bg-[#FFFFFF] p-2 text-[#475569] hover:text-[#0F172A]"
               aria-label="Menu"
             >
-              {mobileMenuOpen ? <X className="h-4 w-4 sm:h-5 sm:w-5" /> : <Menu className="h-4 w-4 sm:h-5 sm:w-5" />}
+              {mobileMenuOpen ? (
+                <HugeIcon icon={XIcon} className="h-4 w-4 sm:h-5 sm:w-5" />
+              ) : (
+                <HugeIcon icon={Menu01Icon} className="h-4 w-4 sm:h-5 sm:w-5" />
+              )}
             </button>
           </div>
         </div>
@@ -271,7 +276,7 @@ export function Header() {
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center justify-center gap-1.5 rounded-lg border border-[#CBD5E1] bg-white py-2 text-xs font-bold text-[#0F172A] shadow-2xs"
               >
-                <LogIn className="h-3.5 w-3.5 text-[#0063FD]" />
+                <HugeIcon icon={LogInIcon} className="h-3.5 w-3.5 text-[#0063FD]" />
                 Đăng nhập
               </Link>
               <Link
@@ -279,7 +284,7 @@ export function Header() {
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center justify-center gap-1.5 rounded-lg bg-[#0063FD] py-2 text-xs font-black text-white shadow-2xs"
               >
-                <UserPlus className="h-3.5 w-3.5" />
+                <HugeIcon icon={UserPlusIcon} className="h-3.5 w-3.5" />
                 Đăng ký ngay
               </Link>
             </div>
@@ -322,7 +327,7 @@ export function Header() {
               onClick={() => setMobileMenuOpen(false)}
               className="flex items-center gap-2 rounded-lg bg-[#F8FAFC] border border-[#CBD5E1] p-2.5 text-[#0F172A]"
             >
-              <BookOpen className="h-4 w-4 text-[#0063FD]" />
+              <HugeIcon icon={BookOpen01Icon} className="h-4 w-4 text-[#0063FD]" />
               Blog Công Nghệ
             </Link>
             <Link
@@ -330,7 +335,7 @@ export function Header() {
               onClick={() => setMobileMenuOpen(false)}
               className="flex items-center gap-2 rounded-lg bg-[#F8FAFC] border border-[#CBD5E1] p-2.5 text-[#0F172A]"
             >
-              <Tag className="h-4 w-4 text-[#0063FD]" />
+              <HugeIcon icon={Tag01Icon} className="h-4 w-4 text-[#0063FD]" />
               Khuyến Mãi
             </Link>
             <Link
@@ -338,7 +343,7 @@ export function Header() {
               onClick={() => setMobileMenuOpen(false)}
               className="flex items-center gap-2 rounded-lg bg-[#F8FAFC] border border-[#CBD5E1] p-2.5 text-[#0F172A] col-span-2"
             >
-              <Award className="h-4 w-4 text-[#0063FD]" />
+              <HugeIcon icon={Award01Icon} className="h-4 w-4 text-[#0063FD]" />
               Tất cả danh mục sản phẩm
             </Link>
           </div>

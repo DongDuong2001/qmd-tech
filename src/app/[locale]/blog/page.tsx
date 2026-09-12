@@ -3,7 +3,12 @@ import { Metadata } from "next";
 import { Link } from "@/i18n/routing";
 import { blogService } from "@/modules/blog/service";
 import { BlogListClient } from "./BlogListClient";
-import { ChevronRight, Home, Flame } from "lucide-react";
+import { createHugeIconComponent } from "@/components/ui/HugeIcon";
+import { ChevronRightIcon, Home01Icon, FlameIcon } from "@hugeicons/core-free-icons";
+
+const ChevronRight = createHugeIconComponent(ChevronRightIcon);
+const Home = createHugeIconComponent(Home01Icon);
+const Flame = createHugeIconComponent(FlameIcon);
 
 export const metadata: Metadata = {
   title: "Tin Tức Công Nghệ & Hướng Dẫn Build PC | QMD-Tech",

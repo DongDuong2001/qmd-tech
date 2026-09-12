@@ -3,7 +3,13 @@
 import React, { useEffect } from "react";
 import { Link } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, RefreshCw, Home, Phone } from "lucide-react";
+import { createHugeIconComponent } from "@/components/ui/HugeIcon";
+import { Alert02Icon, RefreshCwIcon, Home01Icon, PhoneIcon } from "@hugeicons/core-free-icons";
+
+const AlertTriangle = createHugeIconComponent(Alert02Icon);
+const RefreshCw = createHugeIconComponent(RefreshCwIcon);
+const Home = createHugeIconComponent(Home01Icon);
+const Phone = createHugeIconComponent(PhoneIcon);
 
 interface ErrorPageProps {
   error: Error & { digest?: string };

@@ -5,7 +5,12 @@ import {
   formatSpecValue,
 } from "@/modules/catalog/specRegistry";
 import { DEFAULT_HARDWARE_CATEGORIES } from "@/modules/admin/service";
-import { Wrench, ShieldCheck, CheckCircle2 } from "lucide-react";
+import {
+  Wrench01Icon,
+  ShieldCheckIcon,
+  CheckmarkCircle02Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeIcon } from "@/components/ui/HugeIcon";
 
 interface DynamicProductSpecsProps {
   product: Product;
@@ -49,7 +54,7 @@ export function DynamicProductSpecs({ product, locale }: DynamicProductSpecsProp
 
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center gap-1 rounded-md bg-[#EFF6FF] border border-[#BFDBFE] px-2.5 py-1 text-[11px] font-bold text-[#0063FD]">
-            <ShieldCheck className="h-3.5 w-3.5 text-[#0063FD]" />
+            <HugeIcon icon={ShieldCheckIcon} className="h-3.5 w-3.5 text-[#0063FD]" />
             <span>Chính Hãng {product.brand}</span>
           </span>
         </div>
@@ -95,7 +100,7 @@ export function DynamicProductSpecs({ product, locale }: DynamicProductSpecsProp
                             title="Thông số quyết định khả năng tương thích trong Custom PC Builder"
                             className="inline-flex items-center gap-0.5 rounded bg-[#EFF6FF] border border-[#BFDBFE] px-1.5 py-0.5 text-[9px] font-black text-[#0063FD] uppercase cursor-help"
                           >
-                            <Wrench className="h-2.5 w-2.5" />
+                            <HugeIcon icon={Wrench01Icon} className="h-2.5 w-2.5" />
                             <span>PC Builder</span>
                           </span>
                         )}
@@ -109,7 +114,7 @@ export function DynamicProductSpecs({ product, locale }: DynamicProductSpecsProp
                               key={i}
                               className="inline-flex items-center gap-1 rounded bg-white border border-[#CBD5E1] px-2 py-0.5 text-[11px] shadow-2xs"
                             >
-                              <CheckCircle2 className="h-3 w-3 text-[#16A34A]" />
+                              <HugeIcon icon={CheckmarkCircle02Icon} className="h-3 w-3 text-[#16A34A]" />
                               <span>{String(item)}</span>
                             </span>
                           ))}

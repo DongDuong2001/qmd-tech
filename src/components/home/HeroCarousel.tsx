@@ -4,7 +4,12 @@ import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import { EventBanner } from "@/shared/types";
-import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ArrowRight01Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeIcon } from "@/components/ui/HugeIcon";
 
 interface HeroCarouselProps {
   banners: EventBanner[];
@@ -114,7 +119,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
               className="absolute left-2 sm:left-3.5 top-1/2 -translate-y-1/2 z-20 flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 text-[#0F172A] hover:bg-white hover:text-[#0063FD] transition-all shadow-md opacity-80 group-hover:opacity-100"
               aria-label="Slide trước"
             >
-              <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+              <HugeIcon icon={ChevronLeftIcon} className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
             <button
               onClick={(e) => {
@@ -125,7 +130,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
               className="absolute right-2 sm:right-3.5 top-1/2 -translate-y-1/2 z-20 flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 text-[#0F172A] hover:bg-white hover:text-[#0063FD] transition-all shadow-md opacity-80 group-hover:opacity-100"
               aria-label="Slide tiếp theo"
             >
-              <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
+              <HugeIcon icon={ChevronRightIcon} className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
           </>
         )}
@@ -152,7 +157,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
             </p>
             <div className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-[#0063FD] pt-0.5">
               <span>Bắt đầu lắp ráp</span>
-              <ArrowRight className="h-3 w-3 sm:h-3.5 sm:w-3.5 group-hover:translate-x-1 transition-transform" />
+              <HugeIcon icon={ArrowRight01Icon} className="h-3 w-3 sm:h-3.5 sm:w-3.5 group-hover:translate-x-1 transition-transform" />
             </div>
           </div>
 
@@ -186,7 +191,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
             </p>
             <div className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-[#0063FD] pt-0.5">
               <span>Chính sách chi tiết</span>
-              <ArrowRight className="h-3 w-3 sm:h-3.5 sm:w-3.5 group-hover:translate-x-1 transition-transform" />
+              <HugeIcon icon={ArrowRight01Icon} className="h-3 w-3 sm:h-3.5 sm:w-3.5 group-hover:translate-x-1 transition-transform" />
             </div>
           </div>
 
@@ -220,7 +225,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
             </p>
             <div className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-[#0D9488] pt-0.5">
               <span>Liên hệ ngay</span>
-              <ArrowRight className="h-3 w-3 sm:h-3.5 sm:w-3.5 group-hover:translate-x-1 transition-transform" />
+              <HugeIcon icon={ArrowRight01Icon} className="h-3 w-3 sm:h-3.5 sm:w-3.5 group-hover:translate-x-1 transition-transform" />
             </div>
           </div>
 

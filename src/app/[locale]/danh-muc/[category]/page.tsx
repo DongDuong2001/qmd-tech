@@ -3,7 +3,8 @@ import { Link } from "@/i18n/routing";
 import { notFound } from "next/navigation";
 import { catalogService } from "@/modules/catalog/service";
 import { ProductCard } from "@/components/product/ProductCard";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
+import { HugeIcon } from "@/components/ui/HugeIcon";
 
 interface CategoryPageProps {
   params: Promise<{ category: string; locale: string }>;
@@ -47,7 +48,7 @@ export default async function CategoryDetailPage({
             href="/danh-muc"
             className="mb-2 inline-flex items-center gap-1.5 text-xs text-[#64748B] hover:text-[#2563EB] transition-colors"
           >
-            <ArrowLeft className="h-3.5 w-3.5" />
+            <HugeIcon icon={ArrowLeft01Icon} className="h-3.5 w-3.5" />
             Tất cả danh mục
           </Link>
           <h1 className="text-2xl sm:text-3xl font-black text-[#0F172A]">

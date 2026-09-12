@@ -2,7 +2,8 @@
 
 import { usePathname, useRouter } from "@/i18n/routing";
 import { useLocale } from "next-intl";
-import { Globe } from "lucide-react";
+import { GlobeIcon } from "@hugeicons/core-free-icons";
+import { HugeIcon } from "@/components/ui/HugeIcon";
 
 export function LanguageSwitcher() {
   const locale = useLocale();
@@ -15,7 +16,7 @@ export function LanguageSwitcher() {
 
   return (
     <div className="flex items-center rounded-lg border border-[#E2E8F0] bg-white p-0.5 text-xs font-semibold shadow-2xs">
-      <Globe className="ml-1.5 h-3.5 w-3.5 text-[#64748B]" />
+      <HugeIcon icon={GlobeIcon} className="ml-1.5 h-3.5 w-3.5 text-[#64748B]" />
       <button
         onClick={() => switchLanguage("vi")}
         className={`ml-1 rounded px-1.5 py-0.5 transition-colors ${

@@ -3,27 +3,48 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "@/i18n/routing";
 import { CareerJob } from "@/modules/careers/types";
+import { createHugeIconComponent } from "@/components/ui/HugeIcon";
 import {
-  Briefcase,
-  MapPin,
-  Clock,
-  DollarSign,
-  Search,
-  CheckCircle2,
-  Mail,
-  ChevronDown,
-  ChevronUp,
-  Award,
-  Users,
-  Send,
-  X,
-  FileText,
-  UploadCloud,
-  AlertCircle,
-  Paperclip,
-  Trash2,
-  Loader2,
-} from "lucide-react";
+  Briefcase01Icon,
+  MapPinIcon,
+  Clock01Icon,
+  DollarSignIcon,
+  Search01Icon,
+  CheckmarkCircle02Icon,
+  Mail01Icon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  Award01Icon,
+  UsersIcon,
+  SendIcon,
+  XIcon,
+  FileTextIcon,
+  CloudUploadIcon,
+  AlertCircleIcon,
+  PaperclipIcon,
+  Delete02Icon,
+  Loading03Icon,
+} from "@hugeicons/core-free-icons";
+
+const Briefcase = createHugeIconComponent(Briefcase01Icon);
+const MapPin = createHugeIconComponent(MapPinIcon);
+const Clock = createHugeIconComponent(Clock01Icon);
+const DollarSign = createHugeIconComponent(DollarSignIcon);
+const Search = createHugeIconComponent(Search01Icon);
+const CheckCircle2 = createHugeIconComponent(CheckmarkCircle02Icon);
+const Mail = createHugeIconComponent(Mail01Icon);
+const ChevronDown = createHugeIconComponent(ChevronDownIcon);
+const ChevronUp = createHugeIconComponent(ChevronUpIcon);
+const Award = createHugeIconComponent(Award01Icon);
+const Users = createHugeIconComponent(UsersIcon);
+const Send = createHugeIconComponent(SendIcon);
+const X = createHugeIconComponent(XIcon);
+const FileText = createHugeIconComponent(FileTextIcon);
+const UploadCloud = createHugeIconComponent(CloudUploadIcon);
+const AlertCircle = createHugeIconComponent(AlertCircleIcon);
+const Paperclip = createHugeIconComponent(PaperclipIcon);
+const Trash2 = createHugeIconComponent(Delete02Icon);
+const Loader2 = createHugeIconComponent(Loading03Icon);
 import { Button } from "@/components/ui/button";
 
 export default function CareerStorefrontPage() {

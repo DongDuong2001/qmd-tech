@@ -1,24 +1,43 @@
 import {
-  Cpu,
-  Layers,
-  CircuitBoard,
-  MemoryStick,
-  HardDrive,
-  Zap,
-  Box,
-  Fan,
-  Monitor,
-  Gamepad2,
-  Keyboard,
-  Headphones,
-  Mouse,
-  Tv,
-  Speaker,
-  Package,
-  Server,
-  Activity,
-  type LucideIcon,
-} from "lucide-react";
+  CpuIcon,
+  Layers01Icon,
+  CircuitBoardIcon,
+  MemoryStickIcon,
+  HardDriveIcon,
+  ZapIcon,
+  BoxIcon,
+  Fan01Icon,
+  MonitorIcon,
+  Gamepad01Icon,
+  KeyboardIcon,
+  HeadphonesIcon,
+  Mouse01Icon,
+  Tv01Icon,
+  Speaker01Icon,
+  Package01Icon,
+  ServerIcon,
+  Activity01Icon,
+} from "@hugeicons/core-free-icons";
+import { createHugeIconComponent, type HugeIconComponent } from "@/components/ui/HugeIcon";
+
+export const Cpu = createHugeIconComponent(CpuIcon);
+export const Layers = createHugeIconComponent(Layers01Icon);
+export const CircuitBoard = createHugeIconComponent(CircuitBoardIcon);
+export const MemoryStick = createHugeIconComponent(MemoryStickIcon);
+export const HardDrive = createHugeIconComponent(HardDriveIcon);
+export const Zap = createHugeIconComponent(ZapIcon);
+export const Box = createHugeIconComponent(BoxIcon);
+export const Fan = createHugeIconComponent(Fan01Icon);
+export const Monitor = createHugeIconComponent(MonitorIcon);
+export const Gamepad2 = createHugeIconComponent(Gamepad01Icon);
+export const Keyboard = createHugeIconComponent(KeyboardIcon);
+export const Headphones = createHugeIconComponent(HeadphonesIcon);
+export const Mouse = createHugeIconComponent(Mouse01Icon);
+export const Tv = createHugeIconComponent(Tv01Icon);
+export const Speaker = createHugeIconComponent(Speaker01Icon);
+export const Package = createHugeIconComponent(Package01Icon);
+export const Server = createHugeIconComponent(ServerIcon);
+export const Activity = createHugeIconComponent(Activity01Icon);
 
 export interface MegaSubItem {
   name: string;
@@ -36,7 +55,7 @@ export interface MegaCategoryItem {
   id: string;
   slug: string;
   name: string;
-  icon?: LucideIcon;
+  icon?: HugeIconComponent;
   iconName?: string;
   badge?: string;
   badgeColor?: "red" | "blue" | "green";
@@ -44,7 +63,7 @@ export interface MegaCategoryItem {
   subGroups: MegaSubGroup[];
 }
 
-export const MEGA_MENU_ICONS: Record<string, LucideIcon> = {
+export const MEGA_MENU_ICONS: Record<string, HugeIconComponent> = {
   Layers,
   Cpu,
   CircuitBoard,
@@ -63,17 +82,57 @@ export const MEGA_MENU_ICONS: Record<string, LucideIcon> = {
   Package,
   Server,
   Activity,
+  Layers01Icon: Layers,
+  CpuIcon: Cpu,
+  CircuitBoardIcon: CircuitBoard,
+  MemoryStickIcon: MemoryStick,
+  HardDriveIcon: HardDrive,
+  ZapIcon: Zap,
+  BoxIcon: Box,
+  Fan01Icon: Fan,
+  MonitorIcon: Monitor,
+  Gamepad01Icon: Gamepad2,
+  KeyboardIcon: Keyboard,
+  HeadphonesIcon: Headphones,
+  Mouse01Icon: Mouse,
+  Tv01Icon: Tv,
+  Speaker01Icon: Speaker,
+  Package01Icon: Package,
+  ServerIcon: Server,
+  Activity01Icon: Activity,
 };
 
-export const AVAILABLE_ICON_NAMES = Object.keys(MEGA_MENU_ICONS);
+export const AVAILABLE_ICON_NAMES = [
+  "Layers",
+  "Cpu",
+  "CircuitBoard",
+  "MemoryStick",
+  "HardDrive",
+  "Zap",
+  "Box",
+  "Fan",
+  "Monitor",
+  "Gamepad2",
+  "Keyboard",
+  "Headphones",
+  "Mouse",
+  "Tv",
+  "Speaker",
+  "Package",
+  "Server",
+  "Activity",
+];
 
-export function resolveMegaCategoryIcon(iconNameOrIcon?: string | LucideIcon): LucideIcon {
-  if (typeof iconNameOrIcon === "function") return iconNameOrIcon;
+export function resolveMegaCategoryIcon(iconNameOrIcon?: string | HugeIconComponent): HugeIconComponent {
+  if (typeof iconNameOrIcon === "function" || (typeof iconNameOrIcon === "object" && iconNameOrIcon !== null)) {
+    return iconNameOrIcon as HugeIconComponent;
+  }
   if (typeof iconNameOrIcon === "string" && MEGA_MENU_ICONS[iconNameOrIcon]) {
     return MEGA_MENU_ICONS[iconNameOrIcon];
   }
   return Layers;
 }
+
 
 export const MEGA_MENU_CATEGORIES: MegaCategoryItem[] = [
   {

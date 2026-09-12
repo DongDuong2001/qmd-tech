@@ -10,12 +10,13 @@ import { useCart } from "@/shared/context/CartContext";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import {
-  Check,
-  ShieldCheck,
-  Gift,
-  Eye,
-  Flame,
-} from "lucide-react";
+  CheckIcon,
+  ShieldCheckIcon,
+  GiftIcon,
+  EyeIcon,
+  FlameIcon as HugeFlameIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeIcon } from "@/components/ui/HugeIcon";
 import {
   CartIcon,
   type CartIconHandle,
@@ -106,7 +107,7 @@ export function ProductCard({
             </span>
             {hasFlame && (
               <span className="rounded bg-gradient-to-r from-[#DC2626] to-[#EA580C] px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-white shadow-xs flex items-center gap-1">
-                <Flame className="h-2.5 w-2.5 fill-current text-white animate-pulse" />
+                <HugeIcon icon={HugeFlameIcon} className="h-2.5 w-2.5 fill-current text-white animate-pulse" />
                 Giờ Vàng
               </span>
             )}
@@ -160,13 +161,13 @@ export function ProductCard({
 
           {/* Genuine Guarantee Badge (No Emoji) */}
           <div className="absolute bottom-1.5 left-1.5 rounded bg-white/95 px-2 py-0.5 text-[9px] font-mono font-bold text-[#0F172A] border border-[#E2E8F0] shadow-xs flex items-center gap-1">
-            <ShieldCheck className="h-3 w-3 text-[#16A34A]" />
+            <HugeIcon icon={ShieldCheckIcon} className="h-3 w-3 text-[#16A34A]" />
             <span>Chính Hãng 100%</span>
           </div>
 
           {/* Quick Preview Hint on Hover */}
           <div className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 rounded-full p-1 text-white">
-            <Eye className="h-3.5 w-3.5" />
+            <HugeIcon icon={EyeIcon} className="h-3.5 w-3.5" />
           </div>
         </Link>
 
@@ -210,7 +211,7 @@ export function ProductCard({
             ? "border-[#FECACA] bg-[#FEF2F2] text-[#DC2626]"
             : "border-[#BFDBFE] bg-[#EFF6FF] text-[#0063FD]"
         }`}>
-          <Gift className={`h-3 w-3 shrink-0 ${hasFlame ? "text-[#DC2626]" : "text-[#0063FD]"}`} />
+          <HugeIcon icon={GiftIcon} className={`h-3 w-3 shrink-0 ${hasFlame ? "text-[#DC2626]" : "text-[#0063FD]"}`} />
           <span className="truncate">Tặng gói vệ sinh máy + Lót chuột khi mua kèm</span>
         </div>
       </div>
@@ -247,7 +248,7 @@ export function ProductCard({
             size="sm"
             className="w-full gap-1.5 text-xs font-black shadow-xs py-2 bg-[#0063FD] text-white hover:bg-[#0052D4]"
           >
-            <Check className="h-3.5 w-3.5" />
+            <HugeIcon icon={CheckIcon} className="h-3.5 w-3.5" />
             {t("builder.chooseComponent")}
           </Button>
         ) : (
@@ -269,7 +270,7 @@ export function ProductCard({
             >
               {isAdded ? (
                 <>
-                  <Check className="h-3 w-3 text-[#16A34A]" />
+                  <HugeIcon icon={CheckIcon} className="h-3 w-3 text-[#16A34A]" />
                   Đã thêm
                 </>
               ) : (
@@ -320,7 +321,7 @@ export function ProductCard({
         {hasFlame && (
           <div className="mt-2 rounded bg-[#FEF2F2] px-2 py-1 border border-[#FECACA] flex items-center justify-between text-[9px] font-bold text-[#DC2626]">
             <span className="flex items-center gap-1">
-              <Flame className="h-3 w-3 text-[#EF4444] shrink-0" />
+              <HugeIcon icon={HugeFlameIcon} className="h-3 w-3 text-[#EF4444] shrink-0" />
               <span className="truncate">Số lượng có hạn</span>
             </span>
             <span className="rounded bg-white px-1.5 py-0.5 text-[8.5px] font-black text-[#DC2626] border border-[#FCA5A5] shrink-0">
@@ -332,7 +333,7 @@ export function ProductCard({
         {/* Warranty hint */}
         <div className="mt-2 flex items-center justify-between text-[10px] text-[#475569]">
           <span className="flex items-center gap-1">
-            <ShieldCheck className="h-3 w-3 text-[#16A34A]" />
+            <HugeIcon icon={ShieldCheckIcon} className="h-3 w-3 text-[#16A34A]" />
             Bảo hành {product.warranty_months} tháng
           </span>
           <span className="text-[#0F172A] font-semibold">Hỏa tốc tại HN</span>

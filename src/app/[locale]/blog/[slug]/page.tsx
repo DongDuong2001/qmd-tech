@@ -6,20 +6,34 @@ import { Link } from "@/i18n/routing";
 import { blogService } from "@/modules/blog/service";
 import { ShareButtons } from "./ShareButtons";
 import { sanitizeHtml } from "@/shared/lib/sanitize";
+import { createHugeIconComponent } from "@/components/ui/HugeIcon";
 import {
-  BookOpen,
-  Calendar,
-  Clock,
-  Eye,
-  ChevronRight,
-  Home,
-  User,
-  Wrench,
-  ArrowLeft,
-  CheckCircle2,
-  Phone,
-  MessageSquare,
-} from "lucide-react";
+  BookOpen01Icon,
+  Calendar01Icon,
+  Clock01Icon,
+  EyeIcon,
+  ChevronRightIcon,
+  Home01Icon,
+  UserIcon,
+  Wrench01Icon,
+  ArrowLeft01Icon,
+  CheckmarkCircle02Icon,
+  PhoneIcon,
+  MessageSquareIcon,
+} from "@hugeicons/core-free-icons";
+
+const BookOpen = createHugeIconComponent(BookOpen01Icon);
+const Calendar = createHugeIconComponent(Calendar01Icon);
+const Clock = createHugeIconComponent(Clock01Icon);
+const Eye = createHugeIconComponent(EyeIcon);
+const ChevronRight = createHugeIconComponent(ChevronRightIcon);
+const Home = createHugeIconComponent(Home01Icon);
+const User = createHugeIconComponent(UserIcon);
+const Wrench = createHugeIconComponent(Wrench01Icon);
+const ArrowLeft = createHugeIconComponent(ArrowLeft01Icon);
+const CheckCircle2 = createHugeIconComponent(CheckmarkCircle02Icon);
+const Phone = createHugeIconComponent(PhoneIcon);
+const MessageSquare = createHugeIconComponent(MessageSquareIcon);
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string; locale: string }>;

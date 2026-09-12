@@ -4,7 +4,13 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import { EventBanner } from "@/shared/types";
-import { ChevronLeft, ChevronRight, Tag, ArrowRight } from "lucide-react";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  Tag01Icon,
+  ArrowRight01Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeIcon } from "@/components/ui/HugeIcon";
 
 interface EventPosterCarouselProps {
   banners: EventBanner[];
@@ -106,7 +112,7 @@ export function EventPosterCarousel({ banners }: EventPosterCarouselProps) {
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E2E8F0] pb-3">
           <div className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0063FD] text-white shadow-xs">
-              <Tag className="h-5 w-5" />
+              <HugeIcon icon={Tag01Icon} className="h-5 w-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -131,14 +137,14 @@ export function EventPosterCarousel({ banners }: EventPosterCarouselProps) {
                 className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#CBD5E1] bg-white text-[#475569] hover:border-[#0063FD] hover:text-[#0063FD] transition-colors shadow-2xs cursor-pointer"
                 aria-label="Poster trước"
               >
-                <ChevronLeft className="h-4 w-4" />
+                <HugeIcon icon={ChevronLeftIcon} className="h-4 w-4" />
               </button>
               <button
                 onClick={nextSlide}
                 className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#CBD5E1] bg-white text-[#475569] hover:border-[#0063FD] hover:text-[#0063FD] transition-colors shadow-2xs cursor-pointer"
                 aria-label="Poster kế tiếp"
               >
-                <ChevronRight className="h-4 w-4" />
+                <HugeIcon icon={ChevronRightIcon} className="h-4 w-4" />
               </button>
             </div>
           )}
@@ -195,7 +201,7 @@ export function EventPosterCarousel({ banners }: EventPosterCarouselProps) {
 
               <div className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-white bg-white/15 hover:bg-white/25 backdrop-blur-xs px-3.5 py-1.5 rounded-lg w-fit border border-white/20 transition-all">
                 <span>Khám phá ngay</span>
-                <ArrowRight className="h-3.5 w-3.5" />
+                <HugeIcon icon={ArrowRight01Icon} className="h-3.5 w-3.5" />
               </div>
             </div>
           </Link>
