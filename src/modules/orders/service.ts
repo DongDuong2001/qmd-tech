@@ -193,14 +193,16 @@ export class OrderService {
   ): Promise<{ success: boolean; restocked_items?: number; message?: string }> {
     try {
       const db = getServiceSupabase();
-      const { data, error } = await db.rpc("cancel_order_and_restock_atomic", {
-        p_order_id: orderId,
-        p_reason: reason,
-        p_admin_user: adminUser,
-      });
+      if (typeof db.rpc === "function") {
+        const { data, error } = await db.rpc("cancel_order_and_restock_atomic", {
+          p_order_id: orderId,
+          p_reason: reason,
+          p_admin_user: adminUser,
+        });
 
-      if (!error && data) {
-        return data as { success: boolean; restocked_items?: number; message?: string };
+        if (!error && data) {
+          return data as { success: boolean; restocked_items?: number; message?: string };
+        }
       }
 
       // Application fallback
@@ -246,9 +248,11 @@ export class OrderService {
   async restockOrderItems(orderId: string): Promise<number> {
     try {
       const db = getServiceSupabase();
-      const { data, error } = await db.rpc("restock_order_items_atomic", { p_order_id: orderId });
-      if (!error && data && typeof data.restocked_items === "number") {
-        return data.restocked_items;
+      if (typeof db.rpc === "function") {
+        const { data, error } = await db.rpc("restock_order_items_atomic", { p_order_id: orderId });
+        if (!error && data && typeof data.restocked_items === "number") {
+          return data.restocked_items;
+        }
       }
 
       const { data: order } = await db

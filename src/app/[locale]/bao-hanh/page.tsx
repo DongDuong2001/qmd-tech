@@ -6,6 +6,8 @@ const ShieldCheck = createHugeIconComponent(ShieldCheckIcon);
 const RotateCcw = createHugeIconComponent(RotateCcwIcon);
 const Wrench = createHugeIconComponent(Wrench01Icon);
 
+import { WarrantyLookupClient } from "@/components/warranty/WarrantyLookupClient";
+
 export const metadata = {
   title: "Chính Sách Bảo Hành & Đổi Trả | QMD-Tech",
 };
@@ -25,6 +27,9 @@ export default function WarrantyPage() {
           Cam kết bảo hành chính hãng 100%, 1 đổi 1 nhanh chóng và hỗ trợ kỹ thuật trọn đời máy
         </p>
       </div>
+
+      {/* Online Warranty & RMA Lookup Tool */}
+      <WarrantyLookupClient />
 
       <div className="space-y-6 text-sm text-[#64748B] leading-relaxed">
         <div className="rounded-xl border border-[#E4E7EC] bg-[#FFFFFF] p-6 space-y-3 shadow-xs">

@@ -48,6 +48,8 @@ describe("SePay Payment Gateway Suite", () => {
 
     vi.spyOn(orderService, "getOrderByCode").mockResolvedValue(fakeOrder as unknown as Order);
     vi.spyOn(orderService, "getOrderByTransactionId").mockResolvedValue(null);
+    vi.spyOn(paymentService, "getTransactionByTxId").mockResolvedValue(null);
+    vi.spyOn(paymentService, "recordTransaction").mockResolvedValue();
     const markPaidSpy = vi.spyOn(orderService, "markOrderPaid").mockResolvedValue(true);
 
     const webhookPayload = {
