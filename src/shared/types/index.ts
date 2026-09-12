@@ -319,4 +319,5 @@ export type {
 } from "@/modules/careers/types";
 
 export * from "./brand";
+export * from "./rbac";
 
