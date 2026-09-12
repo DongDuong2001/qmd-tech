@@ -185,6 +185,95 @@ export class OrderService {
 
     return true;
   }
+
+  async cancelOrderWithRestock(
+    orderId: string,
+    reason = "Huy boi quan tri vien",
+    adminUser = "admin"
+  ): Promise<{ success: boolean; restocked_items?: number; message?: string }> {
+    try {
+      const db = getServiceSupabase();
+      const { data, error } = await db.rpc("cancel_order_and_restock_atomic", {
+        p_order_id: orderId,
+        p_reason: reason,
+        p_admin_user: adminUser,
+      });
+
+      if (!error && data) {
+        return data as { success: boolean; restocked_items?: number; message?: string };
+      }
+
+      // Application fallback
+      const { data: order } = await db
+        .from("orders")
+        .select("id, status, order_items(product_id, quantity)")
+        .eq("id", orderId)
+        .single();
+
+      if (!order) {
+        return { success: false, message: "Khong tim thay don hang" };
+      }
+
+      if (order.status === "cancelled") {
+        return { success: true, restocked_items: 0, message: "Don hang da o trang thai huy truoc do" };
+      }
+
+      const items = (order.order_items || []) as Array<{ product_id: string; quantity: number }>;
+      let restocked = 0;
+      for (const item of items) {
+        const { data: prod } = await db.from("products").select("stock").eq("id", item.product_id).single();
+        if (prod) {
+          await db.from("products").update({ stock: (prod.stock || 0) + item.quantity }).eq("id", item.product_id);
+          restocked += item.quantity;
+        }
+      }
+
+      await db
+        .from("orders")
+        .update({
+          status: "cancelled",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", orderId);
+
+      return { success: true, restocked_items: restocked };
+    } catch (err) {
+      console.error("OrderService.cancelOrderWithRestock error:", err);
+      return { success: false, message: String(err) };
+    }
+  }
+
+  async restockOrderItems(orderId: string): Promise<number> {
+    try {
+      const db = getServiceSupabase();
+      const { data, error } = await db.rpc("restock_order_items_atomic", { p_order_id: orderId });
+      if (!error && data && typeof data.restocked_items === "number") {
+        return data.restocked_items;
+      }
+
+      const { data: order } = await db
+        .from("orders")
+        .select("status, order_items(product_id, quantity)")
+        .eq("id", orderId)
+        .single();
+
+      if (!order || order.status === "cancelled") return 0;
+
+      const items = (order.order_items || []) as Array<{ product_id: string; quantity: number }>;
+      let totalRestocked = 0;
+      for (const item of items) {
+        const { data: prod } = await db.from("products").select("stock").eq("id", item.product_id).single();
+        if (prod) {
+          await db.from("products").update({ stock: (prod.stock || 0) + item.quantity }).eq("id", item.product_id);
+          totalRestocked += item.quantity;
+        }
+      }
+      return totalRestocked;
+    } catch (err) {
+      console.error("OrderService.restockOrderItems error:", err);
+      return 0;
+    }
+  }
 }
 
 export const orderService = new OrderService();

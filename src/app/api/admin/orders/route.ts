@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceSupabase } from "@/shared/db/supabase";
 import { requireAdmin } from "@/shared/security/adminAuth";
+import { orderService } from "@/modules/orders/service";
 import { Order } from "@/shared/types";
 
 export async function GET(req: NextRequest) {
@@ -45,6 +46,18 @@ export async function PUT(req: NextRequest) {
     const allowedStatuses: Order["status"][] = ["pending", "processing", "shipping", "completed", "cancelled"];
     if (status && !allowedStatuses.includes(status)) {
       return NextResponse.json({ success: false, error: "Trang thai don hang khong hop le." }, { status: 400 });
+    }
+
+    // If order is transitioning to cancelled, execute atomic restock
+    if (status === "cancelled") {
+      const cancelResult = await orderService.cancelOrderWithRestock(
+        id,
+        notes || "Huy boi quan tri vien",
+        auth.user || "admin"
+      );
+      if (!cancelResult.success) {
+        return NextResponse.json({ success: false, error: cancelResult.message || "Loi hoan kho khi huy don hang." }, { status: 500 });
+      }
     }
 
     const updatePayload: Record<string, unknown> = {};
@@ -96,6 +109,9 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
+    // 0. Automatically restore stock before deleting uncancelled order
+    await orderService.restockOrderItems(id);
+
     const db = getServiceSupabase();
 
     // 1. Delete dependent order_items first to guarantee cascade safety
@@ -128,7 +144,7 @@ export async function DELETE(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "Da xoa don hang thanh cong khoi he thong.",
+      message: "Da xoa don hang thanh cong khoi he thong va hoan tra ton kho an toan.",
     });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Loi he thong khi xoa don hang.";
