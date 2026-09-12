@@ -4,7 +4,8 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import { EventBanner } from "@/shared/types";
-import { X, ExternalLink } from "lucide-react";
+import { XIcon } from "@hugeicons/core-free-icons";
+import { HugeIcon } from "@/components/ui/HugeIcon";
 
 interface DualFlankSideBannersProps {
   banners: EventBanner[];
@@ -39,7 +40,7 @@ export function DualFlankSideBanners({ banners }: DualFlankSideBannersProps) {
               title="Đóng banner này"
               aria-label="Đóng banner trái"
             >
-              <X className="h-3.5 w-3.5" />
+              <HugeIcon icon={XIcon} className="h-3.5 w-3.5" />
             </button>
 
             {/* Clickable Banner Image & Link */}
@@ -92,7 +93,7 @@ export function DualFlankSideBanners({ banners }: DualFlankSideBannersProps) {
               title="Đóng banner này"
               aria-label="Đóng banner phải"
             >
-              <X className="h-3.5 w-3.5" />
+              <HugeIcon icon={XIcon} className="h-3.5 w-3.5" />
             </button>
 
             {/* Clickable Banner Image & Link */}

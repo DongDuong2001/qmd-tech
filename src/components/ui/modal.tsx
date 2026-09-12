@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { X } from "lucide-react";
+import { XIcon } from "@hugeicons/core-free-icons";
+import { HugeIcon } from "@/components/ui/HugeIcon";
 import { cn } from "./button";
 
 interface ModalProps {
@@ -75,7 +76,7 @@ export function Modal({
             onClick={onClose}
             className="rounded-lg p-1.5 text-[#64748B] hover:bg-[#F1F5F9] hover:text-[#0F172A] transition-colors"
           >
-            <X className="h-5 w-5" />
+            <HugeIcon icon={XIcon} className="h-5 w-5" />
           </button>
         </div>
 

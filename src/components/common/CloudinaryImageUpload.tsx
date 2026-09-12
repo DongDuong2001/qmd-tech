@@ -3,14 +3,15 @@
 import React, { useState, useRef } from "react";
 import Image from "next/image";
 import {
-  Upload,
-  CheckCircle2,
-  AlertTriangle,
-  X,
-  Link as LinkIcon,
-  RefreshCw,
-  Zap,
-} from "lucide-react";
+  Upload01Icon,
+  CheckmarkCircle02Icon,
+  Alert02Icon,
+  XIcon,
+  Link01Icon,
+  RefreshCwIcon,
+  ZapIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeIcon } from "@/components/ui/HugeIcon";
 import {
   compressImageClient,
   uploadToCloudinary,
@@ -119,7 +120,7 @@ export function CloudinaryImageUpload({
                 : "text-[#64748B] hover:text-[#0F172A]"
             }`}
           >
-            <Upload className="h-3 w-3" />
+            <HugeIcon icon={Upload01Icon} className="h-3 w-3" />
             <span>Tải Lên</span>
           </button>
           <button
@@ -131,7 +132,7 @@ export function CloudinaryImageUpload({
                 : "text-[#64748B] hover:text-[#0F172A]"
             }`}
           >
-            <LinkIcon className="h-3 w-3" />
+            <HugeIcon icon={Link01Icon} className="h-3 w-3" />
             <span>Nhập URL</span>
           </button>
         </div>
@@ -140,7 +141,7 @@ export function CloudinaryImageUpload({
       {/* Error Alert */}
       {errorMsg && (
         <div className="rounded-lg border border-[#FCA5A5] bg-[#FEE2E2] p-2.5 text-[11px] text-[#B91C1C] flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4 shrink-0" />
+          <HugeIcon icon={Alert02Icon} className="h-4 w-4 shrink-0" />
           <span>{errorMsg}</span>
         </div>
       )}
@@ -148,7 +149,7 @@ export function CloudinaryImageUpload({
       {/* Compression Savings Notice */}
       {compressStats && (
         <div className="rounded-lg border border-[#BFDBFE] bg-[#EFF6FF] p-2 text-[10px] text-[#0063FD] flex items-center gap-1.5 font-bold">
-          <Zap className="h-3.5 w-3.5 text-[#0063FD]" />
+          <HugeIcon icon={ZapIcon} className="h-3.5 w-3.5 text-[#0063FD]" />
           <span>{compressStats}</span>
         </div>
       )}
@@ -185,7 +186,7 @@ export function CloudinaryImageUpload({
             >
               {isUploading ? (
                 <div className="flex flex-col items-center gap-2 py-3">
-                  <RefreshCw className="h-6 w-6 animate-spin text-[#0063FD]" />
+                  <HugeIcon icon={RefreshCwIcon} className="h-6 w-6 animate-spin text-[#0063FD]" />
                   <span className="font-bold text-[#0F172A]">
                     Đang nén và tải ảnh lên Cloudinary...
                   </span>
@@ -196,7 +197,7 @@ export function CloudinaryImageUpload({
               ) : (
                 <div className="flex flex-col items-center gap-1.5 py-2">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#EFF6FF] text-[#0063FD]">
-                    <Upload className="h-5 w-5" />
+                    <HugeIcon icon={Upload01Icon} className="h-5 w-5" />
                   </div>
                   <span className="font-bold text-[#0F172A]">
                     Kéo thả ảnh vào đây hoặc nhấp để chọn tệp
@@ -222,7 +223,7 @@ export function CloudinaryImageUpload({
 
               <div className="flex-1 min-w-0">
                 <span className="flex items-center gap-1 text-[11px] font-bold text-[#16A34A]">
-                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  <HugeIcon icon={CheckmarkCircle02Icon} className="h-3.5 w-3.5" />
                   Đã tải lên Cloudinary
                 </span>
                 <p className="text-[10px] text-[#64748B] truncate font-mono mt-0.5">{value}</p>
@@ -245,7 +246,7 @@ export function CloudinaryImageUpload({
                   className="rounded-lg p-1.5 text-rose-500 hover:bg-rose-50 transition-colors"
                   title="Xóa ảnh"
                 >
-                  <X className="h-4 w-4" />
+                  <HugeIcon icon={XIcon} className="h-4 w-4" />
                 </button>
               </div>
             </div>

@@ -3,7 +3,16 @@
 import React from "react";
 import Image from "next/image";
 import { Link, usePathname } from "@/i18n/routing";
-import { ShieldCheck, Truck, Headphones, Wrench, MapPin, Phone, Mail } from "lucide-react";
+import {
+  ShieldCheckIcon,
+  TruckIcon,
+  HeadphonesIcon,
+  Wrench01Icon,
+  MapPinIcon,
+  PhoneIcon,
+  Mail01Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeIcon } from "@/components/ui/HugeIcon";
 
 export function Footer() {
   const pathname = usePathname();
@@ -19,7 +28,7 @@ export function Footer() {
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 sm:grid-cols-2 lg:grid-cols-4 sm:px-6">
           <div className="flex items-center gap-3.5">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-[#0063FD] border border-[#E2E8F0] shadow-xs">
-              <ShieldCheck className="h-6 w-6" />
+              <HugeIcon icon={ShieldCheckIcon} className="h-6 w-6" />
             </div>
             <div>
               <h4 className="text-sm font-black text-[#0F172A] uppercase">100% Chính Hãng</h4>
@@ -29,7 +38,7 @@ export function Footer() {
 
           <div className="flex items-center gap-3.5">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-[#16A34A] border border-[#E2E8F0] shadow-xs">
-              <Truck className="h-6 w-6" />
+              <HugeIcon icon={TruckIcon} className="h-6 w-6" />
             </div>
             <div>
               <h4 className="text-sm font-black text-[#0F172A] uppercase">Giao Hàng Siêu Tốc</h4>
@@ -39,7 +48,7 @@ export function Footer() {
 
           <div className="flex items-center gap-3.5">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-[#0063FD] border border-[#E2E8F0] shadow-xs">
-              <Wrench className="h-6 w-6" />
+              <HugeIcon icon={Wrench01Icon} className="h-6 w-6" />
             </div>
             <div>
               <h4 className="text-sm font-black text-[#0F172A] uppercase">Build PC Miễn Phí</h4>
@@ -49,7 +58,7 @@ export function Footer() {
 
           <div className="flex items-center gap-3.5">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-[#0284C7] border border-[#E2E8F0] shadow-xs">
-              <Headphones className="h-6 w-6" />
+              <HugeIcon icon={HeadphonesIcon} className="h-6 w-6" />
             </div>
             <div>
               <h4 className="text-sm font-black text-[#0F172A] uppercase">Hỗ Trợ Kỹ Thuật 24/7</h4>
@@ -83,10 +92,10 @@ export function Footer() {
             </p>
             <div className="text-xs space-y-1 text-[#475569]">
               <p className="flex items-center gap-1.5">
-                <Phone className="h-3.5 w-3.5 text-[#0063FD]" /> Hotline: <strong className="text-[#0F172A]">1900 8888</strong>
+                <HugeIcon icon={PhoneIcon} className="h-3.5 w-3.5 text-[#0063FD]" /> Hotline: <strong className="text-[#0F172A]">1900 8888</strong>
               </p>
               <p className="flex items-center gap-1.5">
-                <Mail className="h-3.5 w-3.5 text-[#2563EB]" /> Email: contact@qmdtech.vn
+                <HugeIcon icon={Mail01Icon} className="h-3.5 w-3.5 text-[#2563EB]" /> Email: contact@qmdtech.vn
               </p>
             </div>
           </div>
@@ -94,7 +103,7 @@ export function Footer() {
           {/* Col 2: Business & Operations Info */}
           <div>
             <h4 className="text-xs font-black uppercase tracking-wider text-[#0F172A] mb-4 flex items-center gap-1">
-              <MapPin className="h-3.5 w-3.5 text-[#0063FD]" /> Trụ Sở & Điều Phối Online
+              <HugeIcon icon={MapPinIcon} className="h-3.5 w-3.5 text-[#0063FD]" /> Trụ Sở & Điều Phối Online
             </h4>
             <div className="space-y-3 text-xs">
               <div>
