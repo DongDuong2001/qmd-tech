@@ -9,15 +9,24 @@ import { useCart } from "@/shared/context/CartContext";
 import { Button } from "@/components/ui/button";
 import { SePayVietQRModal } from "@/components/checkout/SePayVietQRModal";
 import { Province34, WardItem } from "@/modules/location/service";
+import { createHugeIconComponent } from "@/components/ui/HugeIcon";
 import {
-  CheckCircle2,
-  ShieldCheck,
-  Banknote,
-  QrCode,
-  ChevronDown,
-  MapPin,
-  Truck,
-} from "lucide-react";
+  CheckmarkCircle02Icon,
+  ShieldCheckIcon,
+  BanknoteIcon,
+  QrCode01Icon,
+  ChevronDownIcon,
+  MapPinIcon,
+  TruckIcon,
+} from "@hugeicons/core-free-icons";
+
+const CheckCircle2 = createHugeIconComponent(CheckmarkCircle02Icon);
+const ShieldCheck = createHugeIconComponent(ShieldCheckIcon);
+const Banknote = createHugeIconComponent(BanknoteIcon);
+const QrCode = createHugeIconComponent(QrCode01Icon);
+const ChevronDown = createHugeIconComponent(ChevronDownIcon);
+const MapPin = createHugeIconComponent(MapPinIcon);
+const Truck = createHugeIconComponent(TruckIcon);
 
 export default function CheckoutPage() {
   const t = useTranslations();

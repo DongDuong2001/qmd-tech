@@ -10,25 +10,45 @@ import { ProductCard } from "@/components/product/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import {
-  Cpu,
-  CircuitBoard,
-  MemoryStick,
-  Layers,
-  HardDrive,
-  Zap,
-  Box,
-  Fan,
-  CheckCircle2,
-  AlertTriangle,
-  XCircle,
-  Share2,
-  Send,
-  Plus,
-  Trash2,
-  RefreshCw,
-  Gauge,
-  Wrench,
-} from "lucide-react";
+  CpuIcon,
+  CircuitBoardIcon,
+  MemoryStickIcon,
+  Layers01Icon,
+  HardDriveIcon,
+  ZapIcon,
+  BoxIcon,
+  Fan01Icon,
+  CheckmarkCircle02Icon,
+  Alert02Icon,
+  CancelCircleIcon,
+  Share01Icon,
+  SendIcon,
+  PlusIcon,
+  Delete02Icon,
+  RefreshCwIcon,
+  GaugeIcon,
+  Wrench01Icon,
+} from "@hugeicons/core-free-icons";
+import { createHugeIconComponent } from "@/components/ui/HugeIcon";
+
+const Cpu = createHugeIconComponent(CpuIcon);
+const CircuitBoard = createHugeIconComponent(CircuitBoardIcon);
+const MemoryStick = createHugeIconComponent(MemoryStickIcon);
+const Layers = createHugeIconComponent(Layers01Icon);
+const HardDrive = createHugeIconComponent(HardDriveIcon);
+const Zap = createHugeIconComponent(ZapIcon);
+const Box = createHugeIconComponent(BoxIcon);
+const Fan = createHugeIconComponent(Fan01Icon);
+const CheckCircle2 = createHugeIconComponent(CheckmarkCircle02Icon);
+const AlertTriangle = createHugeIconComponent(Alert02Icon);
+const XCircle = createHugeIconComponent(CancelCircleIcon);
+const Share2 = createHugeIconComponent(Share01Icon);
+const Send = createHugeIconComponent(SendIcon);
+const Plus = createHugeIconComponent(PlusIcon);
+const Trash2 = createHugeIconComponent(Delete02Icon);
+const RefreshCw = createHugeIconComponent(RefreshCwIcon);
+const Gauge = createHugeIconComponent(GaugeIcon);
+const Wrench = createHugeIconComponent(Wrench01Icon);
 
 const SLOTS_CONFIG: { slot: ComponentSlot; icon: React.ElementType; keywords: string[] }[] = [
   { slot: "cpu", icon: Cpu, keywords: ["cpu", "cat-cpu", "processor", "vi-xu-ly", "core", "ryzen", "intel", "ultra"] },

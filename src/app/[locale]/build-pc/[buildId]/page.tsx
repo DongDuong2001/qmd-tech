@@ -2,7 +2,11 @@ import React from "react";
 import { Link } from "@/i18n/routing";
 import { CustomPcBuilder } from "@/components/builder/CustomPcBuilder";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import { createHugeIconComponent } from "@/components/ui/HugeIcon";
+import { ArrowLeft01Icon, CheckmarkCircle02Icon } from "@hugeicons/core-free-icons";
+
+const ArrowLeft = createHugeIconComponent(ArrowLeft01Icon);
+const CheckCircle2 = createHugeIconComponent(CheckmarkCircle02Icon);
 
 interface SavedBuildPageProps {
   params: Promise<{ buildId: string; locale: string }>;

@@ -8,7 +8,26 @@ import { cartService } from "@/modules/cart/service";
 import { i18nService } from "@/modules/i18n/service";
 import { useCart } from "@/shared/context/CartContext";
 import { Button } from "@/components/ui/button";
-import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, Truck, CheckCircle2, Tag } from "lucide-react";
+import { createHugeIconComponent } from "@/components/ui/HugeIcon";
+import {
+  Delete02Icon,
+  PlusIcon,
+  MinusIcon,
+  ArrowRight01Icon,
+  ShoppingBag01Icon,
+  TruckIcon,
+  CheckmarkCircle02Icon,
+  Tag01Icon,
+} from "@hugeicons/core-free-icons";
+
+const Trash2 = createHugeIconComponent(Delete02Icon);
+const Plus = createHugeIconComponent(PlusIcon);
+const Minus = createHugeIconComponent(MinusIcon);
+const ArrowRight = createHugeIconComponent(ArrowRight01Icon);
+const ShoppingBag = createHugeIconComponent(ShoppingBag01Icon);
+const Truck = createHugeIconComponent(TruckIcon);
+const CheckCircle2 = createHugeIconComponent(CheckmarkCircle02Icon);
+const Tag = createHugeIconComponent(Tag01Icon);
 
 export default function CartPage() {
   const t = useTranslations();
