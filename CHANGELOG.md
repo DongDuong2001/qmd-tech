@@ -1,3 +1,18 @@
+# [1.12.0](https://github.com/DongDuong2001/qmd-tech/compare/v1.11.0...v1.12.0) (2026-09-12)
+
+
+### Bug Fixes
+
+* **admin:** resolve eslint unused vars and explicit any warnings ([79629c6](https://github.com/DongDuong2001/qmd-tech/commit/79629c6dfb5302f906b31bd88982ece14a77a536))
+
+
+### Features
+
+* **devops:** add automated github branch protection ruleset configuration ([04e9407](https://github.com/DongDuong2001/qmd-tech/commit/04e9407ce429ee851327c138fb1c7eaf69cf5b31))
+* **inventory:** add atomic restock and payment webhook idempotency ([df77d16](https://github.com/DongDuong2001/qmd-tech/commit/df77d1685a9ac31707e54f1b1f1ca646fccf31c3))
+* **security:** implement enterprise rbac and audit logging ([8ff10f3](https://github.com/DongDuong2001/qmd-tech/commit/8ff10f34fd0ead63a38d2d8220b5a49c908bec6f))
+* **warranty:** implement serial tracking rma lifecycle and health monitoring ([7c5c43e](https://github.com/DongDuong2001/qmd-tech/commit/7c5c43e4a2dbb72499af8af6b9eca500c305032c))
+
 # [1.11.0](https://github.com/DongDuong2001/qmd-tech/compare/v1.10.0...v1.11.0) (2026-09-12)
 
 
