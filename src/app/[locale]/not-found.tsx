@@ -3,7 +3,12 @@
 import React from "react";
 import { Link } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
-import { Home, Wrench, Package } from "lucide-react";
+import { createHugeIconComponent } from "@/components/ui/HugeIcon";
+import { Home01Icon, Wrench01Icon, Package01Icon } from "@hugeicons/core-free-icons";
+
+const Home = createHugeIconComponent(Home01Icon);
+const Wrench = createHugeIconComponent(Wrench01Icon);
+const Package = createHugeIconComponent(Package01Icon);
 
 export default function NotFoundPage() {
   return (

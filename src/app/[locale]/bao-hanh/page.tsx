@@ -1,5 +1,10 @@
 import React from "react";
-import { ShieldCheck, RotateCcw, Wrench } from "lucide-react";
+import { createHugeIconComponent } from "@/components/ui/HugeIcon";
+import { ShieldCheckIcon, RotateCcwIcon, Wrench01Icon } from "@hugeicons/core-free-icons";
+
+const ShieldCheck = createHugeIconComponent(ShieldCheckIcon);
+const RotateCcw = createHugeIconComponent(RotateCcwIcon);
+const Wrench = createHugeIconComponent(Wrench01Icon);
 
 export const metadata = {
   title: "Chính Sách Bảo Hành & Đổi Trả | QMD-Tech",

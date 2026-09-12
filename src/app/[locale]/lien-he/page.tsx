@@ -1,5 +1,12 @@
 import React from "react";
-import { MapPin, Phone, Mail, Clock, Send } from "lucide-react";
+import { createHugeIconComponent } from "@/components/ui/HugeIcon";
+import { MapPinIcon, PhoneIcon, Mail01Icon, Clock01Icon, SendIcon } from "@hugeicons/core-free-icons";
+
+const MapPin = createHugeIconComponent(MapPinIcon);
+const Phone = createHugeIconComponent(PhoneIcon);
+const Mail = createHugeIconComponent(Mail01Icon);
+const Clock = createHugeIconComponent(Clock01Icon);
+const Send = createHugeIconComponent(SendIcon);
 import { Button } from "@/components/ui/button";
 
 export const metadata = {

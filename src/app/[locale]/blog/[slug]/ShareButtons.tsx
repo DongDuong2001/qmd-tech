@@ -1,7 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { Share2, Link as LinkIcon, Check } from "lucide-react";
+import { createHugeIconComponent } from "@/components/ui/HugeIcon";
+import { Share01Icon, Link01Icon, CheckIcon } from "@hugeicons/core-free-icons";
+
+const Share2 = createHugeIconComponent(Share01Icon);
+const LinkIcon = createHugeIconComponent(Link01Icon);
+const Check = createHugeIconComponent(CheckIcon);
 
 interface ShareButtonsProps {
   title: string;

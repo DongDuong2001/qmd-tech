@@ -4,15 +4,24 @@ import React, { useState, useMemo } from "react";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
 import { BlogPost } from "@/shared/types";
+import { createHugeIconComponent } from "@/components/ui/HugeIcon";
 import {
-  BookOpen,
-  Clock,
-  Eye,
-  Search,
-  ChevronRight,
-  Layers,
-  ArrowRight,
-} from "lucide-react";
+  BookOpen01Icon,
+  Clock01Icon,
+  EyeIcon,
+  Search01Icon,
+  ChevronRightIcon,
+  Layers01Icon,
+  ArrowRight01Icon,
+} from "@hugeicons/core-free-icons";
+
+const BookOpen = createHugeIconComponent(BookOpen01Icon);
+const Clock = createHugeIconComponent(Clock01Icon);
+const Eye = createHugeIconComponent(EyeIcon);
+const Search = createHugeIconComponent(Search01Icon);
+const ChevronRight = createHugeIconComponent(ChevronRightIcon);
+const Layers = createHugeIconComponent(Layers01Icon);
+const ArrowRight = createHugeIconComponent(ArrowRight01Icon);
 
 interface BlogListClientProps {
   initialPosts: BlogPost[];
