@@ -6,6 +6,7 @@ import { Product, ComponentSlot, CustomBuild, Category } from "@/shared/types";
 import { builderService } from "@/modules/builder/service";
 import { catalogService } from "@/modules/catalog/service";
 import { i18nService } from "@/modules/i18n/service";
+import { useCart } from "@/shared/context/CartContext";
 import { ProductCard } from "@/components/product/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
@@ -28,6 +29,8 @@ import {
   RefreshCwIcon,
   GaugeIcon,
   Wrench01Icon,
+  ShoppingCart01Icon,
+  Invoice01Icon,
 } from "@hugeicons/core-free-icons";
 import { createHugeIconComponent } from "@/components/ui/HugeIcon";
 
@@ -49,6 +52,8 @@ const Trash2 = createHugeIconComponent(Delete02Icon);
 const RefreshCw = createHugeIconComponent(RefreshCwIcon);
 const Gauge = createHugeIconComponent(GaugeIcon);
 const Wrench = createHugeIconComponent(Wrench01Icon);
+const ShoppingCart = createHugeIconComponent(ShoppingCart01Icon);
+const Invoice = createHugeIconComponent(Invoice01Icon);
 
 const SLOTS_CONFIG: { slot: ComponentSlot; icon: React.ElementType; keywords: string[] }[] = [
   { slot: "cpu", icon: Cpu, keywords: ["cpu", "cat-cpu", "processor", "vi-xu-ly", "core", "ryzen", "intel", "ultra"] },
@@ -122,8 +127,29 @@ export function CustomPcBuilder({ initialBuild }: CustomPcBuilderProps) {
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [shareSuccessMsg, setShareSuccessMsg] = useState<string | null>(null);
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [quoteForm, setQuoteForm] = useState({ name: "", phone: "", email: "", notes: "" });
   const [quoteSuccessMsg, setQuoteSuccessMsg] = useState<string | null>(null);
+  const { addToCart } = useCart();
+  const [isAddingAll, setIsAddingAll] = useState(false);
+  const [isAddedAll, setIsAddedAll] = useState(false);
+
+  const selectedCount = useMemo(() => {
+    return Object.values(selectedSlots).filter(Boolean).length;
+  }, [selectedSlots]);
+
+  const handleAddAllToCart = async () => {
+    const selectedList = Object.values(selectedSlots).filter((p): p is Product => p !== null);
+    if (selectedList.length === 0) return;
+
+    setIsAddingAll(true);
+    for (const product of selectedList) {
+      await addToCart(product, 1);
+    }
+    setIsAddingAll(false);
+    setIsAddedAll(true);
+    setTimeout(() => setIsAddedAll(false), 2500);
+  };
 
   // Load products from Supabase on mount
   useEffect(() => {
@@ -136,18 +162,19 @@ export function CustomPcBuilder({ initialBuild }: CustomPcBuilderProps) {
         ]);
         setDbProducts(products);
         setDbCategories(categories);
-
-        // Pre-fill initial build if editing
-        if (initialBuild && initialBuild.items) {
-          setSelectedSlots(initialBuild.items);
-        }
       } catch (err) {
-        console.error("Failed to fetch builder catalog:", err);
+        console.warn("Failed to load catalog products for builder:", err);
       } finally {
         setLoadingProducts(false);
       }
     }
     loadCatalog();
+  }, []);
+
+  // Hydrate from initialBuild if provided
+  useEffect(() => {
+    if (!initialBuild || !initialBuild.items) return;
+    setSelectedSlots(initialBuild.items);
   }, [initialBuild]);
 
   // Handle slot product select
@@ -169,6 +196,7 @@ export function CustomPcBuilder({ initialBuild }: CustomPcBuilderProps) {
 
   // Handle clear all
   const handleClearAll = () => {
+    if (selectedCount === 0) return;
     if (window.confirm("Bạn có chắc chắn muốn làm mới toàn bộ cấu hình đang chọn?")) {
       setSelectedSlots(INITIAL_SLOTS);
     }
@@ -226,13 +254,6 @@ export function CustomPcBuilder({ initialBuild }: CustomPcBuilderProps) {
         ) {
           return true;
         }
-        if (activeSlotPicker === "cpu" && (cSlug === "cpu" || cName.includes("vi xu ly"))) return true;
-        if (activeSlotPicker === "ram" && (cSlug === "ram" || cName.includes("ram") || cName.includes("bo nho"))) return true;
-        if (activeSlotPicker === "gpu" && (cSlug === "gpu" || cSlug === "vga" || cName.includes("card") || cName.includes("do hoa"))) return true;
-        if (activeSlotPicker === "storage" && (cSlug === "storage" || cSlug === "ssd" || cName.includes("o cung") || cName.includes("ssd"))) return true;
-        if (activeSlotPicker === "psu" && (cSlug === "psu" || cSlug === "power" || cName.includes("nguon"))) return true;
-        if (activeSlotPicker === "case" && (cSlug === "case" || cName.includes("vo may") || cName.includes("case"))) return true;
-        if (activeSlotPicker === "cooling" && (cSlug === "cooling" || cSlug === "cooler" || cName.includes("tan nhiet"))) return true;
       }
 
       // 2. Hardware specs heuristics for Motherboards
@@ -288,15 +309,27 @@ export function CustomPcBuilder({ initialBuild }: CustomPcBuilderProps) {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 flex-wrap">
           <Button
             onClick={handleClearAll}
+            disabled={selectedCount === 0}
             variant="outline"
             size="sm"
             className="text-xs gap-1.5 font-bold"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Làm mới
+          </Button>
+
+          <Button
+            onClick={() => setIsPrintModalOpen(true)}
+            disabled={selectedCount === 0}
+            variant="outline"
+            size="sm"
+            className="text-xs gap-1.5 font-bold text-[#0F172A] border-[#CBD5E1] hover:border-[#0063FD]"
+          >
+            <Invoice className="h-3.5 w-3.5 text-[#0063FD]" />
+            In Báo Giá
           </Button>
 
           <Button
@@ -504,16 +537,53 @@ export function CustomPcBuilder({ initialBuild }: CustomPcBuilderProps) {
               </div>
             </div>
 
-            {/* Primary Action Button */}
-            <Button
-              onClick={() => setIsQuoteModalOpen(true)}
-              variant="primary"
-              size="lg"
-              className="w-full gap-2 text-xs font-black uppercase tracking-wider shadow-xs"
-            >
-              <Send className="h-4 w-4" />
-              Yêu Cầu Báo Giá & Ráp Máy
-            </Button>
+            {/* Primary Action Buttons */}
+            <div className="space-y-2">
+              <Button
+                onClick={handleAddAllToCart}
+                disabled={selectedCount === 0 || isAddingAll}
+                variant="outline"
+                size="lg"
+                className={`w-full gap-2 text-xs font-bold transition-all ${
+                  isAddedAll
+                    ? "border-[#16A34A] text-[#16A34A] bg-[#DCFCE7]"
+                    : "border-[#0063FD] text-[#0063FD] hover:bg-[#EFF6FF]"
+                }`}
+              >
+                {isAddedAll ? (
+                  <>
+                    <CheckCircle2 className="h-4 w-4 text-[#16A34A]" />
+                    Đã Thêm Vào Giỏ Hàng
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart className="h-4 w-4" />
+                    Thêm {selectedCount > 0 ? `${selectedCount} Món` : ""} Vào Giỏ Hàng
+                  </>
+                )}
+              </Button>
+
+              <Button
+                onClick={() => setIsPrintModalOpen(true)}
+                disabled={selectedCount === 0}
+                variant="outline"
+                size="lg"
+                className="w-full gap-2 text-xs font-bold border-[#CBD5E1] text-[#0F172A] hover:border-[#0063FD] hover:text-[#0063FD]"
+              >
+                <Invoice className="h-4 w-4 text-[#0063FD]" />
+                In Báo Giá Cấu Hình
+              </Button>
+
+              <Button
+                onClick={() => setIsQuoteModalOpen(true)}
+                variant="primary"
+                size="lg"
+                className="w-full gap-2 text-xs font-black uppercase tracking-wider shadow-xs bg-[#0063FD] hover:bg-[#0052D4]"
+              >
+                <Send className="h-4 w-4" />
+                Yêu Cầu Báo Giá & Ráp Máy
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -623,6 +693,209 @@ export function CustomPcBuilder({ initialBuild }: CustomPcBuilderProps) {
             </div>
           </form>
         )}
+      </Modal>
+
+      {/* Floating Sticky Builder Dock on Scroll / Mobile */}
+      {selectedCount > 0 && (
+        <div className="fixed bottom-14 sm:bottom-0 left-0 right-0 z-30 border-t border-[#CBD5E1] bg-white/95 backdrop-blur-md px-3 py-2.5 sm:px-6 sm:py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+              <div>
+                <div className="text-[10px] text-[#64748B] font-bold uppercase">
+                  Tổng cấu hình ({selectedCount}/8 món)
+                </div>
+                <div className="text-base sm:text-xl font-black font-mono text-[#0063FD]">
+                  {i18nService.formatPrice(evaluation.total_price_vnd, locale)}
+                </div>
+              </div>
+
+              {/* Status & Power Pills */}
+              <div className="hidden md:flex items-center gap-2">
+                <span
+                  className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold border flex items-center gap-1 ${
+                    evaluation.compatibility_status === "compatible"
+                      ? "bg-[#DCFCE7] text-[#15803D] border-[#86EFAC]"
+                      : "bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]"
+                  }`}
+                >
+                  {evaluation.compatibility_status === "compatible" ? (
+                    <>
+                      <CheckCircle2 className="h-3 w-3 text-[#16A34A]" />
+                      <span>Tương thích 100%</span>
+                    </>
+                  ) : (
+                    <>
+                      <AlertTriangle className="h-3 w-3 text-[#DC2626]" />
+                      <span>Cần kiểm tra</span>
+                    </>
+                  )}
+                </span>
+                <span className="rounded-full bg-[#EFF6FF] text-[#1D4ED8] border border-[#BFDBFE] px-2 py-0.5 text-[10px] font-mono font-bold flex items-center gap-1">
+                  <Zap className="h-3 w-3 text-[#0063FD]" />
+                  <span>{evaluation.estimated_wattage}W (PSU {evaluation.recommended_psu_wattage}W+)</span>
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                onClick={handleAddAllToCart}
+                disabled={isAddingAll}
+                variant="outline"
+                size="sm"
+                className={`gap-1.5 text-xs font-bold border-[#CBD5E1] transition-all ${
+                  isAddedAll ? "border-[#16A34A] text-[#16A34A] bg-[#DCFCE7]" : "hover:border-[#0063FD] hover:text-[#0063FD]"
+                }`}
+              >
+                {isAddedAll ? (
+                  <>
+                    <CheckCircle2 className="h-4 w-4 text-[#16A34A]" />
+                    <span className="hidden xs:inline">Đã thêm giỏ hàng</span>
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart className="h-4 w-4 text-[#0063FD]" />
+                    <span className="hidden xs:inline">Thêm {selectedCount} món vào giỏ</span>
+                    <span className="xs:hidden">Thêm giỏ</span>
+                  </>
+                )}
+              </Button>
+              <Button
+                onClick={() => setIsPrintModalOpen(true)}
+                disabled={selectedCount === 0}
+                variant="outline"
+                size="sm"
+                className="gap-1.5 text-xs font-bold border-[#CBD5E1] hover:border-[#0063FD]"
+                title="In Báo Giá Cấu Hình"
+              >
+                <Invoice className="h-4 w-4 text-[#0063FD]" />
+                <span className="hidden md:inline">In Báo Giá</span>
+              </Button>
+
+              <Button
+                onClick={() => setIsQuoteModalOpen(true)}
+                variant="primary"
+                size="sm"
+                className="gap-1.5 text-xs font-black bg-[#0063FD] hover:bg-[#0052D4]"
+              >
+                <Send className="h-4 w-4" />
+                <span className="hidden xs:inline">Báo giá</span>
+                <span>Ráp máy</span>
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Printable Quotation Modal */}
+      <Modal
+        isOpen={isPrintModalOpen}
+        onClose={() => setIsPrintModalOpen(false)}
+        title="BẢNG BÁO GIÁ CẤU HÌNH MÁY TÍNH & LINH KIỆN"
+        description="Bản in báo giá chính thức từ hệ thống QMD-Tech"
+        maxWidth="2xl"
+      >
+        <div className="space-y-5 text-[#0F172A]" id="printable-quote">
+          {/* Company Branding & Meta */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E8F0] pb-4">
+            <div>
+              <h2 className="text-base sm:text-lg font-black tracking-wide text-[#0063FD]">
+                QMD-TECH PC & HARDWARE SYSTEMS
+              </h2>
+              <p className="text-xs text-[#64748B]">
+                Hotline: 1800 6868 • Website: qmdtech.vn • Email: sales@qmdtech.vn
+              </p>
+            </div>
+            <div className="sm:text-right text-xs">
+              <div className="font-mono text-[#64748B]">
+                Ngày lập: <strong className="text-[#0F172A]">{new Date().toLocaleDateString("vi-VN")}</strong>
+              </div>
+              <div className="text-[11px] text-[#94A3B8]">Hiệu lực báo giá: 15 ngày</div>
+            </div>
+          </div>
+
+          {/* Quotation Table */}
+          <div className="overflow-x-auto border border-[#E2E8F0] rounded-xl">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[#475569] font-bold">
+                  <th className="py-2.5 px-3 w-10 text-center">STT</th>
+                  <th className="py-2.5 px-3 w-28">Linh Kiện</th>
+                  <th className="py-2.5 px-3">Tên Sản Phẩm / Quy Cách</th>
+                  <th className="py-2.5 px-3 w-20 text-center">Bảo Hành</th>
+                  <th className="py-2.5 px-3 w-28 text-right">Đơn Giá</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#E2E8F0]">
+                {SLOTS_CONFIG.map(({ slot }, idx) => {
+                  const item = selectedSlots[slot];
+                  if (!item) return null;
+                  return (
+                    <tr key={slot} className="hover:bg-[#F8FAFC]/50">
+                      <td className="py-2.5 px-3 text-center font-mono text-[#64748B]">{idx + 1}</td>
+                      <td className="py-2.5 px-3 font-bold uppercase text-[10px] text-[#0063FD]">
+                        {t(`builder.slots.${slot}`)}
+                      </td>
+                      <td className="py-2.5 px-3 font-semibold text-[#0F172A]">
+                        {i18nService.getLocalizedProductName(item, locale)}
+                        <span className="block font-mono text-[10px] text-[#94A3B8]">SKU: {item.sku}</span>
+                      </td>
+                      <td className="py-2.5 px-3 text-center font-mono text-[#64748B]">
+                        {item.warranty_months ? `${item.warranty_months} Tháng` : "36 Tháng"}
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-mono font-bold text-[#0F172A]">
+                        {i18nService.formatPrice(item.price_vnd, locale)}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Summary Box */}
+          <div className="rounded-xl bg-[#F8FAFC] p-4 border border-[#E2E8F0] space-y-2 text-xs">
+            <div className="flex justify-between text-[#64748B]">
+              <span>Ước tính công suất tiêu thụ tối đa:</span>
+              <strong className="font-mono text-[#0F172A]">{evaluation.estimated_wattage} Watts</strong>
+            </div>
+            <div className="flex justify-between text-[#64748B]">
+              <span>Công suất nguồn (PSU) tối thiểu khuyến nghị:</span>
+              <strong className="font-mono text-[#0063FD]">{evaluation.recommended_psu_wattage} Watts</strong>
+            </div>
+            <div className="flex justify-between text-[#64748B]">
+              <span>Trạng thái kiểm tra tương thích phần cứng:</span>
+              <span className="font-bold text-[#16A34A]">Đạt chuẩn tương thích QMD-Tech</span>
+            </div>
+            <div className="border-t border-[#E2E8F0] pt-2.5 flex justify-between items-baseline text-sm">
+              <span className="font-bold text-[#0F172A]">TỔNG CỘNG THANH TOÁN (ĐÃ VAT):</span>
+              <span className="text-lg font-black font-mono text-[#0063FD]">
+                {i18nService.formatPrice(evaluation.total_price_vnd, locale)}
+              </span>
+            </div>
+          </div>
+
+          {/* Modal Actions */}
+          <div className="flex justify-end gap-3 pt-2 border-t border-[#E2E8F0]">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsPrintModalOpen(false)}
+              className="text-xs font-bold"
+            >
+              Đóng
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => window.print()}
+              className="text-xs font-bold gap-1.5 bg-[#0063FD] hover:bg-[#0052D4]"
+            >
+              <Invoice className="h-4 w-4" />
+              In Ngay (Print)
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

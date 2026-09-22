@@ -31,6 +31,7 @@ import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { CategorySpecsForm } from "@/components/admin/CategorySpecsForm";
+import { ProductDocumentImportModal } from "@/components/admin/ProductDocumentImportModal";
 import { CloudinaryImageUpload } from "@/components/common/CloudinaryImageUpload";
 import { createHugeIconComponent } from "@/components/ui/HugeIcon";
 import {
@@ -341,6 +342,7 @@ export default function AdminDashboardPage() {
 
   // Modals state
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isEditProductOpen, setIsEditProductOpen] = useState(false);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
@@ -2059,15 +2061,27 @@ export default function AdminDashboardPage() {
 
             {/* Context Action Button */}
             {activeTab === "products" && (
-              <Button
-                onClick={() => setIsAddProductOpen(true)}
-                variant="primary"
-                size="sm"
-                className="gap-1 text-xs font-black shadow-xs uppercase"
-              >
-                <Plus className="h-4 w-4" />
-                Thêm Linh Kiện
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => setIsImportModalOpen(true)}
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 text-xs font-bold text-[#0063FD] border-[#BFDBFE] hover:bg-[#EFF6FF] shadow-2xs"
+                  title="Nhập dữ liệu linh kiện hàng loạt từ Excel/CSV, Hóa đơn điện tử XML (TT78) hoặc Scan chứng từ giao hàng"
+                >
+                  <FileText className="h-4 w-4" />
+                  Nhập Kho Theo Chứng Từ
+                </Button>
+                <Button
+                  onClick={() => setIsAddProductOpen(true)}
+                  variant="primary"
+                  size="sm"
+                  className="gap-1 text-xs font-black shadow-xs uppercase"
+                >
+                  <Plus className="h-4 w-4" />
+                  Thêm Linh Kiện
+                </Button>
+              </div>
             )}
             {activeTab === "categories" && (
               <div className="flex items-center gap-2">
@@ -5292,6 +5306,15 @@ export default function AdminDashboardPage() {
           )}
         </div>
       </main>
+
+      {/* ========================================================================= */}
+      {/* BULK DOCUMENT IMPORT MODAL (CSV / Circular 78 XML / OCR Scan)             */}
+      {/* ========================================================================= */}
+      <ProductDocumentImportModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onSuccess={loadAllData}
+      />
 
       {/* ========================================================================= */}
       {/* ADD PRODUCT MODAL */}

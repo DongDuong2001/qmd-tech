@@ -75,6 +75,7 @@ export const ROLE_PERMISSIONS_MAP: Record<AdminRole, readonly AdminPermission[]>
     "inventory:read",
     "inventory:write",
     "products:read",
+    "products:write",
     "warranty:read",
   ],
   technician: [

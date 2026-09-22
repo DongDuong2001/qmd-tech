@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Link, useRouter } from "@/i18n/routing";
@@ -39,6 +39,16 @@ export function Header() {
   const { cartCount } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const desktopCartRef = useRef<CartIconHandle>(null);
   const desktopWrenchRef = useRef<WrenchIconHandle>(null);
@@ -60,7 +70,13 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full max-w-full overflow-x-clip border-b border-[#E2E8F0] bg-[#FFFFFF] shadow-xs">
+    <header
+      className={`sticky top-0 z-50 w-full max-w-full overflow-x-clip border-b transition-all duration-200 ${
+        isScrolled
+          ? "border-[#CBD5E1] bg-white/95 backdrop-blur-md shadow-sm"
+          : "border-[#E2E8F0] bg-[#FFFFFF] shadow-xs"
+      }`}
+    >
       {/* 1. Top Utility Bar */}
       <div className="border-b border-[#F1F5F9] bg-[#F8FAFC] py-1 text-xs text-[#64748B]">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-3 sm:px-6">
@@ -158,13 +174,23 @@ export function Header() {
                 onFocus={() => desktopSearchRef.current?.startAnimation()}
                 onBlur={() => desktopSearchRef.current?.stopAnimation()}
                 placeholder="Tìm kiếm linh kiện, CPU, RTX 4070 Ti, Mainboard, RAM..."
-                className="w-full rounded-xl border border-[#CBD5E1] bg-[#F8FAFC] py-2.5 pl-10 pr-4 text-xs sm:text-sm text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0063FD] transition-all shadow-2xs"
+                className="w-full rounded-xl border border-[#CBD5E1] bg-[#F8FAFC] py-2.5 pl-10 pr-9 text-xs sm:text-sm text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#0063FD] transition-all shadow-2xs"
               />
               <SearchIcon
                 ref={desktopSearchRef}
                 size={16}
                 className="absolute left-3.5 top-3 text-[#64748B] pointer-events-none"
               />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  aria-label="Xóa tìm kiếm"
+                  className="absolute right-2.5 top-2.5 p-1 rounded-full text-[#94A3B8] hover:text-[#0F172A] hover:bg-[#E2E8F0] transition-colors"
+                >
+                  <HugeIcon icon={XIcon} className="h-3.5 w-3.5" />
+                </button>
+              )}
             </form>
           </div>
 
@@ -253,13 +279,23 @@ export function Header() {
               onFocus={() => mobileSearchRef.current?.startAnimation()}
               onBlur={() => mobileSearchRef.current?.stopAnimation()}
               placeholder="Tìm CPU, RTX 4070 Ti, B650, RAM..."
-              className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2 pl-9 pr-3 text-xs text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
+              className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] py-2 pl-9 pr-8 text-xs text-[#0F172A] placeholder-[#94A3B8] focus:border-[#0063FD] focus:bg-white focus:outline-none shadow-2xs"
             />
             <SearchIcon
               ref={mobileSearchRef}
               size={14}
               className="absolute left-3 top-2.5 text-[#64748B] pointer-events-none"
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                aria-label="Xóa tìm kiếm"
+                className="absolute right-2 top-2 p-1 rounded-full text-[#94A3B8] hover:text-[#0F172A] hover:bg-[#E2E8F0] transition-colors"
+              >
+                <HugeIcon icon={XIcon} className="h-3 w-3" />
+              </button>
+            )}
           </form>
         </div>
       </div>
