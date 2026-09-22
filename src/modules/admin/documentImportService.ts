@@ -463,7 +463,7 @@ export function parseScannedReceiptText(rawText: string): ParsedDocumentResult {
 
 function extractItemFromLine(line: string): { name: string; quantity: number; price: number } | null {
   // Strip leading numbering (e.g. "1.", "1/", "1 -")
-  let cleaned = line.replace(/^\s*\d+[\.\)\/\-]\s*/, "");
+  let cleaned = line.replace(/^\s*\d+[.)/-]\s*/, "");
 
   // Extract prices: look for currency suffix or formatted thousand separators
   const priceRegex = /(?:đơn\s*giá|don\s*gia|giá|gia|dg)?\s*[:=]?\s*(\b\d{1,3}(?:[.,]\d{3})+(?:\s*(?:đ|d|vnd|đồng))?|\b\d{5,9}\s*(?:đ|d|vnd|đồng)?)/i;
@@ -488,7 +488,7 @@ function extractItemFromLine(line: string): { name: string; quantity: number; pr
   }
 
   // Clean name by removing leftover delimiters and keywords
-  let name = cleaned
+  const name = cleaned
     .replace(/(?:đơn\s*giá|don\s*gia|giá|gia|sl|số\s*lượng|so\s*luong)\s*[:=]?/gi, "")
     .replace(/^[\s|\-–:,.]+|[\s|\-–:,.]+$/g, "")
     .replace(/\s{2,}/g, " ")
