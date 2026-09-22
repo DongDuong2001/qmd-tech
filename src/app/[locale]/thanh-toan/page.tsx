@@ -32,12 +32,12 @@ export default function CheckoutPage() {
   const { items, loading, clearCart } = useCart();
 
   const [form, setForm] = useState({
-    name: "Dương Quốc Đông",
-    phone: "0988889999",
-    email: "dongduong@example.com",
-    address: "Số 18, Đường Cầu Giấy",
+    name: "",
+    phone: "",
+    email: "",
+    address: "",
     city: "Thành phố Hà Nội",
-    district: "Phường Dịch Vọng Hậu",
+    district: "",
     notes: "",
   });
 
@@ -100,6 +100,38 @@ export default function CheckoutPage() {
     }
 
     initLocations();
+
+    // Hydrate saved shipping info from localStorage or current session
+    try {
+      const savedInfo = localStorage.getItem("qmd_last_shipping_info");
+      if (savedInfo) {
+        const parsed = JSON.parse(savedInfo);
+        setForm((prev) => ({
+          ...prev,
+          name: parsed.name || prev.name,
+          phone: parsed.phone || prev.phone,
+          email: parsed.email || prev.email,
+          address: parsed.address || prev.address,
+        }));
+      } else {
+        fetch("/api/auth/session")
+          .then((r) => r.json())
+          .then((data) => {
+            if (isMounted && data.success && data.user) {
+              setForm((prev) => ({
+                ...prev,
+                name: data.user.name || prev.name,
+                email: data.user.email || prev.email,
+                phone: data.user.phone || prev.phone,
+              }));
+            }
+          })
+          .catch(() => {});
+      }
+    } catch {
+      // Ignore localStorage parsing errors
+    }
+
     return () => {
       isMounted = false;
     };
@@ -149,6 +181,23 @@ export default function CheckoutPage() {
         items,
         notes: form.notes,
       });
+
+      // Save shipping info for future visits
+      try {
+        localStorage.setItem(
+          "qmd_last_shipping_info",
+          JSON.stringify({
+            name: form.name,
+            phone: form.phone,
+            email: form.email,
+            address: form.address,
+            city: form.city,
+            district: form.district,
+          })
+        );
+      } catch {
+        // Ignore localStorage errors
+      }
 
       // Clear the cart upon successful checkout
       await clearCart();
@@ -242,6 +291,7 @@ export default function CheckoutPage() {
                 <input
                   required
                   type="text"
+                  placeholder="Họ và tên người nhận"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3.5 py-2 text-sm text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
@@ -255,6 +305,7 @@ export default function CheckoutPage() {
                 <input
                   required
                   type="tel"
+                  placeholder="Số điện thoại nhận hàng (09xx...)"
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
                   className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3.5 py-2 text-sm text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
@@ -269,6 +320,7 @@ export default function CheckoutPage() {
               <input
                 required
                 type="email"
+                placeholder="Email nhận thông tin đơn hàng"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3.5 py-2 text-sm text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
@@ -349,6 +401,7 @@ export default function CheckoutPage() {
               <input
                 required
                 type="text"
+                placeholder="Số nhà, tên đường, tòa nhà/căn hộ..."
                 value={form.address}
                 onChange={(e) => setForm({ ...form, address: e.target.value })}
                 className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3.5 py-2 text-sm text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
@@ -361,6 +414,7 @@ export default function CheckoutPage() {
               </label>
               <textarea
                 rows={2}
+                placeholder="Ghi chú giao hàng (ví dụ: giao giờ hành chính, gọi trước khi đến)..."
                 value={form.notes}
                 onChange={(e) => setForm({ ...form, notes: e.target.value })}
                 className="w-full rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] px-3.5 py-2 text-sm text-[#0F172A] focus:border-[#0063FD] focus:outline-none"
