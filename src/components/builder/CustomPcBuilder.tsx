@@ -6,6 +6,7 @@ import { Product, ComponentSlot, CustomBuild, Category } from "@/shared/types";
 import { builderService } from "@/modules/builder/service";
 import { catalogService } from "@/modules/catalog/service";
 import { i18nService } from "@/modules/i18n/service";
+import { useCart } from "@/shared/context/CartContext";
 import { ProductCard } from "@/components/product/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
@@ -28,6 +29,7 @@ import {
   RefreshCwIcon,
   GaugeIcon,
   Wrench01Icon,
+  ShoppingCart01Icon,
 } from "@hugeicons/core-free-icons";
 import { createHugeIconComponent } from "@/components/ui/HugeIcon";
 
@@ -49,6 +51,7 @@ const Trash2 = createHugeIconComponent(Delete02Icon);
 const RefreshCw = createHugeIconComponent(RefreshCwIcon);
 const Gauge = createHugeIconComponent(GaugeIcon);
 const Wrench = createHugeIconComponent(Wrench01Icon);
+const ShoppingCart = createHugeIconComponent(ShoppingCart01Icon);
 
 const SLOTS_CONFIG: { slot: ComponentSlot; icon: React.ElementType; keywords: string[] }[] = [
   { slot: "cpu", icon: Cpu, keywords: ["cpu", "cat-cpu", "processor", "vi-xu-ly", "core", "ryzen", "intel", "ultra"] },
@@ -124,6 +127,26 @@ export function CustomPcBuilder({ initialBuild }: CustomPcBuilderProps) {
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
   const [quoteForm, setQuoteForm] = useState({ name: "", phone: "", email: "", notes: "" });
   const [quoteSuccessMsg, setQuoteSuccessMsg] = useState<string | null>(null);
+  const { addToCart } = useCart();
+  const [isAddingAll, setIsAddingAll] = useState(false);
+  const [isAddedAll, setIsAddedAll] = useState(false);
+
+  const selectedCount = useMemo(() => {
+    return Object.values(selectedSlots).filter(Boolean).length;
+  }, [selectedSlots]);
+
+  const handleAddAllToCart = async () => {
+    const selectedList = Object.values(selectedSlots).filter((p): p is Product => p !== null);
+    if (selectedList.length === 0) return;
+
+    setIsAddingAll(true);
+    for (const product of selectedList) {
+      await addToCart(product, 1);
+    }
+    setIsAddingAll(false);
+    setIsAddedAll(true);
+    setTimeout(() => setIsAddedAll(false), 2500);
+  };
 
   // Load products from Supabase on mount
   useEffect(() => {
@@ -504,16 +527,42 @@ export function CustomPcBuilder({ initialBuild }: CustomPcBuilderProps) {
               </div>
             </div>
 
-            {/* Primary Action Button */}
-            <Button
-              onClick={() => setIsQuoteModalOpen(true)}
-              variant="primary"
-              size="lg"
-              className="w-full gap-2 text-xs font-black uppercase tracking-wider shadow-xs"
-            >
-              <Send className="h-4 w-4" />
-              Yêu Cầu Báo Giá & Ráp Máy
-            </Button>
+            {/* Primary Action Buttons */}
+            <div className="space-y-2">
+              <Button
+                onClick={handleAddAllToCart}
+                disabled={selectedCount === 0 || isAddingAll}
+                variant="outline"
+                size="lg"
+                className={`w-full gap-2 text-xs font-bold transition-all ${
+                  isAddedAll
+                    ? "border-[#16A34A] text-[#16A34A] bg-[#DCFCE7]"
+                    : "border-[#0063FD] text-[#0063FD] hover:bg-[#EFF6FF]"
+                }`}
+              >
+                {isAddedAll ? (
+                  <>
+                    <CheckCircle2 className="h-4 w-4 text-[#16A34A]" />
+                    Đã Thêm Vào Giỏ Hàng
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart className="h-4 w-4" />
+                    Thêm {selectedCount > 0 ? `${selectedCount} Món` : ""} Vào Giỏ Hàng
+                  </>
+                )}
+              </Button>
+
+              <Button
+                onClick={() => setIsQuoteModalOpen(true)}
+                variant="primary"
+                size="lg"
+                className="w-full gap-2 text-xs font-black uppercase tracking-wider shadow-xs bg-[#0063FD] hover:bg-[#0052D4]"
+              >
+                <Send className="h-4 w-4" />
+                Yêu Cầu Báo Giá & Ráp Máy
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -624,6 +673,86 @@ export function CustomPcBuilder({ initialBuild }: CustomPcBuilderProps) {
           </form>
         )}
       </Modal>
+
+      {/* Floating Sticky Builder Dock on Scroll / Mobile */}
+      {selectedCount > 0 && (
+        <div className="fixed bottom-14 sm:bottom-0 left-0 right-0 z-30 border-t border-[#CBD5E1] bg-white/95 backdrop-blur-md px-3 py-2.5 sm:px-6 sm:py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+              <div>
+                <div className="text-[10px] text-[#64748B] font-bold uppercase">
+                  Tổng cấu hình ({selectedCount}/8 món)
+                </div>
+                <div className="text-base sm:text-xl font-black font-mono text-[#0063FD]">
+                  {i18nService.formatPrice(evaluation.total_price_vnd, locale)}
+                </div>
+              </div>
+
+              {/* Status & Power Pills */}
+              <div className="hidden md:flex items-center gap-2">
+                <span
+                  className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold border flex items-center gap-1 ${
+                    evaluation.compatibility_status === "compatible"
+                      ? "bg-[#DCFCE7] text-[#15803D] border-[#86EFAC]"
+                      : "bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]"
+                  }`}
+                >
+                  {evaluation.compatibility_status === "compatible" ? (
+                    <>
+                      <CheckCircle2 className="h-3 w-3 text-[#16A34A]" />
+                      <span>Tương thích 100%</span>
+                    </>
+                  ) : (
+                    <>
+                      <AlertTriangle className="h-3 w-3 text-[#DC2626]" />
+                      <span>Cần kiểm tra</span>
+                    </>
+                  )}
+                </span>
+                <span className="rounded-full bg-[#EFF6FF] text-[#1D4ED8] border border-[#BFDBFE] px-2 py-0.5 text-[10px] font-mono font-bold flex items-center gap-1">
+                  <Zap className="h-3 w-3 text-[#0063FD]" />
+                  <span>{evaluation.estimated_wattage}W (PSU {evaluation.recommended_psu_wattage}W+)</span>
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                onClick={handleAddAllToCart}
+                disabled={isAddingAll}
+                variant="outline"
+                size="sm"
+                className={`gap-1.5 text-xs font-bold border-[#CBD5E1] transition-all ${
+                  isAddedAll ? "border-[#16A34A] text-[#16A34A] bg-[#DCFCE7]" : "hover:border-[#0063FD] hover:text-[#0063FD]"
+                }`}
+              >
+                {isAddedAll ? (
+                  <>
+                    <CheckCircle2 className="h-4 w-4 text-[#16A34A]" />
+                    <span className="hidden xs:inline">Đã thêm giỏ hàng</span>
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart className="h-4 w-4 text-[#0063FD]" />
+                    <span className="hidden xs:inline">Thêm {selectedCount} món vào giỏ</span>
+                    <span className="xs:hidden">Thêm giỏ</span>
+                  </>
+                )}
+              </Button>
+              <Button
+                onClick={() => setIsQuoteModalOpen(true)}
+                variant="primary"
+                size="sm"
+                className="gap-1.5 text-xs font-black bg-[#0063FD] hover:bg-[#0052D4]"
+              >
+                <Send className="h-4 w-4" />
+                <span className="hidden xs:inline">Báo giá</span>
+                <span>Ráp máy</span>
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

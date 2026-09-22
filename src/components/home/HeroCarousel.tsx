@@ -143,10 +143,10 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
         {/* Side Card 1: Custom PC Configurator */}
         <Link
           href="/build-pc"
-          className="group relative flex-1 flex items-center justify-between overflow-hidden rounded-xl sm:rounded-2xl border border-[#E2E8F0] bg-[#FFFFFF] p-3 sm:p-3.5 lg:p-4 transition-all duration-200 hover:border-[#0063FD] hover:bg-[#EFF6FF] shadow-xs"
+          className="group relative flex-1 flex items-center justify-between overflow-hidden rounded-xl sm:rounded-2xl border border-[#E2E8F0] bg-[#FFFFFF] p-3 sm:p-3.5 lg:p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#0063FD] hover:bg-[#EFF6FF] hover:shadow-md shadow-xs"
         >
           <div className="space-y-1 sm:space-y-1.5 min-w-0 pr-2">
-            <span className="inline-flex items-center rounded-md bg-[#0063FD] px-2 py-0.5 text-[9px] sm:text-[10px] font-black uppercase text-white tracking-wider">
+            <span className="inline-flex items-center rounded-md bg-[#0063FD] px-2 py-0.5 text-[9px] sm:text-[10px] font-black uppercase text-white tracking-wider shadow-2xs">
               Tùy biến PC
             </span>
             <h3 className="text-xs sm:text-sm font-black text-[#0F172A] group-hover:text-[#0063FD] transition-colors truncate">
@@ -162,7 +162,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
           </div>
 
           {/* Animated GIF Icon: PC Building Tool */}
-          <div className="relative h-10 w-10 sm:h-12 sm:w-12 lg:h-13 lg:w-13 shrink-0 overflow-hidden rounded-xl border border-[#BFDBFE] bg-white p-1 shadow-xs">
+          <div className="relative h-10 w-10 sm:h-12 sm:w-12 lg:h-13 lg:w-13 shrink-0 overflow-hidden rounded-xl border border-[#BFDBFE] bg-white p-1 shadow-xs group-hover:scale-105 transition-transform">
             <Image
               src="/animation-icon/pc-build.gif"
               alt="Build PC Animation"
@@ -177,10 +177,10 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
         {/* Side Card 2: 100% Genuine Warranty & Fast Delivery */}
         <Link
           href="/bao-hanh"
-          className="group relative flex-1 flex items-center justify-between overflow-hidden rounded-xl sm:rounded-2xl border border-[#E2E8F0] bg-[#FFFFFF] p-3 sm:p-3.5 lg:p-4 transition-all duration-200 hover:border-[#0063FD] hover:bg-[#EFF6FF] shadow-xs"
+          className="group relative flex-1 flex items-center justify-between overflow-hidden rounded-xl sm:rounded-2xl border border-[#E2E8F0] bg-[#FFFFFF] p-3 sm:p-3.5 lg:p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#0063FD] hover:bg-[#EFF6FF] hover:shadow-md shadow-xs"
         >
           <div className="space-y-1 sm:space-y-1.5 min-w-0 pr-2">
-            <span className="inline-flex items-center rounded-md bg-[#0F172A] px-2 py-0.5 text-[9px] sm:text-[10px] font-black uppercase text-white tracking-wider">
+            <span className="inline-flex items-center rounded-md bg-[#0F172A] px-2 py-0.5 text-[9px] sm:text-[10px] font-black uppercase text-white tracking-wider shadow-2xs">
               Cam kết dịch vụ
             </span>
             <h3 className="text-xs sm:text-sm font-black text-[#0F172A] group-hover:text-[#0063FD] transition-colors truncate">
@@ -196,7 +196,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
           </div>
 
           {/* Animated GIF Icon: Guarantee Seal */}
-          <div className="relative h-10 w-10 sm:h-12 sm:w-12 lg:h-13 lg:w-13 shrink-0 overflow-hidden rounded-xl border border-[#E2E8F0] bg-white p-1 shadow-xs">
+          <div className="relative h-10 w-10 sm:h-12 sm:w-12 lg:h-13 lg:w-13 shrink-0 overflow-hidden rounded-xl border border-[#E2E8F0] bg-white p-1 shadow-xs group-hover:scale-105 transition-transform">
             <Image
               src="/animation-icon/guarantee.gif"
               alt="Guarantee Seal Animation"
@@ -211,10 +211,10 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
         {/* Side Card 3: 24/7 Hotline Support */}
         <Link
           href="/lien-he"
-          className="group relative flex-1 flex items-center justify-between overflow-hidden rounded-xl sm:rounded-2xl border border-[#99F6E4] bg-[#F0FDFA] p-3 sm:p-3.5 lg:p-4 transition-all duration-200 hover:border-[#0D9488] hover:bg-[#CCFBF1]/50 shadow-xs"
+          className="group relative flex-1 flex items-center justify-between overflow-hidden rounded-xl sm:rounded-2xl border border-[#99F6E4] bg-[#F0FDFA] p-3 sm:p-3.5 lg:p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#0D9488] hover:bg-[#CCFBF1]/50 hover:shadow-md shadow-xs"
         >
           <div className="space-y-1 sm:space-y-1.5 min-w-0 pr-2">
-            <span className="inline-flex items-center rounded-md bg-[#0D9488] px-2 py-0.5 text-[9px] sm:text-[10px] font-black uppercase text-white tracking-wider">
+            <span className="inline-flex items-center rounded-md bg-[#0D9488] px-2 py-0.5 text-[9px] sm:text-[10px] font-black uppercase text-white tracking-wider shadow-2xs">
               Tư vấn trực tiếp
             </span>
             <h3 className="text-xs sm:text-sm font-black text-[#0F766E] group-hover:text-[#0D9488] transition-colors truncate">
@@ -230,7 +230,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
           </div>
 
           {/* Animated GIF Icon: Hotline Support */}
-          <div className="relative h-10 w-10 sm:h-12 sm:w-12 lg:h-13 lg:w-13 shrink-0 overflow-hidden rounded-xl border border-[#99F6E4] bg-white p-1 shadow-xs">
+          <div className="relative h-10 w-10 sm:h-12 sm:w-12 lg:h-13 lg:w-13 shrink-0 overflow-hidden rounded-xl border border-[#99F6E4] bg-white p-1 shadow-xs group-hover:scale-105 transition-transform">
             <Image
               src="/animation-icon/hotline.gif"
               alt="Hotline Support Animation"
