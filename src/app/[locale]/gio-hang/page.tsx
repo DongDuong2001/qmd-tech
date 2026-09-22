@@ -18,6 +18,7 @@ import {
   TruckIcon,
   CheckmarkCircle02Icon,
   Tag01Icon,
+  Copy01Icon,
 } from "@hugeicons/core-free-icons";
 
 const Trash2 = createHugeIconComponent(Delete02Icon);
@@ -28,13 +29,15 @@ const ShoppingBag = createHugeIconComponent(ShoppingBag01Icon);
 const Truck = createHugeIconComponent(TruckIcon);
 const CheckCircle2 = createHugeIconComponent(CheckmarkCircle02Icon);
 const Tag = createHugeIconComponent(Tag01Icon);
+const Copy = createHugeIconComponent(Copy01Icon);
 
 export default function CartPage() {
   const t = useTranslations();
   const locale = useLocale() as "vi" | "en";
-  const { items, loading, updateQuantity, removeFromCart } = useCart();
+  const { items, loading, updateQuantity, removeFromCart, clearCart } = useCart();
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState("");
+  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
 
   const calculation = cartService.calculateCart(items, appliedCoupon);
 
@@ -47,6 +50,28 @@ export default function CartPage() {
 
   const handleRemoveItem = async (productId: string) => {
     await removeFromCart(productId);
+  };
+
+  const handleClearCart = async () => {
+    if (items.length === 0) return;
+    if (window.confirm("Bạn có chắc chắn muốn xóa toàn bộ sản phẩm khỏi giỏ hàng?")) {
+      await clearCart();
+    }
+  };
+
+  const handleCopyCartSummary = async () => {
+    if (items.length === 0) return;
+    const textLines = [
+      "DANH SÁCH SẢN PHẨM TRONG GIỎ HÀNG QMD-TECH:",
+      ...items.map(
+        (i, idx) =>
+          `${idx + 1}. ${i.product.name_vi} (x${i.quantity}) - ${i18nService.formatPrice(i.total_price_vnd, locale)}`
+      ),
+      `Tổng tiền: ${i18nService.formatPrice(calculation.cart.total_vnd, locale)}`,
+    ];
+    await navigator.clipboard.writeText(textLines.join("\n"));
+    setCopyFeedback("Đã sao chép danh sách linh kiện vào clipboard!");
+    setTimeout(() => setCopyFeedback(null), 3500);
   };
 
   const handleApplyCoupon = (e: React.FormEvent) => {
@@ -64,7 +89,7 @@ export default function CartPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-3 sm:px-6 py-6 sm:py-8 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-[#E2E8F0] pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-[#E2E8F0] pb-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-black uppercase text-[#0F172A]">
             GIỎ HÀNG CỦA BẠN
@@ -73,10 +98,41 @@ export default function CartPage() {
             {items.length > 0 ? `Bạn đang có ${items.length} sản phẩm trong giỏ` : "Giỏ hàng hiện đang trống"}
           </p>
         </div>
-        <Link href="/danh-muc" className="text-xs font-bold text-[#0063FD] hover:underline self-start sm:self-auto">
-          ← Tiếp tục mua sắm linh kiện
-        </Link>
+        <div className="flex items-center gap-2.5 flex-wrap">
+          {items.length > 0 && (
+            <>
+              <button
+                onClick={handleCopyCartSummary}
+                type="button"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-[#E2E8F0] bg-white px-3 py-1.5 text-xs font-semibold text-[#475569] hover:text-[#0063FD] hover:border-[#BFDBFE] transition-colors"
+                title="Sao chép danh sách sản phẩm"
+              >
+                <Copy className="h-3.5 w-3.5 text-[#0063FD]" />
+                <span>Sao chép giỏ hàng</span>
+              </button>
+              <button
+                onClick={handleClearCart}
+                type="button"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-[#FEE2E2] bg-[#FEF2F2] px-3 py-1.5 text-xs font-semibold text-[#DC2626] hover:bg-[#FEE2E2] transition-colors"
+                title="Xóa toàn bộ sản phẩm khỏi giỏ hàng"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                <span>Xóa tất cả</span>
+              </button>
+            </>
+          )}
+          <Link href="/danh-muc" className="text-xs font-bold text-[#0063FD] hover:underline">
+            ← Tiếp tục mua sắm
+          </Link>
+        </div>
       </div>
+
+      {copyFeedback && (
+        <div className="rounded-lg border border-[#86EFAC] bg-[#DCFCE7] p-3 text-xs text-[#15803D] flex items-center gap-2">
+          <CheckCircle2 className="h-4 w-4" />
+          {copyFeedback}
+        </div>
+      )}
 
       {items.length === 0 ? (
         <div className="rounded-2xl border border-[#E2E8F0] bg-[#FFFFFF] p-12 text-center space-y-4 shadow-xs">
