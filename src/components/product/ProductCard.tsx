@@ -92,10 +92,10 @@ export function ProductCard({
 
   const cardContent = (
     <div
-      className={`group relative flex flex-col justify-between h-full bg-[#FFFFFF] p-3.5 transition-all duration-300 ${
+      className={`group relative flex flex-col justify-between h-full bg-[#FFFFFF] p-3.5 transition-all duration-200 ${
         hasFlame
           ? "rounded-[calc(0.875rem-2px)] shadow-none"
-          : "rounded-xl border border-[#E2E8F0] shadow-xs hover:border-[#0063FD] hover:shadow-md"
+          : "rounded-xl border border-[#E2E8F0] shadow-xs hover:-translate-y-1 hover:border-[#0063FD] hover:shadow-md"
       }`}
     >
       <div>
@@ -131,7 +131,10 @@ export function ProductCard({
             ) : isOutOfStock ? (
               <Badge variant="danger" className="text-[10px]">Hết hàng</Badge>
             ) : (
-              <Badge variant="success" className="text-[10px]">Sẵn hàng</Badge>
+              <Badge variant="success" className="text-[10px] gap-1 inline-flex items-center">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#16A34A] animate-pulse inline-block" />
+                Sẵn hàng
+              </Badge>
             )}
           </div>
         </div>
@@ -181,25 +184,25 @@ export function ProductCard({
           {productName}
         </Link>
 
-        {/* Key Specs Tags */}
+        {/* Key Specs Tags with Semantic Color Tokens */}
         <div className="flex flex-wrap gap-1 mb-2.5">
           {product.specs?.socket && (
-            <span className="rounded bg-[#F1F5F9] px-1.5 py-0.5 text-[10px] font-mono font-bold text-[#334155] border border-[#E2E8F0]">
+            <span className="rounded bg-[#EFF6FF] px-1.5 py-0.5 text-[10px] font-mono font-bold text-[#1D4ED8] border border-[#BFDBFE]">
               {String(product.specs.socket)}
             </span>
           )}
           {product.specs?.ram_type && (
-            <span className="rounded bg-[#F1F5F9] px-1.5 py-0.5 text-[10px] font-mono font-bold text-[#334155] border border-[#E2E8F0]">
+            <span className="rounded bg-[#ECFDF5] px-1.5 py-0.5 text-[10px] font-mono font-bold text-[#047857] border border-[#A7F3D0]">
               {String(product.specs.ram_type)}
             </span>
           )}
           {product.specs?.tdp_watts && (
-            <span className="rounded bg-[#EFF6FF] px-1.5 py-0.5 text-[10px] font-mono font-bold text-[#0063FD] border border-[#BFDBFE]">
+            <span className="rounded bg-[#FFFBEB] px-1.5 py-0.5 text-[10px] font-mono font-bold text-[#B45309] border border-[#FDE68A]">
               {String(product.specs.tdp_watts)}W
             </span>
           )}
           {product.specs?.vram_gb && (
-            <span className="rounded bg-[#EFF6FF] px-1.5 py-0.5 text-[10px] font-mono font-bold text-[#0063FD] border border-[#BFDBFE]">
+            <span className="rounded bg-[#FAF5FF] px-1.5 py-0.5 text-[10px] font-mono font-bold text-[#7E22CE] border border-[#E9D5FF]">
               {String(product.specs.vram_gb)}GB VRAM
             </span>
           )}
