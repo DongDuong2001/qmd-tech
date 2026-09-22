@@ -407,14 +407,17 @@ export function parseScannedReceiptText(rawText: string): ParsedDocumentResult {
   const seenSkus = new Set<string>();
 
   for (const line of lines) {
-    // Ignore pure summary or noise lines (e.g. "Tổng cộng", "Người nhận", "Ngày...")
-    if (/(tổng\s*cộng|người\s*giao|người\s*nhận|ký\s*tên|hóa\s*đơn\s*bán\s*lẻ|phiếu\s*xuất)/i.test(line)) {
+    // Ignore pure summary, header, or signature noise lines (supports both accented and unaccented text)
+    const normalized = slugifyVietnamese(line).replace(/[-_]/g, " ");
+    if (
+      /(tong\s*(cong|so|tien)|nguoi\s*(giao|nhan)|ky\s*ten|hoa\s*don|phieu\s*(giao|xuat|nhap|kiem)|bien\s*ban|khach\s*hang|cong\s*ty|dia\s*chi|dien\s*thoai|ma\s*so\s*thue|mst)/i.test(
+        normalized
+      )
+    ) {
       continue;
     }
 
-    // Pattern 1: [STT]. [Name] - [Qty] - [Price]
-    // Example: "1. Card màn hình ASUS RTX 4060 8GB | SL: 5 | 8.650.000"
-    // Example: "Intel Core i7-14700K Box - 2 - 10.900.000₫"
+    // Pattern: [STT]. [Name] - [Qty] - [Price]
     const parsed = extractItemFromLine(line);
     if (!parsed) continue;
 
@@ -460,33 +463,36 @@ export function parseScannedReceiptText(rawText: string): ParsedDocumentResult {
 
 function extractItemFromLine(line: string): { name: string; quantity: number; price: number } | null {
   // Strip leading numbering (e.g. "1.", "1/", "1 -")
-  const cleaned = line.replace(/^\s*\d+[\.\)\/\-]\s*/, "");
+  let cleaned = line.replace(/^\s*\d+[\.\)\/\-]\s*/, "");
 
-  // Extract prices formatted like "8.650.000", "8,650,000", "8650000"
-  const priceMatches = cleaned.match(/(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{3})?)\s*(?:đ|vnd|đồng)?/gi);
+  // Extract prices: look for currency suffix or formatted thousand separators
+  const priceRegex = /(?:đơn\s*giá|don\s*gia|giá|gia|dg)?\s*[:=]?\s*(\b\d{1,3}(?:[.,]\d{3})+(?:\s*(?:đ|d|vnd|đồng))?|\b\d{5,9}\s*(?:đ|d|vnd|đồng)?)/i;
+  const priceMatch = cleaned.match(priceRegex);
   let price = 0;
-  if (priceMatches && priceMatches.length > 0) {
-    const lastPrice = priceMatches[priceMatches.length - 1];
-    price = parseInt(lastPrice.replace(/\D/g, ""), 10) || 0;
+  if (priceMatch) {
+    const rawNumberStr = priceMatch[1] || priceMatch[0];
+    price = parseInt(rawNumberStr.replace(/\D/g, ""), 10) || 0;
+    cleaned = cleaned.replace(priceMatch[0], "");
   }
 
-  // Extract quantity (e.g. "SL: 5", "x5", "5 cái", "5 chiếc", "| 5 |")
+  // Extract quantity (e.g. "SL: 6", "Số lượng: 10", "x5", "5 cái")
   let quantity = 1;
-  const qtyMatch = cleaned.match(/(?:sl[:\s]*|x|\b)(\d+)\s*(?:cái|chiếc|bộ|thanh|thùng)?(?:\s*\||\s*-|$)/i);
+  const qtyRegex = /(?:sl|số\s*lượng|so\s*luong|qty|x)\s*[:=]?\s*(\d+)(?:\s*(?:cái|chiếc|chiec|bộ|bo|thanh|thùng|thung|hộp|hop))?/i;
+  const qtyMatch = cleaned.match(qtyRegex);
   if (qtyMatch) {
     const parsedQty = parseInt(qtyMatch[1], 10);
     if (parsedQty > 0 && parsedQty < 1000) {
       quantity = parsedQty;
     }
+    cleaned = cleaned.replace(qtyMatch[0], "");
   }
 
-  // Clean name by removing extracted quantity and price parts
-  let name = cleaned;
-  if (price > 0) {
-    name = name.replace(/(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{3})?)\s*(?:đ|vnd|đồng)?/gi, "");
-  }
-  name = name.replace(/(?:sl[:\s]*|\bx\s*)\d+\s*(?:cái|chiếc|bộ|thanh)?/gi, "");
-  name = name.replace(/[|\-–:]\s*$/g, "").trim();
+  // Clean name by removing leftover delimiters and keywords
+  let name = cleaned
+    .replace(/(?:đơn\s*giá|don\s*gia|giá|gia|sl|số\s*lượng|so\s*luong)\s*[:=]?/gi, "")
+    .replace(/^[\s|\-–:,.]+|[\s|\-–:,.]+$/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
 
   if (name.length < 3) return null;
 
