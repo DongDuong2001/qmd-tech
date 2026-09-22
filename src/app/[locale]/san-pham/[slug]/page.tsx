@@ -1,12 +1,15 @@
 import React from "react";
-import Image from "next/image";
+import { Link } from "@/i18n/routing";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { catalogService } from "@/modules/catalog/service";
 import { reviewService } from "@/modules/reviews/service";
 import { i18nService } from "@/modules/i18n/service";
+import { Product } from "@/shared/types";
 import { Badge } from "@/components/ui/badge";
 import { ProductDetailActions } from "./ProductDetailActions";
+import { ProductImageGallery } from "@/components/product/ProductImageGallery";
+import { ProductCard } from "@/components/product/ProductCard";
 import { DynamicProductSpecs } from "@/components/product/DynamicProductSpecs";
 import { escapeJsonLd } from "@/shared/lib/sanitize";
 import {
@@ -14,6 +17,8 @@ import {
   TruckIcon,
   RotateCcwIcon,
   StarIcon,
+  Home01Icon,
+  ChevronRightIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeIcon } from "@/components/ui/HugeIcon";
 
@@ -45,7 +50,16 @@ export default async function ProductDetailPage({
   const t = await getTranslations();
   const loc = locale as "vi" | "en";
 
-  const reviews = await reviewService.getProductReviews(product.id);
+  const categorySlug = product.category?.slug;
+  const [category, relatedResult, reviews] = await Promise.all([
+    categorySlug ? catalogService.getCategoryBySlug(categorySlug) : Promise.resolve(product.category || null),
+    categorySlug ? catalogService.getProducts({ categorySlug, limit: 5 }) : Promise.resolve({ products: [] }),
+    reviewService.getProductReviews(product.id),
+  ]);
+
+  const relatedProducts: Product[] = (relatedResult?.products || [])
+    .filter((p: Product) => p.id !== product.id)
+    .slice(0, 4);
 
   const formattedPrice = i18nService.formatPrice(
     product.price_vnd,
@@ -87,32 +101,39 @@ export default async function ProductDetailPage({
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 space-y-12">
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-8 sm:space-y-10">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: escapeJsonLd(JSON.stringify(jsonLd)) }}
       />
 
+      {/* Breadcrumbs Navigation */}
+      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-[#64748B] flex-wrap">
+        <Link href="/" className="flex items-center gap-1 hover:text-[#0063FD] transition-colors">
+          <HugeIcon icon={Home01Icon} className="h-3.5 w-3.5" />
+          <span>Trang chủ</span>
+        </Link>
+        <HugeIcon icon={ChevronRightIcon} className="h-3 w-3 text-[#CBD5E1]" />
+        <Link href="/danh-muc" className="hover:text-[#0063FD] transition-colors">
+          Danh mục
+        </Link>
+        {category && (
+          <>
+            <HugeIcon icon={ChevronRightIcon} className="h-3 w-3 text-[#CBD5E1]" />
+            <Link href={`/danh-muc/${category.slug}`} className="hover:text-[#0063FD] transition-colors">
+              {category.name_vi}
+            </Link>
+          </>
+        )}
+        <HugeIcon icon={ChevronRightIcon} className="h-3 w-3 text-[#CBD5E1]" />
+        <span className="font-semibold text-[#0F172A] truncate max-w-xs">{productName}</span>
+      </nav>
+
       {/* Product Overview Section */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-        {/* Left: Product Images */}
-        <div className="lg:col-span-6 space-y-4">
-          <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-[#E4E7EC] bg-[#FFFFFF] shadow-xs">
-            {product.images[0] ? (
-              <Image
-                src={product.images[0]}
-                alt={productName}
-                fill
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                priority
-                className="object-cover"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-sm text-[#94A3B8]">
-                No Image Available
-              </div>
-            )}
-          </div>
+        {/* Left: Product Images with Multi-Angle Gallery */}
+        <div className="lg:col-span-6">
+          <ProductImageGallery images={product.images} productName={productName} />
         </div>
 
         {/* Right: Product Info & Actions */}
@@ -234,6 +255,33 @@ export default async function ProductDetailPage({
           ))}
         </div>
       </div>
+
+      {/* Related Products Section */}
+      {relatedProducts.length > 0 && (
+        <div className="space-y-4 pt-6 border-t border-[#E4E7EC]">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-[#0F172A]">Sản Phẩm Cùng Phân Khúc</h2>
+              <p className="text-xs text-[#64748B] mt-0.5">
+                Khám phá thêm các linh kiện {category?.name_vi || "tương tự"} chính hãng
+              </p>
+            </div>
+            {category && (
+              <Link
+                href={`/danh-muc/${category.slug}`}
+                className="text-xs font-bold text-[#0063FD] hover:underline"
+              >
+                Xem tất cả →
+              </Link>
+            )}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {relatedProducts.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
