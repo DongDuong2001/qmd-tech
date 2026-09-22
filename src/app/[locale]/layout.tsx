@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { PagePreloader } from "@/components/common/PagePreloader";
 import { CartProvider } from "@/shared/context/CartContext";
 import "../globals.css";
@@ -128,8 +129,9 @@ export default async function LocaleLayout({
           <CartProvider>
             <PagePreloader />
             <Header />
-            <main className="flex-1 w-full max-w-full overflow-x-hidden">{children}</main>
+            <main className="flex-1 w-full max-w-full overflow-x-hidden pb-16 sm:pb-0">{children}</main>
             <Footer />
+            <MobileBottomNav />
           </CartProvider>
         </NextIntlClientProvider>
       </body>
