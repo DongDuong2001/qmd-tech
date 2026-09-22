@@ -1,3 +1,40 @@
+# [1.13.0](https://github.com/DongDuong2001/qmd-tech/compare/v1.12.0...v1.13.0) (2026-09-22)
+
+
+### Bug Fixes
+
+* **admin:** improve OCR text extraction and Vietnamese noise line filtering ([91d5ca0](https://github.com/DongDuong2001/qmd-tech/commit/91d5ca0ab05710cacade00326ad1445650b86fa7))
+
+
+### Features
+
+* **admin:** add documentImportService supporting CSV, Circular 78 XML, and OCR parsing ([ff1bf2d](https://github.com/DongDuong2001/qmd-tech/commit/ff1bf2dda85c792a2d8be3a2c991ec414c8e3be4))
+* **admin:** add ProductDocumentImportModal with CSV, XML, and OCR tabs ([a0c72b2](https://github.com/DongDuong2001/qmd-tech/commit/a0c72b278e9f929df92950be2a0e6eaca0456fcb))
+* **admin:** wire document import modal into admin products workspace ([6592bc6](https://github.com/DongDuong2001/qmd-tech/commit/6592bc6f8138b2715bff6ecddac10735f9c1061a))
+* **api:** add batch product import endpoint with RBAC gate and audit logging ([d13c64a](https://github.com/DongDuong2001/qmd-tech/commit/d13c64a2fc9da7a8b2b9749cb5755a91ae4d7cbe))
+* **builder:** add printable quotation modal and reset confirmation guard ([fdb0cfb](https://github.com/DongDuong2001/qmd-tech/commit/fdb0cfb9466c293800e894ff369cb74fda0e437d))
+* **builder:** add sticky dock bar and one-click add all components to cart ([b3c9f58](https://github.com/DongDuong2001/qmd-tech/commit/b3c9f58fa24e7e2e8a520390a30c7357faa6b0f5))
+* **cart:** add clear-all confirmation and copy cart summary to clipboard ([cbdc9a3](https://github.com/DongDuong2001/qmd-tech/commit/cbdc9a304706532bed9dba63aaf3df91fbea7a35))
+* **catalog:** add CategoryFilterSortBar for in-stock filtering and sorting ([b8927b5](https://github.com/DongDuong2001/qmd-tech/commit/b8927b56bad9f4575201e907cd70fe81357e7312))
+* **catalog:** wire CategoryFilterSortBar with multi-facet sorting and brand filtering ([735be84](https://github.com/DongDuong2001/qmd-tech/commit/735be844747f0e55323d4fcd9f8ea3c41eb23110))
+* **checkout:** remove hardcoded credentials, add session prefill, and persist shipping info ([158e205](https://github.com/DongDuong2001/qmd-tech/commit/158e205f677ca650dc1953986cd30ccb03221ed8))
+* **header:** add scroll-aware backdrop blur and quick-clear search buttons ([e52efe2](https://github.com/DongDuong2001/qmd-tech/commit/e52efe2fdfbd14939b39598fa84d35f72d47befe))
+* **home:** add micro-interactions and hover elevations to side promo cards ([f5dcfb8](https://github.com/DongDuong2001/qmd-tech/commit/f5dcfb88abac0b7f388a92414af9d42f2fbab13f))
+* **layout:** add mobile bottom navigation bar with thumb-zone ergonomics ([bb59fd1](https://github.com/DongDuong2001/qmd-tech/commit/bb59fd13f9e2e397aa1db42860c024943edc1b4f))
+* **pdp:** add breadcrumbs navigation and related products carousel ([878c8d1](https://github.com/DongDuong2001/qmd-tech/commit/878c8d13e4dbcd2b07e6e442fe14a57bd269d244))
+* **pdp:** add interactive product image gallery with thumbnail navigation ([8a0868c](https://github.com/DongDuong2001/qmd-tech/commit/8a0868c428354c2db8909f21a43436ffba82f8ee))
+* **pdp:** add sticky bottom floating purchase bar with intersection observer ([8695c85](https://github.com/DongDuong2001/qmd-tech/commit/8695c85d62fe1b940e5fca593d291c40d87e9169))
+* **product:** add card hover lift, live stock indicator, and spec badges ([02429df](https://github.com/DongDuong2001/qmd-tech/commit/02429dfb743b381c0487f491b399142fcab9c5c8))
+* **rbac:** grant products:write permission to warehouse role for bulk intake ([04aa502](https://github.com/DongDuong2001/qmd-tech/commit/04aa50242ba24cd080d6a4aa4c51796da17ba14e))
+* **ui:** implement mobile bottom navigation, sticky actions, and asset optimization ([64658a3](https://github.com/DongDuong2001/qmd-tech/commit/64658a3f80cf68798fc5ee0972e5692ffb8cfa7a))
+
+
+### Performance Improvements
+
+* **assets:** compress and optimize hotline gif animation ([2d2fe0b](https://github.com/DongDuong2001/qmd-tech/commit/2d2fe0bca7e4e40ac3a344024f0ae74af8bba5b4))
+* **assets:** convert favicon to multi-resolution ico format ([04ad847](https://github.com/DongDuong2001/qmd-tech/commit/04ad847b330b095236550da8e911033f2502fb1a))
+* **assets:** downscale brand logo to high-dpi 512px asset ([af6dcd8](https://github.com/DongDuong2001/qmd-tech/commit/af6dcd814954f6018368706ca08e42bb0ad3270a)), closes [hi#dpi](https://github.com/hi/issues/dpi)
+
 # [1.12.0](https://github.com/DongDuong2001/qmd-tech/compare/v1.11.0...v1.12.0) (2026-09-12)
 
 
