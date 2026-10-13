@@ -120,7 +120,7 @@ export const DEFAULT_HARDWARE_CATEGORIES: Category[] = [
 export const DEFAULT_EVENT_BANNERS: EventBanner[] = [
   // 1. HERO TOP BANNERS
   {
-    id: "banner-hero-1",
+    id: "b0000001-0000-0000-0000-000000000001",
     title_vi: "Khai Phá Sức Mạnh Đồ Họa Cùng RTX 50 Series",
     title_en: "Unleash Next-Gen Graphics with RTX 50 Series",
     subtitle_vi: "Hiệu năng đỉnh cao AI & Ray Tracing siêu thực cho dàn máy chuyên nghiệp.",
@@ -133,7 +133,7 @@ export const DEFAULT_EVENT_BANNERS: EventBanner[] = [
     position: "hero",
   },
   {
-    id: "banner-hero-2",
+    id: "b0000001-0000-0000-0000-000000000002",
     title_vi: "Đại Hội PC Ráp Sẵn — Tối Ưu Hóa Bởi Kỹ Sư QMD-Tech",
     title_en: "QMD-Tech Custom PC Showcase",
     subtitle_vi: "Linh kiện 100% chính hãng, bảo hành tận nơi tại Hà Nội, giao hàng 34 tỉnh thành.",
@@ -148,7 +148,7 @@ export const DEFAULT_EVENT_BANNERS: EventBanner[] = [
 
   // 2. MIDDLE EVENT POSTER CAROUSEL (Quẹt / Vuốt ở giữa trang chủ)
   {
-    id: "banner-mid-1",
+    id: "b0000002-0000-0000-0000-000000000001",
     title_vi: "Tuần Lễ Build PC Rinh Ngay Quà Khủng",
     title_en: "PC Builder Week — Exclusive Gear Gifts",
     subtitle_vi: "Tặng kèm gói vệ sinh máy trọn đời + Lót chuột Gaming cỡ lớn khi ráp bộ PC từ 15 triệu.",
@@ -161,7 +161,7 @@ export const DEFAULT_EVENT_BANNERS: EventBanner[] = [
     position: "middle_carousel",
   },
   {
-    id: "banner-mid-2",
+    id: "b0000002-0000-0000-0000-000000000002",
     title_vi: "Ngày Hội Nâng Cấp SSD NVMe Gen 5 Siêu Tốc",
     title_en: "NVMe Gen 5 Storage Upgrade Fest",
     subtitle_vi: "Tốc độ đọc ghi lên tới 14,000 MB/s, giảm trực tiếp 15% cho khách nâng cấp cấu hình.",
@@ -174,7 +174,7 @@ export const DEFAULT_EVENT_BANNERS: EventBanner[] = [
     position: "middle_carousel",
   },
   {
-    id: "banner-mid-3",
+    id: "b0000002-0000-0000-0000-000000000003",
     title_vi: "Học Sinh & Sinh Viên — Nhận Ngay Voucher 500.000₫",
     title_en: "Student Tech Grant — 500k VND Voucher",
     subtitle_vi: "Áp dụng cho mọi đơn hàng PC đồ họa, lập trình và học tập trực tuyến.",
@@ -187,7 +187,7 @@ export const DEFAULT_EVENT_BANNERS: EventBanner[] = [
     position: "middle_carousel",
   },
   {
-    id: "banner-mid-4",
+    id: "b0000002-0000-0000-0000-000000000004",
     title_vi: "Bảo Trì & Vệ Sinh Máy Định Kỳ Miễn Phí",
     title_en: "Free Periodic Maintenance & Deep Cleaning",
     subtitle_vi: "Kiểm tra nhiệt độ keo tản nhiệt gốm cao cấp và tối ưu luồng gió case.",
@@ -202,7 +202,7 @@ export const DEFAULT_EVENT_BANNERS: EventBanner[] = [
 
   // 3. DUAL FLANK SIDE BANNERS (Banner dọc 2 cạnh sườn màn hình)
   {
-    id: "banner-side-left",
+    id: "b0000003-0000-0000-0000-000000000001",
     title_vi: "Build PC Nhận Quà",
     title_en: "Build PC Special Gift",
     subtitle_vi: "Tặng gear cao cấp",
@@ -215,7 +215,7 @@ export const DEFAULT_EVENT_BANNERS: EventBanner[] = [
     position: "side_left",
   },
   {
-    id: "banner-side-right",
+    id: "b0000003-0000-0000-0000-000000000002",
     title_vi: "Hỏa Tốc Hà Nội 2H",
     title_en: "Hanoi Express 2H",
     subtitle_vi: "Giao ngay tận nơi",
