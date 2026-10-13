@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getServiceSupabase } from "@/shared/db/supabase";
 import { requireAdmin } from "@/shared/security/adminAuth";
 import { EventBanner } from "@/shared/types";
@@ -11,7 +12,7 @@ export async function GET(req: NextRequest) {
     }
 
     const db = getServiceSupabase();
-    const { data, error } = await db
+    let { data, error } = await db
       .from("banners")
       .select("*")
       .order("display_order", { ascending: true });
@@ -19,6 +20,27 @@ export async function GET(req: NextRequest) {
     if (error) {
       console.error("GET /api/admin/banners error:", error);
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    }
+
+    // Auto-seed default banners into Supabase if table is currently empty
+    if (!data || data.length === 0) {
+      const { DEFAULT_EVENT_BANNERS } = await import("@/modules/admin/service");
+      if (DEFAULT_EVENT_BANNERS && DEFAULT_EVENT_BANNERS.length > 0) {
+        const seedPayload = DEFAULT_EVENT_BANNERS.map((b) => ({
+          ...b,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }));
+        const { data: seeded, error: seedErr } = await db
+          .from("banners")
+          .upsert(seedPayload)
+          .select()
+          .order("display_order", { ascending: true });
+
+        if (!seedErr && seeded && seeded.length > 0) {
+          data = seeded;
+        }
+      }
     }
 
     return NextResponse.json({ success: true, banners: (data || []) as EventBanner[] });
@@ -72,6 +94,8 @@ export async function POST(req: NextRequest) {
       display_order: typeof display_order === "number" ? display_order : 0,
       is_active: is_active ?? true,
       position: validPosition,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
 
     const { data, error } = await db
@@ -83,6 +107,12 @@ export async function POST(req: NextRequest) {
     if (error) {
       console.error("POST /api/admin/banners error:", error);
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    }
+
+    try {
+      revalidatePath("/[locale]", "page");
+    } catch (revErr) {
+      console.warn("Revalidate path notice:", revErr);
     }
 
     return NextResponse.json({ success: true, banner: data as EventBanner });
@@ -112,19 +142,65 @@ export async function PUT(req: NextRequest) {
     }
 
     const db = getServiceSupabase();
+    const validUpdates = {
+      ...updates,
+      updated_at: new Date().toISOString(),
+    };
+
+    // Try update first with maybeSingle to prevent 406 when not found
     const { data, error } = await db
       .from("banners")
-      .update(updates)
+      .update(validUpdates)
       .eq("id", id)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error("PUT /api/admin/banners error:", error);
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, banner: data as EventBanner });
+    let resultBanner = data;
+    // If banner was a default preset not yet in database, upsert it
+    if (!resultBanner) {
+      const upsertPayload = {
+        id,
+        title_vi: (updates.title_vi as string) || "Banner Sự Kiện",
+        title_en: (updates.title_en as string) || (updates.title_vi as string) || "Event Banner",
+        subtitle_vi: (updates.subtitle_vi as string) || "",
+        subtitle_en: (updates.subtitle_en as string) || "",
+        tag: (updates.tag as string) || "SỰ KIỆN",
+        image_url:
+          (updates.image_url as string) ||
+          "https://images.unsplash.com/photo-1587202372634-32705e3bf49c?auto=format&fit=crop&w=1200&q=80",
+        target_url: (updates.target_url as string) || "/danh-muc",
+        display_order: typeof updates.display_order === "number" ? updates.display_order : 1,
+        is_active: updates.is_active ?? true,
+        position: updates.position || "hero",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const { data: upsertData, error: upsertErr } = await db
+        .from("banners")
+        .upsert([upsertPayload])
+        .select()
+        .single();
+
+      if (upsertErr) {
+        console.error("PUT /api/admin/banners upsert error:", upsertErr);
+        return NextResponse.json({ success: false, error: upsertErr.message }, { status: 500 });
+      }
+      resultBanner = upsertData;
+    }
+
+    try {
+      revalidatePath("/[locale]", "page");
+    } catch (revErr) {
+      console.warn("Revalidate path notice:", revErr);
+    }
+
+    return NextResponse.json({ success: true, banner: resultBanner as EventBanner });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Lỗi cập nhật poster sự kiện.";
     return NextResponse.json({ success: false, error: msg }, { status: 500 });
@@ -151,6 +227,12 @@ export async function DELETE(req: NextRequest) {
     if (error) {
       console.error("DELETE /api/admin/banners error:", error);
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    }
+
+    try {
+      revalidatePath("/[locale]", "page");
+    } catch (revErr) {
+      console.warn("Revalidate path notice:", revErr);
     }
 
     return NextResponse.json({ success: true, message: "Đã xóa poster thành công." });
