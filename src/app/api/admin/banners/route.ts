@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     }
 
     const db = getServiceSupabase();
-    let { data, error } = await db
+    const { data: initialData, error } = await db
       .from("banners")
       .select("*")
       .order("display_order", { ascending: true });
@@ -21,6 +21,8 @@ export async function GET(req: NextRequest) {
       console.error("GET /api/admin/banners error:", error);
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
+
+    let data = initialData;
 
     // Auto-seed default banners into Supabase if table is currently empty
     if (!data || data.length === 0) {
