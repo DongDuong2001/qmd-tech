@@ -1,3 +1,13 @@
+## [1.14.1](https://github.com/DongDuong2001/qmd-tech/compare/v1.14.0...v1.14.1) (2026-10-13)
+
+
+### Bug Fixes
+
+* **admin:** update default banner ids to standard deterministic uuids ([978e1d8](https://github.com/DongDuong2001/qmd-tech/commit/978e1d84f0357d0e28e8591d09b962b62e877447))
+* **api:** declare validPosition constant in banners put handler ([7b363a7](https://github.com/DongDuong2001/qmd-tech/commit/7b363a7d5d0de9037a6e8b8e6aefe6dcbf0507bd))
+* **api:** guard uuid syntax and fallback on prebuilt deals put and delete ([94137f9](https://github.com/DongDuong2001/qmd-tech/commit/94137f9b0c2fa9b1bed0fd5376c0465d5c69a9f4))
+* **api:** map banner slug to uuid and prevent postgres 500 error on update ([9424a9c](https://github.com/DongDuong2001/qmd-tech/commit/9424a9c50c2058d598e0532a4dc0229cf2497c9d))
+
 # [1.14.0](https://github.com/DongDuong2001/qmd-tech/compare/v1.13.0...v1.14.0) (2026-10-13)
 
 
