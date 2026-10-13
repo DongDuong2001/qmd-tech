@@ -4,6 +4,8 @@ import { getServiceSupabase } from "@/shared/db/supabase";
 import { requireAdmin } from "@/shared/security/adminAuth";
 import { PrebuiltDeal } from "@/shared/types";
 
+export const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function GET(req: NextRequest) {
   try {
     const auth = await requireAdmin(req);
@@ -155,58 +157,91 @@ export async function PUT(req: NextRequest) {
         : null;
     }
 
-    // Try update first
-    const { data, error } = await db
-      .from("prebuilt_deals")
-      .update(validUpdates)
-      .eq("id", id)
-      .select()
-      .maybeSingle();
+    let targetId = UUID_REGEX.test(id) ? id : null;
+    let resultDeal: PrebuiltDeal | null = null;
 
-    if (error) {
-      console.error("PUT /api/admin/deals update error:", error);
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    if (targetId) {
+      // Try update first with valid UUID
+      const { data, error } = await db
+        .from("prebuilt_deals")
+        .update(validUpdates)
+        .eq("id", targetId)
+        .select()
+        .maybeSingle();
+
+      if (error) {
+        console.error("PUT /api/admin/deals update error:", error);
+        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+      }
+
+      resultDeal = data as PrebuiltDeal | null;
     }
 
-    // If deal doesn't exist yet in Supabase (e.g. from local ID), upsert it
-    let resultDeal = data;
+    // If deal doesn't exist yet in Supabase or targetId wasn't a valid UUID
     if (!resultDeal) {
-      const upsertPayload = {
-        id,
-        name_vi: (updates.name_vi as string) || "Cấu hình PC Gaming",
-        name_en: (updates.name_en as string) || (updates.name_vi as string) || "Gaming PC Build",
-        code: (updates.code as string) || `QMD-${Date.now().toString().slice(-6)}`,
-        price_vnd: Number(updates.price_vnd) || 0,
-        original_price_vnd: updates.original_price_vnd ? Number(updates.original_price_vnd) : null,
-        image_url:
-          (updates.image_url as string) ||
-          "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?auto=format&fit=crop&w=800&q=80",
-        badge: (updates.badge as string) || "DEAL HOT",
-        cpu: (updates.cpu as string) || "Intel Core i5 / AMD Ryzen 5",
-        vga: (updates.vga as string) || "NVIDIA RTX 4060",
-        ram: (updates.ram as string) || "16GB DDR5",
-        ssd: (updates.ssd as string) || "500GB NVMe",
-        psu: (updates.psu as string) || "650W Bronze",
-        mainboard: (updates.mainboard as string) || "B760 / B650",
-        case_name: (updates.case_name as string) || "Gaming RGB Case",
-        display_order: Number(updates.display_order) || 1,
-        is_featured: updates.is_featured ?? true,
-        is_active: updates.is_active ?? true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
+      if (!targetId && updates.code) {
+        const { data: byCode } = await db
+          .from("prebuilt_deals")
+          .select("id")
+          .eq("code", String(updates.code).trim())
+          .maybeSingle();
 
-      const { data: upsertData, error: upsertErr } = await db
-        .from("prebuilt_deals")
-        .upsert([upsertPayload])
-        .select()
-        .single();
+        if (byCode?.id) {
+          targetId = byCode.id;
+          const { data: updated, error: updateErr } = await db
+            .from("prebuilt_deals")
+            .update(validUpdates)
+            .eq("id", targetId)
+            .select()
+            .single();
 
-      if (upsertErr) {
-        console.error("PUT /api/admin/deals upsert error:", upsertErr);
-        return NextResponse.json({ success: false, error: upsertErr.message }, { status: 500 });
+          if (updateErr) {
+            console.error("PUT /api/admin/deals update by code error:", updateErr);
+            return NextResponse.json({ success: false, error: updateErr.message }, { status: 500 });
+          }
+          resultDeal = updated as PrebuiltDeal;
+        }
       }
-      resultDeal = upsertData;
+
+      if (!resultDeal) {
+        const finalId = targetId || undefined;
+        const upsertPayload = {
+          ...(finalId ? { id: finalId } : {}),
+          name_vi: (updates.name_vi as string) || "Cấu hình PC Gaming",
+          name_en: (updates.name_en as string) || (updates.name_vi as string) || "Gaming PC Build",
+          code: (updates.code as string) || `QMD-${Date.now().toString().slice(-6)}`,
+          price_vnd: Number(updates.price_vnd) || 0,
+          original_price_vnd: updates.original_price_vnd ? Number(updates.original_price_vnd) : null,
+          image_url:
+            (updates.image_url as string) ||
+            "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?auto=format&fit=crop&w=800&q=80",
+          badge: (updates.badge as string) || "DEAL HOT",
+          cpu: (updates.cpu as string) || "Intel Core i5 / AMD Ryzen 5",
+          vga: (updates.vga as string) || "NVIDIA RTX 4060",
+          ram: (updates.ram as string) || "16GB DDR5",
+          ssd: (updates.ssd as string) || "500GB NVMe",
+          psu: (updates.psu as string) || "650W Bronze",
+          mainboard: (updates.mainboard as string) || "B760 / B650",
+          case_name: (updates.case_name as string) || "Gaming RGB Case",
+          display_order: Number(updates.display_order) || 1,
+          is_featured: updates.is_featured ?? true,
+          is_active: updates.is_active ?? true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+
+        const { data: upsertData, error: upsertErr } = await db
+          .from("prebuilt_deals")
+          .upsert([upsertPayload])
+          .select()
+          .single();
+
+        if (upsertErr) {
+          console.error("PUT /api/admin/deals upsert error:", upsertErr);
+          return NextResponse.json({ success: false, error: upsertErr.message }, { status: 500 });
+        }
+        resultDeal = upsertData as PrebuiltDeal;
+      }
     }
 
     try {
@@ -237,6 +272,10 @@ export async function DELETE(req: NextRequest) {
         { success: false, error: "Thiếu ID cấu hình PC cần xóa." },
         { status: 400 }
       );
+    }
+
+    if (!UUID_REGEX.test(id)) {
+      return NextResponse.json({ success: true, message: "Đã xóa cấu hình PC thành công." });
     }
 
     const db = getServiceSupabase();
