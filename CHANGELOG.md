@@ -1,3 +1,30 @@
+# [1.14.0](https://github.com/DongDuong2001/qmd-tech/compare/v1.13.0...v1.14.0) (2026-10-13)
+
+
+### Bug Fixes
+
+* **admin:** route products, banners, and deals through secure api routes and eliminate 406 fallback ([bdd1c94](https://github.com/DongDuong2001/qmd-tech/commit/bdd1c94d814c80a6a4a0edc086ab4b2df3b112d4))
+* **api:** prevent 406 on banner update, add auto-seeding, and cache revalidation ([ff7f0b0](https://github.com/DongDuong2001/qmd-tech/commit/ff7f0b0296cbf75520c15ca15aeec6efb7e19c12))
+* **api:** resolve category uuid, prevent 406 on update, and revalidate storefront cache ([3bb4cab](https://github.com/DongDuong2001/qmd-tech/commit/3bb4cabac35ad74423b7991daa081b145588e2f5))
+* **api:** resolve prefer-const lint error in banners route ([0b9fb5f](https://github.com/DongDuong2001/qmd-tech/commit/0b9fb5f559cca164f7f3497cbddb21824f982a60))
+* **home:** enforce force-dynamic rendering to display fresh products and banners ([5cc0e62](https://github.com/DongDuong2001/qmd-tech/commit/5cc0e62f4421f706c8af40d1c4e1c20ba8a05376))
+
+
+### Features
+
+* **api:** add admin prebuilt deals route with rbac and cache revalidation ([b61a1ce](https://github.com/DongDuong2001/qmd-tech/commit/b61a1ce6a5d8f84d9b51ef49a163d1e513fe16d5))
+* **assets:** add 24-hour-support animated gif icon ([e641bbd](https://github.com/DongDuong2001/qmd-tech/commit/e641bbdd9a1e0062972e1685e0887c689578dffc))
+* **assets:** add premium-quality animated gif icon ([d5e01f3](https://github.com/DongDuong2001/qmd-tech/commit/d5e01f3ece6e1a29b95142a1184f181a812e8f46))
+* **assets:** add repair-tool animated gif alias ([552d190](https://github.com/DongDuong2001/qmd-tech/commit/552d190e24c49b50e18504bbcc9fd5063498cabf))
+* **assets:** add repair-tools animated gif icon ([9cc3474](https://github.com/DongDuong2001/qmd-tech/commit/9cc34743baa533be0ba8392600116d2f093cfe4d))
+* **header:** add wishlist counter badge and link to desktop and mobile navigation ([1214cfe](https://github.com/DongDuong2001/qmd-tech/commit/1214cfea1e52e12515a59c6db9d0b5656bfaeba9))
+* **home:** mount new animated icons for pc build, genuine warranty, and 24h hotline ([5962cbe](https://github.com/DongDuong2001/qmd-tech/commit/5962cbe654909b6babe5a0187131acc59b4794f1))
+* **layout:** wrap root locale layout with WishlistProvider ([9e3b26f](https://github.com/DongDuong2001/qmd-tech/commit/9e3b26f0bfe9b2ec9c3d46f106a7a7c44f495582))
+* **types:** add wishlist and product comparison interfaces ([5ea93ae](https://github.com/DongDuong2001/qmd-tech/commit/5ea93ae57227fb801412bf826aa98bd03c259142))
+* **wishlist:** add wishlist context provider with local storage persistence ([49f7296](https://github.com/DongDuong2001/qmd-tech/commit/49f72969b435beafe986b9b8a4f60cddeff177f0))
+* **wishlist:** add wishlist route page with metadata and catalog prefetching ([b06d9ab](https://github.com/DongDuong2001/qmd-tech/commit/b06d9aba34da4a743cec2468708d55fb45d01d16))
+* **wishlist:** add WishlistClient component for managing favorite products ([df6194f](https://github.com/DongDuong2001/qmd-tech/commit/df6194ffa8cb12f018e88cbda177efa344d0ab6e))
+
 # [1.13.0](https://github.com/DongDuong2001/qmd-tech/compare/v1.12.0...v1.13.0) (2026-09-22)
 
 
