@@ -164,7 +164,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
           {/* Animated GIF Icon: PC Building Tool */}
           <div className="relative h-10 w-10 sm:h-12 sm:w-12 lg:h-13 lg:w-13 shrink-0 overflow-hidden rounded-xl border border-[#BFDBFE] bg-white p-1 shadow-xs group-hover:scale-105 transition-transform">
             <Image
-              src="/animation-icon/pc-build.gif"
+              src="/animation-icon/repair-tools.gif"
               alt="Build PC Animation"
               fill
               unoptimized
@@ -198,7 +198,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
           {/* Animated GIF Icon: Guarantee Seal */}
           <div className="relative h-10 w-10 sm:h-12 sm:w-12 lg:h-13 lg:w-13 shrink-0 overflow-hidden rounded-xl border border-[#E2E8F0] bg-white p-1 shadow-xs group-hover:scale-105 transition-transform">
             <Image
-              src="/animation-icon/guarantee.gif"
+              src="/animation-icon/premium-quality.gif"
               alt="Guarantee Seal Animation"
               fill
               unoptimized
@@ -232,7 +232,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
           {/* Animated GIF Icon: Hotline Support */}
           <div className="relative h-10 w-10 sm:h-12 sm:w-12 lg:h-13 lg:w-13 shrink-0 overflow-hidden rounded-xl border border-[#99F6E4] bg-white p-1 shadow-xs group-hover:scale-105 transition-transform">
             <Image
-              src="/animation-icon/hotline.gif"
+              src="/animation-icon/24-hour-support.gif"
               alt="Hotline Support Animation"
               fill
               unoptimized

@@ -264,25 +264,16 @@ export class AdminService {
 
   async createProduct(input: CreateProductInput): Promise<Product | null> {
     if (typeof window !== "undefined") {
-      try {
-        const res = await fetch("/api/admin/products", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(input),
-        });
-        const json = await res.json();
-        if (json.success && json.product) {
-          return json.product as Product;
-        }
-        if (!json.success && json.error) {
-          throw new Error(json.error);
-        }
-      } catch (fetchErr: unknown) {
-        if (fetchErr instanceof Error && fetchErr.message && !fetchErr.message.includes("fetch")) {
-          throw fetchErr;
-        }
-        console.warn("AdminService.createProduct API fallback:", fetchErr);
+      const res = await fetch("/api/admin/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      });
+      const json = await res.json();
+      if (json.success && json.product) {
+        return json.product as Product;
       }
+      throw new Error(json.error || "Không thể tạo sản phẩm.");
     }
 
     const { data, error } = await supabase
@@ -316,19 +307,16 @@ export class AdminService {
 
   async updateProduct(id: string, updates: Partial<CreateProductInput>): Promise<Product | null> {
     if (typeof window !== "undefined") {
-      try {
-        const res = await fetch("/api/admin/products", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id, ...updates }),
-        });
-        const json = await res.json();
-        if (json.success && json.product) {
-          return json.product as Product;
-        }
-      } catch (fetchErr) {
-        console.warn("AdminService.updateProduct API notice:", fetchErr);
+      const res = await fetch("/api/admin/products", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, ...updates }),
+      });
+      const json = await res.json();
+      if (json.success && json.product) {
+        return json.product as Product;
       }
+      throw new Error(json.error || "Không thể cập nhật sản phẩm.");
     }
 
     const { data, error } = await supabase
@@ -346,17 +334,14 @@ export class AdminService {
 
   async deleteProduct(id: string): Promise<boolean> {
     if (typeof window !== "undefined") {
-      try {
-        const res = await fetch(`/api/admin/products?id=${encodeURIComponent(id)}`, {
-          method: "DELETE",
-        });
-        const json = await res.json();
-        if (json.success) {
-          return true;
-        }
-      } catch (fetchErr) {
-        console.warn("AdminService.deleteProduct API notice:", fetchErr);
+      const res = await fetch(`/api/admin/products?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      const json = await res.json();
+      if (json.success) {
+        return true;
       }
+      throw new Error(json.error || "Không thể xóa sản phẩm.");
     }
 
     const { error } = await supabase.from("products").delete().eq("id", id);
@@ -709,20 +694,17 @@ export class AdminService {
 
   async createBanner(input: CreateBannerInput): Promise<EventBanner> {
     if (typeof window !== "undefined") {
-      try {
-        const res = await fetch("/api/admin/banners", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(input),
-        });
-        const json = await res.json();
-        if (json.success && json.banner) {
-          this.localBanners.push(json.banner as EventBanner);
-          return json.banner as EventBanner;
-        }
-      } catch (err) {
-        console.warn("AdminService.createBanner fetch notice:", err);
+      const res = await fetch("/api/admin/banners", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      });
+      const json = await res.json();
+      if (json.success && json.banner) {
+        this.localBanners.push(json.banner as EventBanner);
+        return json.banner as EventBanner;
       }
+      throw new Error(json.error || "Không thể tạo poster sự kiện.");
     }
 
     const newBanner: EventBanner = {
@@ -740,84 +722,61 @@ export class AdminService {
       created_at: new Date().toISOString(),
     };
 
-    try {
-      const { data, error } = await supabase
-        .from("banners")
-        .insert([newBanner])
-        .select()
-        .single();
-      if (!error && data) {
-        return data as EventBanner;
-      }
-    } catch {
-      // local
+    const { data, error } = await supabase
+      .from("banners")
+      .insert([newBanner])
+      .select()
+      .single();
+    if (error) {
+      throw error;
     }
-
-    this.localBanners.push(newBanner);
-    return newBanner;
+    return data as EventBanner;
   }
 
   async updateBanner(id: string, updates: Partial<CreateBannerInput>): Promise<EventBanner | null> {
     if (typeof window !== "undefined") {
-      try {
-        const res = await fetch("/api/admin/banners", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id, ...updates }),
-        });
-        const json = await res.json();
-        if (json.success && json.banner) {
-          const idx = this.localBanners.findIndex((b) => b.id === id);
-          if (idx !== -1) this.localBanners[idx] = json.banner as EventBanner;
-          return json.banner as EventBanner;
-        }
-      } catch (err) {
-        console.warn("AdminService.updateBanner fetch notice:", err);
+      const res = await fetch("/api/admin/banners", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, ...updates }),
+      });
+      const json = await res.json();
+      if (json.success && json.banner) {
+        const idx = this.localBanners.findIndex((b) => b.id === id);
+        if (idx !== -1) this.localBanners[idx] = json.banner as EventBanner;
+        return json.banner as EventBanner;
       }
+      throw new Error(json.error || "Không thể cập nhật poster sự kiện.");
     }
 
-    try {
-      const { data, error } = await supabase
-        .from("banners")
-        .update(updates)
-        .eq("id", id)
-        .select()
-        .single();
-      if (!error && data) {
-        return data as EventBanner;
-      }
-    } catch {
-      // local
+    const { data, error } = await supabase
+      .from("banners")
+      .update(updates)
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) {
+      throw error;
     }
-
-    const idx = this.localBanners.findIndex((b) => b.id === id);
-    if (idx !== -1) {
-      this.localBanners[idx] = { ...this.localBanners[idx], ...updates };
-      return this.localBanners[idx];
-    }
-    return null;
+    return data as EventBanner;
   }
 
   async deleteBanner(id: string): Promise<boolean> {
     if (typeof window !== "undefined") {
-      try {
-        const res = await fetch(`/api/admin/banners?id=${encodeURIComponent(id)}`, {
-          method: "DELETE",
-        });
-        const json = await res.json();
-        if (json.success) {
-          this.localBanners = this.localBanners.filter((b) => b.id !== id);
-          return true;
-        }
-      } catch (err) {
-        console.warn("AdminService.deleteBanner fetch notice:", err);
+      const res = await fetch(`/api/admin/banners?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      const json = await res.json();
+      if (json.success) {
+        this.localBanners = this.localBanners.filter((b) => b.id !== id);
+        return true;
       }
+      throw new Error(json.error || "Không thể xóa poster sự kiện.");
     }
 
-    try {
-      await supabase.from("banners").delete().eq("id", id);
-    } catch {
-      // ignore
+    const { error } = await supabase.from("banners").delete().eq("id", id);
+    if (error) {
+      throw error;
     }
     this.localBanners = this.localBanners.filter((b) => b.id !== id);
     return true;
@@ -825,6 +784,20 @@ export class AdminService {
 
   // ===================== PREBUILT DEALS =====================
   async getPrebuiltDeals(): Promise<PrebuiltDeal[]> {
+    if (typeof window !== "undefined") {
+      try {
+        const res = await fetch("/api/admin/deals");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.deals) && json.deals.length > 0) {
+            return json.deals as PrebuiltDeal[];
+          }
+        }
+      } catch (err) {
+        console.warn("AdminService.getPrebuiltDeals fetch notice:", err);
+      }
+    }
+
     try {
       const { data, error } = await supabase
         .from("prebuilt_deals")
@@ -841,6 +814,20 @@ export class AdminService {
   }
 
   async createPrebuiltDeal(input: CreatePrebuiltDealInput): Promise<PrebuiltDeal> {
+    if (typeof window !== "undefined") {
+      const res = await fetch("/api/admin/deals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      });
+      const json = await res.json();
+      if (json.success && json.deal) {
+        this.localDeals.push(json.deal as PrebuiltDeal);
+        return json.deal as PrebuiltDeal;
+      }
+      throw new Error(json.error || "Không thể tạo cấu hình PC ráp sẵn.");
+    }
+
     const newDeal: PrebuiltDeal = {
       id: `deal-${Date.now()}`,
       name_vi: input.name_vi,
@@ -864,57 +851,82 @@ export class AdminService {
       created_at: new Date().toISOString(),
     };
 
-    try {
-      const { data, error } = await supabase
-        .from("prebuilt_deals")
-        .insert([newDeal])
-        .select()
-        .single();
-      if (!error && data) {
-        return data as PrebuiltDeal;
-      }
-    } catch {
-      // local
+    const { data, error } = await supabase
+      .from("prebuilt_deals")
+      .insert([newDeal])
+      .select()
+      .single();
+    if (error) {
+      throw error;
     }
-
-    this.localDeals.push(newDeal);
-    return newDeal;
+    return data as PrebuiltDeal;
   }
 
   async updatePrebuiltDeal(id: string, updates: Partial<CreatePrebuiltDealInput>): Promise<PrebuiltDeal | null> {
-    try {
-      const { data, error } = await supabase
-        .from("prebuilt_deals")
-        .update(updates)
-        .eq("id", id)
-        .select()
-        .single();
-      if (!error && data) {
-        return data as PrebuiltDeal;
+    if (typeof window !== "undefined") {
+      const res = await fetch("/api/admin/deals", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, ...updates }),
+      });
+      const json = await res.json();
+      if (json.success && json.deal) {
+        const idx = this.localDeals.findIndex((d) => d.id === id);
+        if (idx !== -1) this.localDeals[idx] = json.deal as PrebuiltDeal;
+        return json.deal as PrebuiltDeal;
       }
-    } catch {
-      // local
+      throw new Error(json.error || "Không thể cập nhật cấu hình PC ráp sẵn.");
     }
 
-    const idx = this.localDeals.findIndex((d) => d.id === id);
-    if (idx !== -1) {
-      this.localDeals[idx] = { ...this.localDeals[idx], ...updates };
-      return this.localDeals[idx];
+    const { data, error } = await supabase
+      .from("prebuilt_deals")
+      .update(updates)
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) {
+      throw error;
     }
-    return null;
+    return data as PrebuiltDeal;
   }
 
   async deletePrebuiltDeal(id: string): Promise<boolean> {
-    try {
-      await supabase.from("prebuilt_deals").delete().eq("id", id);
-    } catch {
-      // ignore
+    if (typeof window !== "undefined") {
+      const res = await fetch(`/api/admin/deals?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      const json = await res.json();
+      if (json.success) {
+        this.localDeals = this.localDeals.filter((d) => d.id !== id);
+        return true;
+      }
+      throw new Error(json.error || "Không thể xóa cấu hình PC ráp sẵn.");
+    }
+
+    const { error } = await supabase.from("prebuilt_deals").delete().eq("id", id);
+    if (error) {
+      throw error;
     }
     this.localDeals = this.localDeals.filter((d) => d.id !== id);
     return true;
   }
 
   async reorderPrebuiltDeals(dealIdsInOrder: string[]): Promise<boolean> {
+    if (typeof window !== "undefined") {
+      try {
+        for (let i = 0; i < dealIdsInOrder.length; i++) {
+          await fetch("/api/admin/deals", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: dealIdsInOrder[i], display_order: i + 1 }),
+          });
+        }
+        return true;
+      } catch (err) {
+        console.warn("reorderPrebuiltDeals API notice:", err);
+      }
+    }
+
     try {
       for (let i = 0; i < dealIdsInOrder.length; i++) {
         await supabase

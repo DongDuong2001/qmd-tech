@@ -1,10 +1,53 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getServiceSupabase } from "@/shared/db/supabase";
 import { requireAdmin } from "@/shared/security/adminAuth";
 import { Product } from "@/shared/types";
 import { slugifyVietnamese } from "@/shared/lib/sanitize";
 import { validateAndNormalizeSpecs } from "@/modules/catalog/specRegistry";
 import { DEFAULT_HARDWARE_CATEGORIES } from "@/modules/admin/service";
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+async function resolveValidCategoryUuid(
+  db: ReturnType<typeof getServiceSupabase>,
+  categoryIdOrSlug?: string
+): Promise<string> {
+  if (categoryIdOrSlug && UUID_REGEX.test(categoryIdOrSlug)) {
+    return categoryIdOrSlug;
+  }
+
+  let slug = (categoryIdOrSlug || "cpu").toLowerCase().replace(/^cat-/, "");
+  if (slug === "mainboard") slug = "motherboard";
+  if (slug === "vga") slug = "gpu";
+  if (slug === "ssd") slug = "storage";
+
+  const { data } = await db
+    .from("categories")
+    .select("id")
+    .or(`slug.eq.${slug},slug.eq.${categoryIdOrSlug}`)
+    .limit(1)
+    .maybeSingle();
+
+  if (data?.id) return data.id;
+
+  const { data: firstCat } = await db.from("categories").select("id").limit(1).maybeSingle();
+  return firstCat?.id || "c0000001-0000-0000-0000-000000000001";
+}
+
+function revalidateProductPaths(slug?: string) {
+  try {
+    revalidatePath("/[locale]", "page");
+    revalidatePath("/[locale]/danh-muc", "page");
+    revalidatePath("/[locale]/danh-muc/[category]", "page");
+    revalidatePath("/[locale]/build-pc", "page");
+    if (slug) {
+      revalidatePath(`/[locale]/san-pham/${slug}`, "page");
+    }
+  } catch (err) {
+    console.warn("revalidateProductPaths notice:", err);
+  }
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -110,13 +153,16 @@ export async function POST(req: NextRequest) {
       finalSpecs = specValidation.normalizedSpecs;
     }
 
+    // Resolve category_id to valid Supabase category UUID
+    const finalCategoryUuid = await resolveValidCategoryUuid(db, category_id);
+
     const newProductPayload = {
       name_vi: name_vi.trim(),
       name_en: name_en?.trim() || name_vi.trim(),
       slug: cleanSlug,
       sku: sku.trim().toUpperCase(),
       brand: brand?.trim() || "Chính Hãng",
-      category_id: category_id || "cat-cpu",
+      category_id: finalCategoryUuid,
       price_vnd: parsedPrice,
       original_price_vnd: original_price_vnd ? Number(original_price_vnd) : null,
       price_usd: price_usd ? Number(price_usd) : Math.round(parsedPrice / 25400),
@@ -137,6 +183,8 @@ export async function POST(req: NextRequest) {
       console.error("POST /api/admin/products insert error:", error);
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
+
+    revalidateProductPaths(cleanSlug);
 
     return NextResponse.json({ success: true, product: data as Product });
   } catch (err: unknown) {
@@ -210,6 +258,10 @@ export async function PUT(req: NextRequest) {
       }
     }
 
+    if (updates.category_id) {
+      updates.category_id = await resolveValidCategoryUuid(db, updates.category_id);
+    }
+
     delete updates.category_slug;
 
     const { data, error } = await db
@@ -220,12 +272,21 @@ export async function PUT(req: NextRequest) {
       })
       .eq("id", id)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error("PUT /api/admin/products update error:", error);
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
+
+    if (!data) {
+      return NextResponse.json(
+        { success: false, error: "Không tìm thấy sản phẩm với ID cung cấp." },
+        { status: 404 }
+      );
+    }
+
+    revalidateProductPaths(data.slug);
 
     return NextResponse.json({ success: true, product: data as Product });
   } catch (err: unknown) {
@@ -249,12 +310,16 @@ export async function DELETE(req: NextRequest) {
     }
 
     const db = getServiceSupabase();
+    const { data: existingProd } = await db.from("products").select("slug").eq("id", id).maybeSingle();
+
     const { error } = await db.from("products").delete().eq("id", id);
 
     if (error) {
       console.error("DELETE /api/admin/products delete error:", error);
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
+
+    revalidateProductPaths(existingProd?.slug);
 
     return NextResponse.json({ success: true, message: "Đã xóa sản phẩm khỏi cơ sở dữ liệu thành công." });
   } catch (err: unknown) {

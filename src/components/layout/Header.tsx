@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Link, useRouter } from "@/i18n/routing";
+import { useWishlist } from "@/shared/context/WishlistContext";
 import { useCart } from "@/shared/context/CartContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +17,7 @@ import {
   XIcon,
   TruckIcon,
   Award01Icon,
+  HeartIcon,
   Tag01Icon,
   BookOpen01Icon,
 } from "@hugeicons/core-free-icons";
@@ -37,6 +39,8 @@ export function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const { cartCount } = useCart();
+  const { wishlist } = useWishlist();
+  const wishlistCount = wishlist.total;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isScrolled, setIsScrolled] = useState(false);
@@ -224,6 +228,20 @@ export function Header() {
               </Button>
             </Link>
 
+            {/* Wishlist Button with Count Badge */}
+            <Link
+              href="/yeu-thich"
+              className="relative flex items-center gap-1.5 rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-xs font-bold text-[#0F172A] hover:border-[#DC2626] hover:text-[#DC2626] transition-colors shadow-2xs"
+            >
+              <HugeIcon icon={HeartIcon} size={16} className="text-[#DC2626]" />
+              <span className="hidden md:inline font-bold">Yêu thích</span>
+              {wishlistCount > 0 && (
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#DC2626] px-1 text-[10px] font-black text-white shadow-xs">
+                  {wishlistCount}
+                </span>
+              )}
+            </Link>
+
             {/* Cart Button with Count Badge */}
             <Link
               href="/gio-hang"
@@ -355,6 +373,21 @@ export function Header() {
               {cartCount > 0 && (
                 <span className="rounded-full bg-[#0063FD] px-1.5 py-0.5 text-[10px] font-black text-white">
                   {cartCount}
+                </span>
+              )}
+            </Link>
+            <Link
+              href="/yeu-thich"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center justify-between rounded-lg bg-[#F8FAFC] border border-[#CBD5E1] p-2.5 text-[#0F172A]"
+            >
+              <div className="flex items-center gap-2">
+                <HugeIcon icon={HeartIcon} className="h-4 w-4 text-[#DC2626]" />
+                Yêu thích
+              </div>
+              {wishlistCount > 0 && (
+                <span className="rounded-full bg-[#DC2626] px-1.5 py-0.5 text-[10px] font-black text-white">
+                  {wishlistCount}
                 </span>
               )}
             </Link>
