@@ -8,6 +8,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { PagePreloader } from "@/components/common/PagePreloader";
+import { WishlistProvider } from "@/shared/context/WishlistContext";
 import { CartProvider } from "@/shared/context/CartContext";
 import "../globals.css";
 
@@ -126,13 +127,15 @@ export default async function LocaleLayout({
     >
       <body className="min-h-screen max-w-full overflow-x-hidden bg-[#F8FAFC] text-[#0F172A] antialiased flex flex-col justify-between selection:bg-[#0063FD] selection:text-white">
         <NextIntlClientProvider messages={messages}>
-          <CartProvider>
-            <PagePreloader />
-            <Header />
-            <main className="flex-1 w-full max-w-full overflow-x-hidden pb-16 sm:pb-0">{children}</main>
-            <Footer />
-            <MobileBottomNav />
-          </CartProvider>
+          <WishlistProvider>
+            <CartProvider>
+              <PagePreloader />
+              <Header />
+              <main className="flex-1 w-full max-w-full overflow-x-hidden pb-16 sm:pb-0">{children}</main>
+              <Footer />
+              <MobileBottomNav />
+            </CartProvider>
+          </WishlistProvider>
         </NextIntlClientProvider>
       </body>
     </html>
