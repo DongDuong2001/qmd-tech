@@ -181,6 +181,16 @@ export interface Review {
   is_verified_purchase?: boolean;
   created_at?: string;
 }
+export interface WishlistItem {
+  product_id: string;
+  product: Product;
+  added_at: string;
+}
+
+export interface Wishlist {
+  items: WishlistItem[];
+  total: number;
+}
 
 export type BannerPosition = "hero" | "middle_carousel" | "side_left" | "side_right";
 
@@ -197,6 +207,15 @@ export interface EventBanner {
   is_active: boolean;
   position?: BannerPosition;
   created_at?: string;
+}
+export interface CompareProduct {
+  product: Product;
+  specs: Record<string, unknown>;
+}
+
+export interface ProductComparison {
+  products: CompareProduct[];
+  differencesOnly: boolean;
 }
 
 export interface PrebuiltDeal {
