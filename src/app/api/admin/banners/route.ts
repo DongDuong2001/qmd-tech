@@ -158,8 +158,11 @@ export async function PUT(req: NextRequest) {
     }
 
     const allowedPositions = ["hero", "middle_carousel", "side_left", "side_right"];
-    if (updates.position && !allowedPositions.includes(updates.position)) {
-      updates.position = "hero";
+    const validPosition = updates.position && allowedPositions.includes(updates.position as string)
+      ? (updates.position as string)
+      : "hero";
+    if (updates.position) {
+      updates.position = validPosition;
     }
 
     const db = getServiceSupabase();
