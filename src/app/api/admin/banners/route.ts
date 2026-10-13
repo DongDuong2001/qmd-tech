@@ -4,6 +4,25 @@ import { getServiceSupabase } from "@/shared/db/supabase";
 import { requireAdmin } from "@/shared/security/adminAuth";
 import { EventBanner } from "@/shared/types";
 
+export const BANNER_SLUG_TO_UUID: Record<string, string> = {
+  "banner-hero-1": "b0000001-0000-0000-0000-000000000001",
+  "banner-hero-2": "b0000001-0000-0000-0000-000000000002",
+  "banner-mid-1": "b0000002-0000-0000-0000-000000000001",
+  "banner-mid-2": "b0000002-0000-0000-0000-000000000002",
+  "banner-mid-3": "b0000002-0000-0000-0000-000000000003",
+  "banner-mid-4": "b0000002-0000-0000-0000-000000000004",
+  "banner-side-left": "b0000003-0000-0000-0000-000000000001",
+  "banner-side-right": "b0000003-0000-0000-0000-000000000002",
+};
+
+export const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function resolveBannerUuid(id: string): string | null {
+  if (UUID_REGEX.test(id)) return id;
+  if (BANNER_SLUG_TO_UUID[id]) return BANNER_SLUG_TO_UUID[id];
+  return null;
+}
+
 export async function GET(req: NextRequest) {
   try {
     const auth = await requireAdmin(req);
@@ -149,51 +168,86 @@ export async function PUT(req: NextRequest) {
       updated_at: new Date().toISOString(),
     };
 
-    // Try update first with maybeSingle to prevent 406 when not found
-    const { data, error } = await db
-      .from("banners")
-      .update(validUpdates)
-      .eq("id", id)
-      .select()
-      .maybeSingle();
+    let targetId = resolveBannerUuid(id);
+    let resultBanner: EventBanner | null = null;
 
-    if (error) {
-      console.error("PUT /api/admin/banners error:", error);
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    if (targetId) {
+      // Try update first with valid UUID
+      const { data, error } = await db
+        .from("banners")
+        .update(validUpdates)
+        .eq("id", targetId)
+        .select()
+        .maybeSingle();
+
+      if (error) {
+        console.error("PUT /api/admin/banners update error:", error);
+        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+      }
+
+      resultBanner = data as EventBanner | null;
     }
 
-    let resultBanner = data;
-    // If banner was a default preset not yet in database, upsert it
+    // If banner was not found by targetId or targetId was not a mapped UUID
     if (!resultBanner) {
-      const upsertPayload = {
-        id,
-        title_vi: (updates.title_vi as string) || "Banner Sự Kiện",
-        title_en: (updates.title_en as string) || (updates.title_vi as string) || "Event Banner",
-        subtitle_vi: (updates.subtitle_vi as string) || "",
-        subtitle_en: (updates.subtitle_en as string) || "",
-        tag: (updates.tag as string) || "SỰ KIỆN",
-        image_url:
-          (updates.image_url as string) ||
-          "https://images.unsplash.com/photo-1587202372634-32705e3bf49c?auto=format&fit=crop&w=1200&q=80",
-        target_url: (updates.target_url as string) || "/danh-muc",
-        display_order: typeof updates.display_order === "number" ? updates.display_order : 1,
-        is_active: updates.is_active ?? true,
-        position: updates.position || "hero",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
+      if (!targetId) {
+        // Try finding existing banner by position and display_order
+        const { data: existing } = await db
+          .from("banners")
+          .select("id")
+          .eq("position", validPosition)
+          .eq("display_order", typeof updates.display_order === "number" ? updates.display_order : 1)
+          .maybeSingle();
 
-      const { data: upsertData, error: upsertErr } = await db
-        .from("banners")
-        .upsert([upsertPayload])
-        .select()
-        .single();
+        if (existing?.id) {
+          targetId = existing.id;
+          const { data: updatedData, error: updateErr } = await db
+            .from("banners")
+            .update(validUpdates)
+            .eq("id", targetId)
+            .select()
+            .single();
 
-      if (upsertErr) {
-        console.error("PUT /api/admin/banners upsert error:", upsertErr);
-        return NextResponse.json({ success: false, error: upsertErr.message }, { status: 500 });
+          if (updateErr) {
+            console.error("PUT /api/admin/banners existing update error:", updateErr);
+            return NextResponse.json({ success: false, error: updateErr.message }, { status: 500 });
+          }
+          resultBanner = updatedData as EventBanner;
+        }
       }
-      resultBanner = upsertData;
+
+      if (!resultBanner) {
+        const finalId = targetId || undefined;
+        const upsertPayload = {
+          ...(finalId ? { id: finalId } : {}),
+          title_vi: (updates.title_vi as string) || "Banner Sự Kiện",
+          title_en: (updates.title_en as string) || (updates.title_vi as string) || "Event Banner",
+          subtitle_vi: (updates.subtitle_vi as string) || "",
+          subtitle_en: (updates.subtitle_en as string) || "",
+          tag: (updates.tag as string) || "SỰ KIỆN",
+          image_url:
+            (updates.image_url as string) ||
+            "https://images.unsplash.com/photo-1587202372634-32705e3bf49c?auto=format&fit=crop&w=1200&q=80",
+          target_url: (updates.target_url as string) || "/danh-muc",
+          display_order: typeof updates.display_order === "number" ? updates.display_order : 1,
+          is_active: updates.is_active ?? true,
+          position: validPosition,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+
+        const { data: upsertData, error: upsertErr } = await db
+          .from("banners")
+          .upsert([upsertPayload])
+          .select()
+          .single();
+
+        if (upsertErr) {
+          console.error("PUT /api/admin/banners upsert error:", upsertErr);
+          return NextResponse.json({ success: false, error: upsertErr.message }, { status: 500 });
+        }
+        resultBanner = upsertData as EventBanner;
+      }
     }
 
     try {
@@ -223,8 +277,13 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Thiếu ID poster cần xóa." }, { status: 400 });
     }
 
+    const targetId = resolveBannerUuid(id);
+    if (!targetId) {
+      return NextResponse.json({ success: true, message: "Đã xóa poster thành công." });
+    }
+
     const db = getServiceSupabase();
-    const { error } = await db.from("banners").delete().eq("id", id);
+    const { error } = await db.from("banners").delete().eq("id", targetId);
 
     if (error) {
       console.error("DELETE /api/admin/banners error:", error);
